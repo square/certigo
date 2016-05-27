@@ -1,21 +1,40 @@
 package main
 
 import (
+	"os"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"strings"
 	"io/ioutil"
+	"golang.org/x/crypto/pkcs12"
 )
 
 func main() {
-	data, _ := ioutil.ReadFile("service2service.ca.pem")
-	block, data := pem.Decode(data)
-	for block != nil {
-		cert, _ := x509.ParseCertificates(block.Bytes)
-		displayCert(cert[0])
-		block, data = pem.Decode(data)
+	file := os.Args[1]
+
+	certs := getCerts(file)
+	for i := range certs {
+		displayCert(certs[i])
 	}
+}
+
+func getCerts(file string) []*x509.Certificate {
+	var certs []*x509.Certificate
+	data, _ := ioutil.ReadFile(file)
+	if strings.HasSuffix(file, "pem") {
+		block, data := pem.Decode(data)
+		for block != nil {
+			cert, _ := x509.ParseCertificates(block.Bytes)
+			certs = append(certs, cert[0])
+			block, data = pem.Decode(data)
+		}
+	} else if strings.HasSuffix(file, "p12") {
+		_, cert, _ := pkcs12.Decode(data, "password")
+		certs = append(certs, cert)
+	}
+	return certs
 }
 
 func displayCert(cert *x509.Certificate) {
