@@ -1,13 +1,14 @@
 package main
 
 import (
-	"os"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"strings"
 	"io/ioutil"
+	"os"
+	"strings"
+
 	"golang.org/x/crypto/pkcs12"
 )
 
