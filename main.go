@@ -7,35 +7,59 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"golang.org/x/crypto/pkcs12"
+	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+var (
+	app = kingpin.New("certigo", "A command line certificate examination utility.")
+
+	dump     = app.Command("dump", "Display information about a certificate.")
+	dumpFile = dump.Arg("file", "Certificate file to dump.").Required().String()
+	dumpType = dump.Flag("format", "Format of given input. If unspecified, certigo guesses based on file extension").Short('f').String()
 )
 
 func main() {
-	file := os.Args[1]
 
-	certs := getCerts(file)
-	for i := range certs {
-		displayCert(certs[i])
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	//Dump Certificate
+	case dump.FullCommand():
+		certs, err := getCerts(*dumpFile, *dumpType)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+		for _, cert := range certs {
+			displayCert(cert)
+		}
 	}
 }
 
-func getCerts(file string) []*x509.Certificate {
+func getCerts(file, format string) ([]*x509.Certificate, error) {
 	var certs []*x509.Certificate
 	data, _ := ioutil.ReadFile(file)
-	if strings.HasSuffix(file, "pem") {
+	switch format {
+	case "PEM":
 		block, data := pem.Decode(data)
 		for block != nil {
-			cert, _ := x509.ParseCertificates(block.Bytes)
+			cert, err := x509.ParseCertificates(block.Bytes)
+			if err != nil {
+				return nil, err
+			}
 			certs = append(certs, cert[0])
 			block, data = pem.Decode(data)
 		}
-	} else if strings.HasSuffix(file, "p12") {
-		_, cert, _ := pkcs12.Decode(data, "password")
+	case "PKCS12":
+		_, cert, err := pkcs12.Decode(data, "password")
+		if err != nil {
+			return nil, err
+		}
 		certs = append(certs, cert)
+	default:
+		return nil, fmt.Errorf("unknown type %s", format)
 	}
-	return certs
+	return certs, nil
 }
 
 func displayCert(cert *x509.Certificate) {
