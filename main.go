@@ -29,6 +29,9 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+/*
+ * Variables used to setup command line interface.
+ */
 var (
 	app = kingpin.New("certigo", "A command line certificate examination utility.")
 
@@ -38,10 +41,8 @@ var (
 )
 
 func main() {
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	//Dump Certificate
-	case dump.FullCommand():
+	case dump.FullCommand(): //Dump certificate
 		certs, err := getCerts(*dumpFile, *dumpType)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -53,6 +54,15 @@ func main() {
 	}
 }
 
+/*
+ * Arguments: file name and format
+ * Returns: Array of certificates contained in file
+ *
+ * Retrieves all certificates file given a format.
+ * If no foramt is specified, getCerts() guesses the format
+ * based on the file extension.
+ * If this doesn't work, it returns an error.
+ */
 func getCerts(file, format string) ([]*x509.Certificate, error) {
 	var certs []*x509.Certificate
 	data, _ := ioutil.ReadFile(file)
