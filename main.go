@@ -44,11 +44,11 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 	case "PEM":
 		block, data := pem.Decode(data)
 		for block != nil {
-			cert, err := x509.ParseCertificates(block.Bytes)
+			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, cert[0])
+			certs = append(certs, cert)
 			block, data = pem.Decode(data)
 		}
 	case "PKCS12":
@@ -60,11 +60,13 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 			return nil, err
 		}
 		for _, block := range blocks {
-			cert, err := x509.ParseCertificates(block.Bytes)
-			if err != nil {
-				return nil, err
+			if block.Type == "CERTIFICATE" {
+				cert, err := x509.ParseCertificate(block.Bytes)
+				if err != nil {
+					return nil, err
+				}
+				certs = append(certs, cert)
 			}
-			certs = append(certs, cert[0])
 		}
 	case "guess":
 		if strings.HasSuffix(file, "pem") {
