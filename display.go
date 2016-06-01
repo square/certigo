@@ -4,54 +4,51 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"os"
+	"strings"
+	"text/template"
 )
+
+var Layout = `Expiry Date: {{.NotAfter}}
+Algorithm Type: {{.SignatureAlgorithm}}
+Subject Info:
+	CommonName: {{.Subject.CommonName}}
+	Organization: {{.Subject.Organization}}
+	OrganizationalUnit: {{.Subject.OrganizationalUnit}}
+	Country: {{.Subject.Country}}
+	Locality: {{.Subject.Locality}}
+Issuer Info:
+	CommonName: {{.Issuer.CommonName}}
+	Organization: {{.Issuer.Organization}}
+	OrganizationalUnit: {{.Issuer.OrganizationalUnit}}
+	Country: {{.Issuer.Country}}
+	Locality: {{.Issuer.Locality}}
+Subject Key ID  : {{.SubjectKeyId | hexify}}
+Authority Key ID: {{.AuthorityKeyId | hexify}}
+Alternate DNS Names: {{.DNSNames}}
+Serial Number: {{.SerialNumber}}
+`
 
 func displayCert(cert *x509.Certificate) {
 
-	//Expiry Date
-	fmt.Println("Expiry Date:", cert.NotAfter)
-
 	//Algorithm
 	fmt.Println("Algorithm Type:", cert.SignatureAlgorithm)
+	funcMap := template.FuncMap{
+		"hexify": hexify,
+	}
+	t := template.New("Cert template").Funcs(funcMap)
+	t, _ = t.Parse(Layout)
+	t.Execute(os.Stdout, cert)
 
-	//Subject Info
-	fmt.Println("Subject Info:")
-	fmt.Println("	CommonName:", cert.Subject.CommonName)
-	fmt.Println("	Organization:", cert.Subject.Organization)
-	fmt.Println("	OrganizationalUnit:", cert.Subject.OrganizationalUnit)
-	fmt.Println("	Country:", cert.Subject.Country)
-	fmt.Println("	Locality:", cert.Subject.Locality)
+}
 
-	//Issuer Info
-	fmt.Println("Issuer Info:")
-	fmt.Println("	CommonName:", cert.Issuer.CommonName)
-	fmt.Println("	Organization:", cert.Issuer.Organization)
-	fmt.Println("	OrganizationalUnit:", cert.Issuer.OrganizationalUnit)
-	fmt.Println("	Country:", cert.Issuer.Country)
-	fmt.Println("	Locality:", cert.Issuer.Locality)
-
-	//Subject Key ID
-	fmt.Print("Subject Key ID: ")
-	for i := 0; i < len(cert.SubjectKeyId); i++ {
-		fmt.Print(hex.EncodeToString(cert.SubjectKeyId[i : i+1]))
-		if i < len(cert.SubjectKeyId)-1 {
-			fmt.Print(":")
+func hexify(arr []byte) string {
+	hexed := ""
+	for i := 0; i < len(arr); i++ {
+		hexed += strings.ToUpper(hex.EncodeToString(arr[i : i+1]))
+		if i < len(arr)-1 {
+			hexed += ":"
 		}
 	}
-
-	//Authority Key ID
-	fmt.Print("\nAuthority Key ID: ")
-	for i := 0; i < len(cert.AuthorityKeyId); i++ {
-		fmt.Print(hex.EncodeToString(cert.AuthorityKeyId[i : i+1]))
-		if i < len(cert.AuthorityKeyId)-1 {
-			fmt.Print(":")
-		}
-	}
-
-	//SANs, (alternate DNS Names)
-	fmt.Println("\nAlternate DNS Names:", cert.DNSNames)
-
-	//Serial Number
-	fmt.Println("Serial Number:", cert.SerialNumber)
-	fmt.Println("\n")
+	return hexed
 }
