@@ -30,9 +30,9 @@ import (
 /*
  * Template used to display certificate to standard output.
  */
-var Layout = `Enable Date: {{.NotBefore | enable}}`+
-`Expiry Date: {{.NotAfter | expire}}`+
-`Algorithm Type: {{.SignatureAlgorithm}}
+var Layout = `Enable Date: {{.NotBefore | enable}}` +
+	`Expiry Date: {{.NotAfter | expire}}` +
+	`Algorithm Type: {{.SignatureAlgorithm}}
 Subject Info:
 	CommonName: {{.Subject.CommonName}}
 	Organization: {{.Subject.Organization}}
