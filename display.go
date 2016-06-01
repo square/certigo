@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/x509"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"strings"
 	"text/template"
@@ -31,8 +30,6 @@ Serial Number: {{.SerialNumber}}
 
 func displayCert(cert *x509.Certificate) {
 
-	//Algorithm
-	fmt.Println("Algorithm Type:", cert.SignatureAlgorithm)
 	funcMap := template.FuncMap{
 		"hexify": hexify,
 	}
