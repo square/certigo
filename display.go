@@ -27,12 +27,9 @@ import (
 	"github.com/fatih/color"
 )
 
-/*
- * Template used to display certificate to standard output.
- */
-var Layout = `Enable Date: {{.NotBefore | enable}}` +
-	`Expiry Date: {{.NotAfter | expire}}` +
-	`Algorithm Type: {{.SignatureAlgorithm}}
+var Layout = `Enable Date: {{.NotBefore | certStart}}
+Expiry Date: {{.NotAfter | certEnd}}
+Algorithm Type: {{.SignatureAlgorithm}}
 Subject Info:
 	CommonName: {{.Subject.CommonName}}
 	Organization: {{.Subject.Organization}}
@@ -51,18 +48,14 @@ Alternate DNS Names: {{.DNSNames}}
 Serial Number: {{.SerialNumber}}
 `
 
-/*
- * Arguments: Certificate to display
- * Returns: N/A
- *
- * Function to display cert.
- * Initializes template and template functions, then executes template.
- */
+// displayCert takes in an x509 Certificate object and prints out relevant
+// information. Start and end dates are colored based on whether or not
+// the certificate is expired, not expired, or close to expiring.
 func displayCert(cert *x509.Certificate) {
 	funcMap := template.FuncMap{
-		"hexify": hexify,
-		"enable": enable,
-		"expire": expire,
+		"hexify":    hexify,
+		"certStart": certStart,
+		"certEnd":   certEnd,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(Layout)
@@ -70,59 +63,48 @@ func displayCert(cert *x509.Certificate) {
 
 }
 
-/*
- * Arguments: Start date for certificate
- * Returns: Empty string for the template
- *
- * Used to print in color the date cert becomes active.
- * Prints date in green if cert enabled at least a day ago.
- * Prints date in yellow if cert enabled within last day.
- * Prints date in red if cert not yet valid.
- */
-func enable(start time.Time) string {
+// certStart takes a given start time for the validity of
+// a certificate and returns that time colored properly
+// based on how close it is to expiry. If it's more than
+// a day after the certificate became valid the string will
+// be green. If it has been less than a day the string will
+// be yellow. If the certificate is not yet valid, the string
+// will be red.
+func certStart(start time.Time) string {
 	now := time.Now()
 	day, _ := time.ParseDuration("24h")
 	threshold := start.Add(day)
 	if now.After(threshold) {
-		color.Green(start.String())
+		return color.GreenString(start.String())
 	} else if now.After(start) {
-		color.Yellow(start.String())
+		return color.YellowString(start.String())
 	} else {
-		color.Red(start.String())
+		return color.RedString(start.String())
 	}
-	return ""
 }
 
-/*
- * Arguments: End date for certificate
- * Returns: Empty string for the template
- *
- * Used to print in color the date the cert expires.
- * Prints date in green if cert expires more than a month in the future.
- * Prints date in yellow if cert expires within a month.
- * Prints date in red if cert is expired.
- */
-func expire(end time.Time) string {
+// certEnd takes a given end time for the validity of
+// a certificate and returns that time colored properly
+// based on how close it is to expiry. If the certificate
+// is more than a month away from expiring it returns a
+// green string. If the certificate is less than a month
+// from expiry it returns a yellow string. If the certificate
+// is expired it returns a red string.
+func certEnd(end time.Time) string {
 	now := time.Now()
 	month, _ := time.ParseDuration("720h")
 	threshold := now.Add(month)
 	if threshold.Before(end) {
-		color.Green(end.String())
+		return color.GreenString(end.String())
 	} else if now.Before(end) {
-		color.Yellow(end.String())
+		return color.YellowString(end.String())
 	} else {
-		color.Red(end.String())
+		return color.RedString(end.String())
 	}
-	return ""
 }
 
-/*
- * Arguments: Byte array formatted key ID
- * Returns: String version of key ID
- *
- * Converts Subject Key ID and Authority Key ID from
- * byte arrays to a hex, colon separated format.
- */
+// hexify returns a colon separated, hexadecimal representation
+// of a given byte array.
 func hexify(arr []byte) string {
 	hexed := ""
 	for i := 0; i < len(arr); i++ {
