@@ -48,7 +48,7 @@ func main() {
 		for i, cert := range certs {
 			fmt.Println("CERTIFICATE", i+1)
 			displayCert(cert)
-			fmt.Println("\n")
+			fmt.Println()
 		}
 	}
 }
