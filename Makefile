@@ -7,6 +7,9 @@ depends:
 build:
 	go build .
 
+test:
+	go test -v `glide novendor`
+
 check:
-	go vet -v .
+	go vet -v `glide novendor`
 	!(gofmt -d $(SOURCE_FILES) | grep .)
