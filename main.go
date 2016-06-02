@@ -45,7 +45,8 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
-		for _, cert := range certs {
+		for i, cert := range certs {
+			fmt.Println("CERTIFICATE", i+1)
 			displayCert(cert)
 		}
 	}

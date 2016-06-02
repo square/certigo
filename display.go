@@ -47,6 +47,7 @@ Subject Key ID  : {{.SubjectKeyId | hexify}}
 Authority Key ID: {{.AuthorityKeyId | hexify}}
 Alternate DNS Names: {{.DNSNames}}
 Serial Number: {{.SerialNumber}}
+
 `
 
 // displayCert takes in an x509 Certificate object and prints out relevant
