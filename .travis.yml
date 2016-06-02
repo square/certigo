@@ -1,0 +1,16 @@
+---
+
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - go get -v ./...
+
+install:
+  - go build -v .
+
+before_script:
+  - go vet -v .               # run go vet to find suspicious constructs
+  - "! (gofmt -d . | grep .)" # ensure that all code is properly formatted
