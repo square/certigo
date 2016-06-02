@@ -17,6 +17,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/x509"
 	"encoding/hex"
 	"os"
@@ -106,12 +107,12 @@ func certEnd(end time.Time) string {
 // hexify returns a colon separated, hexadecimal representation
 // of a given byte array.
 func hexify(arr []byte) string {
-	hexed := ""
+	var hexed bytes.Buffer
 	for i := 0; i < len(arr); i++ {
-		hexed += strings.ToUpper(hex.EncodeToString(arr[i : i+1]))
+		hexed.WriteString(strings.ToUpper(hex.EncodeToString(arr[i : i+1])))
 		if i < len(arr)-1 {
-			hexed += ":"
+			hexed.WriteString(":")
 		}
 	}
-	return hexed
+	return hexed.String()
 }
