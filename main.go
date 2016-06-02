@@ -38,10 +38,8 @@ var (
 )
 
 func main() {
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	//Dump Certificate
-	case dump.FullCommand():
+	case dump.FullCommand(): //Dump certificate
 		certs, err := getCerts(*dumpFile, *dumpType)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -53,6 +51,11 @@ func main() {
 	}
 }
 
+// getCerts takes in a filename and format type and returns an
+// array of all the certificates found in that file. If no format
+// is specified for the file, getCerts guesses what format was used
+// based on the file extension used in the file name. If it can't
+// guess based on this it returns and error.
 func getCerts(file, format string) ([]*x509.Certificate, error) {
 	var certs []*x509.Certificate
 	data, _ := ioutil.ReadFile(file)
