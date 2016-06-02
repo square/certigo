@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/x509"
 	"encoding/hex"
+	"net"
 	"os"
 	"strings"
 	"text/template"
@@ -32,37 +33,85 @@ var layout = `Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
 Signature algorithm: {{.SignatureAlgorithm}}
 Subject Info:
-	CommonName: {{.Subject.CommonName}}
-	Organization: {{.Subject.Organization}}
-	OrganizationalUnit: {{.Subject.OrganizationalUnit}}
-	Country: {{.Subject.Country}}
-	Locality: {{.Subject.Locality}}
+	CommonName: {{.Subject.CommonName | formatEmptyString}}
+	Organization: {{.Subject.Organization | formatEmptyArray}}
+	OrganizationalUnit: {{.Subject.OrganizationalUnit | formatEmptyArray}}
+	Country: {{.Subject.Country | formatEmptyArray}}
+	Locality: {{.Subject.Locality | formatEmptyArray}}
 Issuer Info:
-	CommonName: {{.Issuer.CommonName}}
-	Organization: {{.Issuer.Organization}}
-	OrganizationalUnit: {{.Issuer.OrganizationalUnit}}
-	Country: {{.Issuer.Country}}
-	Locality: {{.Issuer.Locality}}
-Subject Key ID  : {{.SubjectKeyId | hexify}}
-Authority Key ID: {{.AuthorityKeyId | hexify}}
-Alternate DNS Names: {{.DNSNames}}
+	CommonName: {{.Issuer.CommonName | formatEmptyString}}
+	Organization: {{.Issuer.Organization | formatEmptyArray}}
+	OrganizationalUnit: {{.Issuer.OrganizationalUnit | formatEmptyArray}}
+	Country: {{.Issuer.Country | formatEmptyArray}}
+	Locality: {{.Issuer.Locality | formatEmptyArray}}
+Subject Key ID  : {{.SubjectKeyId | hexify | formatEmptyString}}
+Authority Key ID: {{.AuthorityKeyId | hexify | formatEmptyString}}
+Alternate DNS Names: {{.DNSNames | displayStringArray | formatEmptyString}}
+Alternate IP Addresses: {{.IPAddresses | displayIpArray | formatEmptyString}}
+Email Addresses: {{.EmailAddresses | displayStringArray | formatEmptyString}}
 Serial Number: {{.SerialNumber}}
-
 `
 
 // displayCert takes in an x509 Certificate object and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
 func displayCert(cert *x509.Certificate) {
+	cert.IPAddresses = append(cert.IPAddresses, net.ParseIP("74.125.19.99"))
 	funcMap := template.FuncMap{
-		"hexify":    hexify,
-		"certStart": certStart,
-		"certEnd":   certEnd,
+		"hexify":             hexify,
+		"certStart":          certStart,
+		"certEnd":            certEnd,
+		"displayStringArray": displayStringArray,
+		"displayIpArray":     displayIpArray,
+		"formatEmptyString":  formatEmptyString,
+		"formatEmptyArray":   formatEmptyArray,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
 	t.Execute(os.Stdout, cert)
 
+}
+
+// formatEmptyString returns N/A if the input is empty,
+// else it returns the string itself.
+func formatEmptyString(str string) string {
+	if str == "" {
+		return "N/A"
+	} else {
+		return str
+	}
+}
+
+// formatEmptyArray returns N/A if the input is empty,
+// else it returns the array itself.
+func formatEmptyArray(arr []string) []string {
+	if len(arr) == 0 {
+		return []string{"N/A"}
+	} else {
+		return arr
+	}
+}
+
+// displayStringArray formats a given array of strings
+// as a newline separated string to return.
+func displayStringArray(arr []string) string {
+	var str bytes.Buffer
+	for _, elem := range arr {
+		str.WriteString("\n        ")
+		str.WriteString(elem)
+	}
+	return str.String()
+}
+
+// displayIpArray formats a given array of ip addresses
+// as a newline separated string to return.
+func displayIpArray(arr []net.IP) string {
+	var str bytes.Buffer
+	for _, elem := range arr {
+		str.WriteString("\n        ")
+		str.WriteString(elem.String())
+	}
+	return str.String()
 }
 
 // certStart takes a given start time for the validity of
