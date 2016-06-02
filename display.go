@@ -27,9 +27,9 @@ import (
 	"github.com/fatih/color"
 )
 
-var Layout = `Enable Date: {{.NotBefore | certStart}}
-Expiry Date: {{.NotAfter | certEnd}}
-Algorithm Type: {{.SignatureAlgorithm}}
+var layout = `Not Before: {{.NotBefore | certStart}}
+Not After : {{.NotAfter | certEnd}}
+Signature algorithm: {{.SignatureAlgorithm}}
 Subject Info:
 	CommonName: {{.Subject.CommonName}}
 	Organization: {{.Subject.Organization}}
@@ -58,7 +58,7 @@ func displayCert(cert *x509.Certificate) {
 		"certEnd":   certEnd,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
-	t, _ = t.Parse(Layout)
+	t, _ = t.Parse(layout)
 	t.Execute(os.Stdout, cert)
 
 }
