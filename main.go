@@ -124,12 +124,21 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 		if err != nil {
 			return nil, err
 		}
-		for _, certName := range keyStore.ListCerts() {
-			cert, _ := keyStore.GetCert(certName)
+		for _, alias := range keyStore.ListCerts() {
+			cert, _ := keyStore.GetCert(alias)
 			if err != nil {
 				return nil, err
 			}
 			certs = append(certs, cert)
+		}
+		for _, alias := range keyStore.ListPrivateKeys() {
+			fmt.Print("Enter password for Alias [" + alias + "]: ")
+			password, _ := scanner.ReadString('\n')
+			_, certArr, err := keyStore.GetPrivateKeyAndCerts(alias, []byte(strings.TrimSuffix(password, "\n")))
+			if err != nil {
+				return nil, err
+			}
+			certs = append(certs, certArr...)
 		}
 	default:
 		return nil, fmt.Errorf("unknown file type: %s", format)
