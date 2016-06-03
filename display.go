@@ -31,23 +31,27 @@ import (
 var layout = `Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
 Signature algorithm: {{.SignatureAlgorithm}}
-Subject Info:
-	CommonName: {{.Subject.CommonName}}
-	Organization: {{.Subject.Organization}}
-	OrganizationalUnit: {{.Subject.OrganizationalUnit}}
-	Country: {{.Subject.Country}}
-	Locality: {{.Subject.Locality}}
-Issuer Info:
-	CommonName: {{.Issuer.CommonName}}
-	Organization: {{.Issuer.Organization}}
-	OrganizationalUnit: {{.Issuer.OrganizationalUnit}}
-	Country: {{.Issuer.Country}}
-	Locality: {{.Issuer.Locality}}
-Subject Key ID  : {{.SubjectKeyId | hexify}}
-Authority Key ID: {{.AuthorityKeyId | hexify}}
-Alternate DNS Names: {{.DNSNames}}
-Serial Number: {{.SerialNumber}}
-
+Subject Info: {{if .Subject.CommonName}}
+	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
+	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
+	OrganizationalUnit: {{.Subject.OrganizationalUnit}} {{end}} {{if .Subject.Country}}
+	Country: {{.Subject.Country}} {{end}} {{if .Subject.Locality}}
+	Locality: {{.Subject.Locality}} {{end}}
+Issuer Info: {{if .Issuer.CommonName}}
+	CommonName: {{.Issuer.CommonName}} {{end}} {{if .Issuer.Organization}}
+	Organization: {{.Issuer.Organization}} {{end}} {{if .Issuer.OrganizationalUnit}}
+	OrganizationalUnit: {{.Issuer.OrganizationalUnit}} {{end}} {{if .Issuer.Country}}
+	Country: {{.Issuer.Country}} {{end}} {{if .Issuer.Locality}}
+	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
+Subject Key ID  : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}} 
+Authority Key ID: {{.AuthorityKeyId | hexify}} {{end}} {{if .DNSNames}}
+Alternate DNS Names: {{range .DNSNames}}
+	{{.}} {{end}} {{end}} {{if .IPAddresses}}
+Alternate IP Addresses: {{range .IPAddresses}}	
+	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
+Email Addresses: {{range .EmailAddresses}}
+	{{.}} {{end}} {{end}} {{if .SerialNumber}}
+Serial Number: {{.SerialNumber}} {{end}}
 `
 
 // displayCert takes in an x509 Certificate object and prints out relevant
