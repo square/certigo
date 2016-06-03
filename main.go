@@ -116,7 +116,7 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 				certs = append(certs, cert)
 			}
 		}
-	case "JKS":
+	case "JCEKS":
 		scanner := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter password: ")
 		password, _ := scanner.ReadString('\n')
