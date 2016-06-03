@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/square/certigo/jceks"
 	"golang.org/x/crypto/pkcs12"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -114,6 +115,21 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 				}
 				certs = append(certs, cert)
 			}
+		}
+	case "JKS":
+		scanner := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter password: ")
+		password, _ := scanner.ReadString('\n')
+		keyStore, err := jceks.Load(file, []byte(strings.TrimSuffix(password, "\n")))
+		if err != nil {
+			return nil, err
+		}
+		for _, certName := range keyStore.ListCerts() {
+			cert, _ := keyStore.GetCert(certName)
+			if err != nil {
+				return nil, err
+			}
+			certs = append(certs, cert)
 		}
 	default:
 		return nil, fmt.Errorf("unknown file type: %s", format)
