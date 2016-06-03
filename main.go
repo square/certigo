@@ -132,7 +132,7 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 			certs = append(certs, cert)
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
-			fmt.Print("Enter password for Alias [" + alias + "]: ")
+			fmt.Printf("Enter password for alias [%s]: ", alias)
 			password, _ := scanner.ReadString('\n')
 			_, certArr, err := keyStore.GetPrivateKeyAndCerts(alias, []byte(strings.TrimSuffix(password, "\n")))
 			if err != nil {
