@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/crypto/pkcs12"
@@ -34,23 +35,48 @@ var (
 
 	dump     = app.Command("dump", "Display information about a certificate.")
 	dumpFile = dump.Arg("file", "Certificate file to dump.").Required().String()
-	dumpType = dump.Flag("format", "Format of given input. If unspecified, certigo guesses based on file extension").Default("guess").Short('f').String()
+	dumpType = dump.Flag("format", "Format of given input. If unspecified, certigo guesses based on file extension").Short('f').String()
 )
+
+var fileExtToFormat = map[string]string{
+	".pem":   "PEM",
+	".crt":   "PEM",
+	".p12":   "PKCS12",
+	".pfx":   "PKCS12",
+	".jceks": "JCEKS",
+}
 
 func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case dump.FullCommand(): //Dump certificate
-		certs, err := getCerts(*dumpFile, *dumpType)
+	case dump.FullCommand(): // Dump certificate
+		format, ok := formatForFile(*dumpFile, *dumpType)
+		if !ok {
+			fmt.Fprint(os.Stderr, "unable to guess file type\n")
+			os.Exit(1)
+		}
+
+		certs, err := getCerts(*dumpFile, format)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
+
 		for i, cert := range certs {
 			fmt.Println("CERTIFICATE", i+1)
 			displayCert(cert)
 			fmt.Println()
 		}
 	}
+}
+
+// formatForFile returns the file format (either from flags or
+// based on file extension).
+func formatForFile(filename, format string) (string, bool) {
+	if format == "" {
+		guess, ok := fileExtToFormat[strings.ToLower(filepath.Ext(filename))]
+		return guess, ok
+	}
+	return format, true
 }
 
 // getCerts takes in a filename and format type and returns an
@@ -89,16 +115,8 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 				certs = append(certs, cert)
 			}
 		}
-	case "guess":
-		if strings.HasSuffix(file, "pem") {
-			return getCerts(file, "PEM")
-		} else if strings.HasSuffix(file, "p12") || strings.HasSuffix(file, "pks") {
-			return getCerts(file, "PKCS12")
-		} else {
-			return getCerts(file, ", couldn't guess format")
-		}
 	default:
-		return nil, fmt.Errorf("unknown type %s", format)
+		return nil, fmt.Errorf("unknown file type: %s", format)
 	}
 	return certs, nil
 }
