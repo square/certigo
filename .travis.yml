@@ -10,7 +10,7 @@ before_install:
   - make depends
 
 install:
-  - make build
+  - make
 
 before_script:
   - make check
