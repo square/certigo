@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/x509"
 	"encoding/hex"
+	"fmt"
 	"os"
 	"strings"
 	"text/template"
@@ -54,10 +55,11 @@ Email Addresses: {{range .EmailAddresses}}
 Serial Number: {{.SerialNumber}} {{end}}
 `
 
-// displayCert takes in an x509 Certificate object and prints out relevant
+// displayCert takes in an x509 Certificate object and an alias
+// (for jckes certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert *x509.Certificate) {
+func displayCert(cert *x509.Certificate, alias string) {
 	funcMap := template.FuncMap{
 		"hexify":    hexify,
 		"certStart": certStart,
@@ -65,6 +67,9 @@ func displayCert(cert *x509.Certificate) {
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
+	if alias != "" {
+		fmt.Println("Alias:", alias)
+	}
 	t.Execute(os.Stdout, cert)
 
 }
