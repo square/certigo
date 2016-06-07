@@ -47,7 +47,7 @@ var fileExtToFormat = map[string]string{
 	".jceks": "JCEKS",
 }
 
-type CertWithAlias struct {
+type certWithAlias struct {
 	alias string
 	cert  *x509.Certificate
 }
@@ -91,8 +91,8 @@ func formatForFile(filename, format string) (string, bool) {
 // is specified for the file, getCerts guesses what format was used
 // based on the file extension used in the file name. If it can't
 // guess based on this it returns and error.
-func getCerts(file, format string) ([]CertWithAlias, error) {
-	var certs []CertWithAlias
+func getCerts(file, format string) ([]certWithAlias, error) {
+	var certs []certWithAlias
 	data, _ := ioutil.ReadFile(file)
 	switch format {
 	case "PEM":
@@ -102,7 +102,7 @@ func getCerts(file, format string) ([]CertWithAlias, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, CertWithAlias{cert: cert})
+			certs = append(certs, certWithAlias{cert: cert})
 			block, data = pem.Decode(data)
 		}
 	case "PKCS12":
@@ -119,7 +119,7 @@ func getCerts(file, format string) ([]CertWithAlias, error) {
 				if err != nil {
 					return nil, err
 				}
-				certs = append(certs, CertWithAlias{cert: cert})
+				certs = append(certs, certWithAlias{cert: cert})
 			}
 		}
 	case "JCEKS":
@@ -135,7 +135,7 @@ func getCerts(file, format string) ([]CertWithAlias, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, CertWithAlias{cert: cert, alias: alias})
+			certs = append(certs, certWithAlias{cert: cert, alias: alias})
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			fmt.Printf("Enter password for alias [%s]: ", alias)
@@ -145,7 +145,7 @@ func getCerts(file, format string) ([]CertWithAlias, error) {
 				return nil, err
 			}
 			for _, cert := range certArr {
-				certs = append(certs, CertWithAlias{cert: cert, alias: alias})
+				certs = append(certs, certWithAlias{cert: cert, alias: alias})
 			}
 		}
 	default:

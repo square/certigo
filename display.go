@@ -58,7 +58,7 @@ Serial Number: {{.SerialNumber}} {{end}}
 // (for jckes certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert CertWithAlias) {
+func displayCert(cert certWithAlias) {
 	funcMap := template.FuncMap{
 		"hexify":    hexify,
 		"certStart": certStart,
