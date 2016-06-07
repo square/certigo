@@ -6,13 +6,16 @@
 
 Certigo is a utility to examine and validate certificates in a variety of formats.
 
-### Build
+### Install
 
-We use [glide](https://glide.sh) for vendoring.
-Use `go get github.com/Masterminds/glide` or `brew install glide` (on OS X) to install it.
+To install certigo, simply use:
 
-Then, to pull in dependencies and build certigo:
+    go get github.com/square/certigo
 
-    make depends build
+Note that certigo requires Go 1.6 or later to build.
 
-Certigo is tested with Go 1.6.
+### Develop
+
+We use [glide][1] for managing vendored dependencies. 
+
+[1]: https://glide.sh
