@@ -46,6 +46,8 @@ var fileExtToFormat = map[string]string{
 	".p12":   "PKCS12",
 	".pfx":   "PKCS12",
 	".jceks": "JCEKS",
+	".jks":   "JCEKS",
+	".der":   "DER",
 }
 
 type certWithAlias struct {
@@ -120,6 +122,12 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			certs = append(certs, certWithAlias{cert: cert})
 			block, data = pem.Decode(data)
 		}
+	case "DER":
+		cert, err := x509.ParseCertificate(data)
+		if err != nil {
+			return nil, err
+		}
+		certs = append(certs, certWithAlias{cert: cert})
 	case "PKCS12":
 		data, err := ioutil.ReadAll(reader)
 		if err != nil {
