@@ -18,6 +18,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ import (
 var layout = `Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature algorithm: {{.SignatureAlgorithm}}
+Signature algorithm: {{.SignatureAlgorithm | algorithm}}
 Subject Info: {{if .Subject.CommonName}}
 	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
 	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
@@ -63,6 +64,7 @@ func displayCert(cert certWithAlias) {
 		"hexify":    hexify,
 		"certStart": certStart,
 		"certEnd":   certEnd,
+		"algorithm": highlightAlgorithm,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
@@ -71,6 +73,35 @@ func displayCert(cert certWithAlias) {
 	}
 	t.Execute(os.Stdout, cert.cert)
 
+}
+
+var (
+	green  = color.New(color.Bold, color.FgGreen)
+	yellow = color.New(color.Bold, color.FgYellow)
+	red    = color.New(color.Bold, color.FgRed)
+)
+
+var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
+	x509.MD2WithRSA:      red,
+	x509.MD5WithRSA:      red,
+	x509.SHA1WithRSA:     red,
+	x509.SHA256WithRSA:   green,
+	x509.SHA384WithRSA:   green,
+	x509.SHA512WithRSA:   green,
+	x509.DSAWithSHA1:     red,
+	x509.DSAWithSHA256:   red,
+	x509.ECDSAWithSHA1:   red,
+	x509.ECDSAWithSHA256: green,
+	x509.ECDSAWithSHA384: green,
+	x509.ECDSAWithSHA512: green,
+}
+
+func highlightAlgorithm(sig x509.SignatureAlgorithm) string {
+	color, ok := algorithmColors[sig]
+	if !ok {
+		return sig.String()
+	}
+	return color.SprintFunc()(sig.String())
 }
 
 // certStart takes a given start time for the validity of
@@ -85,11 +116,11 @@ func certStart(start time.Time) string {
 	day, _ := time.ParseDuration("24h")
 	threshold := start.Add(day)
 	if now.After(threshold) {
-		return color.GreenString(start.String())
+		return green.SprintfFunc()(start.String())
 	} else if now.After(start) {
-		return color.YellowString(start.String())
+		return yellow.SprintfFunc()(start.String())
 	} else {
-		return color.RedString(start.String())
+		return red.SprintfFunc()(start.String())
 	}
 }
 
@@ -105,11 +136,11 @@ func certEnd(end time.Time) string {
 	month, _ := time.ParseDuration("720h")
 	threshold := now.Add(month)
 	if threshold.Before(end) {
-		return color.GreenString(end.String())
+		return green.SprintfFunc()(end.String())
 	} else if now.Before(end) {
-		return color.YellowString(end.String())
+		return yellow.SprintfFunc()(end.String())
 	} else {
-		return color.RedString(end.String())
+		return red.SprintfFunc()(end.String())
 	}
 }
 
