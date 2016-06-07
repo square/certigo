@@ -47,7 +47,9 @@ Issuer Info: {{if .Issuer.CommonName}}
 	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
 Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
 Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
-Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .DNSNames}}
+Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
+Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
+  {{.}} {{end}} {{end}} {{if .DNSNames}}
 Alternate DNS Names: {{range .DNSNames}}
 	{{.}} {{end}} {{end}} {{if .IPAddresses}}
 Alternate IP Addresses: {{range .IPAddresses}}	
