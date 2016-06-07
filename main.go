@@ -47,6 +47,11 @@ var fileExtToFormat = map[string]string{
 	".jceks": "JCEKS",
 }
 
+type certWithAlias struct {
+	alias string
+	cert  *x509.Certificate
+}
+
 func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
@@ -81,12 +86,13 @@ func formatForFile(filename, format string) (string, bool) {
 }
 
 // getCerts takes in a filename and format type and returns an
-// array of all the certificates found in that file. If no format
+// array of all the certificates found in that file along with aliases
+// for each cert if the format of the input was jceks. If no format
 // is specified for the file, getCerts guesses what format was used
 // based on the file extension used in the file name. If it can't
 // guess based on this it returns and error.
-func getCerts(file, format string) ([]*x509.Certificate, error) {
-	var certs []*x509.Certificate
+func getCerts(file, format string) ([]certWithAlias, error) {
+	var certs []certWithAlias
 	data, _ := ioutil.ReadFile(file)
 	switch format {
 	case "PEM":
@@ -96,7 +102,7 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, cert)
+			certs = append(certs, certWithAlias{cert: cert})
 			block, data = pem.Decode(data)
 		}
 	case "PKCS12":
@@ -113,7 +119,7 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 				if err != nil {
 					return nil, err
 				}
-				certs = append(certs, cert)
+				certs = append(certs, certWithAlias{cert: cert})
 			}
 		}
 	case "JCEKS":
@@ -129,7 +135,7 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, cert)
+			certs = append(certs, certWithAlias{cert: cert, alias: alias})
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			fmt.Printf("Enter password for alias [%s]: ", alias)
@@ -138,7 +144,9 @@ func getCerts(file, format string) ([]*x509.Certificate, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, certArr...)
+			for _, cert := range certArr {
+				certs = append(certs, certWithAlias{cert: cert, alias: alias})
+			}
 		}
 	default:
 		return nil, fmt.Errorf("unknown file type: %s", format)
