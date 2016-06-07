@@ -27,7 +27,7 @@ Certigo can read certificates/keystores in various formats and dump them to stdo
 For example (from stdin):
 
     $ certigo dump --format PEM < certificate.pem
-    CERTIFICATE 1
+    ** CERTIFICATE 1 **
     Serial: 11578389349061131131
     Not Before: 2016-05-27 21:15:31 +0000 UTC
     Not After : 2017-10-09 21:15:31 +0000 UTC
@@ -49,7 +49,7 @@ Or from a file:
 
     $ certigo dump keystore.jceks 
     Enter password: some-password
-    CERTIFICATE 1
+    ** CERTIFICATE 1 **
     Alias: trusted-cert-some-alias
     Serial: 15734933907626610346
     Not Before: 2014-03-14 14:10:45 +0000 UTC
