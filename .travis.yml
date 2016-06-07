@@ -7,13 +7,12 @@ go:
 
 before_install:
   - go get github.com/Masterminds/glide
-  - make depends
 
 install:
-  - make build
+  - go build .
 
 before_script:
-  - make check
+  - go vet -v `glide nv`
 
 script:
-  - make test
+  - go test -v `glide nv`
