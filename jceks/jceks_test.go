@@ -159,7 +159,7 @@ func TestPrivateKey(t *testing.T) {
 		d.convertPkcs12ToJceks(t)
 	}
 
-	ks, err := Load(d.jceksFilename, []byte(d.storePassword))
+	ks, err := LoadFromFile(d.jceksFilename, []byte(d.storePassword))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func TestTrustedCert(t *testing.T) {
 		d.importCertToJceks(t)
 	}
 
-	ks, err := Load(d.jceksFilename, []byte(d.storePassword))
+	ks, err := LoadFromFile(d.jceksFilename, []byte(d.storePassword))
 	if err != nil {
 		t.Fatal(err)
 	}

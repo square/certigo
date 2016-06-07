@@ -21,6 +21,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -35,8 +36,8 @@ var (
 	app = kingpin.New("certigo", "A command line certificate examination utility.")
 
 	dump     = app.Command("dump", "Display information about a certificate.")
-	dumpFile = dump.Arg("file", "Certificate file to dump.").Required().String()
-	dumpType = dump.Flag("format", "Format of given input. If unspecified, certigo guesses based on file extension").Short('f').String()
+	dumpFile = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").String()
+	dumpType = dump.Flag("format", "Format of given input (based on file extension if not specified).").Short('f').String()
 )
 
 var fileExtToFormat = map[string]string{
@@ -61,7 +62,18 @@ func main() {
 			os.Exit(1)
 		}
 
-		certs, err := getCerts(*dumpFile, format)
+		file := os.Stdin
+		var err error
+		if *dumpFile != "" {
+			file, err = os.Open(*dumpFile)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "unable to open file: %s\n", err)
+				os.Exit(1)
+			}
+			defer file.Close()
+		}
+
+		certs, err := getCerts(file, format)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -91,11 +103,14 @@ func formatForFile(filename, format string) (string, bool) {
 // is specified for the file, getCerts guesses what format was used
 // based on the file extension used in the file name. If it can't
 // guess based on this it returns and error.
-func getCerts(file, format string) ([]certWithAlias, error) {
+func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 	var certs []certWithAlias
-	data, _ := ioutil.ReadFile(file)
 	switch format {
 	case "PEM":
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
 		block, data := pem.Decode(data)
 		for block != nil {
 			cert, err := x509.ParseCertificate(block.Bytes)
@@ -106,6 +121,10 @@ func getCerts(file, format string) ([]certWithAlias, error) {
 			block, data = pem.Decode(data)
 		}
 	case "PKCS12":
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
 		scanner := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter password: ")
 		password, _ := scanner.ReadString('\n')
@@ -125,8 +144,11 @@ func getCerts(file, format string) ([]certWithAlias, error) {
 	case "JCEKS":
 		scanner := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter password: ")
-		password, _ := scanner.ReadString('\n')
-		keyStore, err := jceks.Load(file, []byte(strings.TrimSuffix(password, "\n")))
+		password, err := scanner.ReadString('\n')
+		if err != nil {
+			return nil, err
+		}
+		keyStore, err := jceks.LoadFromReader(reader, []byte(strings.TrimSuffix(password, "\n")))
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +161,10 @@ func getCerts(file, format string) ([]certWithAlias, error) {
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			fmt.Printf("Enter password for alias [%s]: ", alias)
-			password, _ := scanner.ReadString('\n')
+			password, err := scanner.ReadString('\n')
+			if err != nil {
+				return nil, err
+			}
 			_, certArr, err := keyStore.GetPrivateKeyAndCerts(alias, []byte(strings.TrimSuffix(password, "\n")))
 			if err != nil {
 				return nil, err
