@@ -46,7 +46,6 @@ var fileExtToFormat = map[string]string{
 	".p12":   "PKCS12",
 	".pfx":   "PKCS12",
 	".jceks": "JCEKS",
-	".jks":   "JCEKS",
 	".der":   "DER",
 }
 
