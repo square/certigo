@@ -18,7 +18,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/x509"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -59,7 +58,7 @@ Serial Number: {{.SerialNumber}} {{end}}
 // (for jckes certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert *x509.Certificate, alias string) {
+func displayCert(cert CertWithAlias) {
 	funcMap := template.FuncMap{
 		"hexify":    hexify,
 		"certStart": certStart,
@@ -67,10 +66,10 @@ func displayCert(cert *x509.Certificate, alias string) {
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
-	if alias != "" {
-		fmt.Println("Alias:", alias)
+	if cert.alias != "" {
+		fmt.Println("Alias:", cert.alias)
 	}
-	t.Execute(os.Stdout, cert)
+	t.Execute(os.Stdout, cert.cert)
 
 }
 

@@ -47,6 +47,11 @@ var fileExtToFormat = map[string]string{
 	".jceks": "JCEKS",
 }
 
+type CertWithAlias struct {
+	alias string
+	cert  *x509.Certificate
+}
+
 func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
@@ -56,7 +61,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		certs, aliases, err := getCerts(*dumpFile, format)
+		certs, err := getCerts(*dumpFile, format)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -64,7 +69,7 @@ func main() {
 
 		for i, cert := range certs {
 			fmt.Println("CERTIFICATE", i+1)
-			displayCert(cert, aliases[i])
+			displayCert(cert)
 			fmt.Println()
 		}
 	}
@@ -86,9 +91,8 @@ func formatForFile(filename, format string) (string, bool) {
 // is specified for the file, getCerts guesses what format was used
 // based on the file extension used in the file name. If it can't
 // guess based on this it returns and error.
-func getCerts(file, format string) ([]*x509.Certificate, []string, error) {
-	var certs []*x509.Certificate
-	var aliases []string
+func getCerts(file, format string) ([]CertWithAlias, error) {
+	var certs []CertWithAlias
 	data, _ := ioutil.ReadFile(file)
 	switch format {
 	case "PEM":
@@ -96,10 +100,9 @@ func getCerts(file, format string) ([]*x509.Certificate, []string, error) {
 		for block != nil {
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			certs = append(certs, cert)
-			aliases = append(aliases, "")
+			certs = append(certs, CertWithAlias{cert: cert})
 			block, data = pem.Decode(data)
 		}
 	case "PKCS12":
@@ -108,16 +111,15 @@ func getCerts(file, format string) ([]*x509.Certificate, []string, error) {
 		password, _ := scanner.ReadString('\n')
 		blocks, err := pkcs12.ToPEM(data, strings.TrimSuffix(password, "\n"))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		for _, block := range blocks {
 			if block.Type == "CERTIFICATE" {
 				cert, err := x509.ParseCertificate(block.Bytes)
 				if err != nil {
-					return nil, nil, err
+					return nil, err
 				}
-				certs = append(certs, cert)
-				aliases = append(aliases, "")
+				certs = append(certs, CertWithAlias{cert: cert})
 			}
 		}
 	case "JCEKS":
@@ -126,31 +128,28 @@ func getCerts(file, format string) ([]*x509.Certificate, []string, error) {
 		password, _ := scanner.ReadString('\n')
 		keyStore, err := jceks.Load(file, []byte(strings.TrimSuffix(password, "\n")))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		for _, alias := range keyStore.ListCerts() {
 			cert, _ := keyStore.GetCert(alias)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			certs = append(certs, cert)
-			aliases = append(aliases, alias)
+			certs = append(certs, CertWithAlias{cert: cert, alias: alias})
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			fmt.Printf("Enter password for alias [%s]: ", alias)
 			password, _ := scanner.ReadString('\n')
 			_, certArr, err := keyStore.GetPrivateKeyAndCerts(alias, []byte(strings.TrimSuffix(password, "\n")))
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			for _, cert := range certArr {
-				certs = append(certs, cert)
-				aliases = append(aliases, alias)
+				certs = append(certs, CertWithAlias{cert: cert, alias: alias})
 			}
-			//certs = append(certs, certArr...)
 		}
 	default:
-		return nil, nil, fmt.Errorf("unknown file type: %s", format)
+		return nil, fmt.Errorf("unknown file type: %s", format)
 	}
-	return certs, aliases, nil
+	return certs, nil
 }
