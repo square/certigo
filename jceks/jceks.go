@@ -407,18 +407,23 @@ func (ks *KeyStore) String() string {
 	return buf.String()
 }
 
-// Load loads the key store from the specified file.
-func Load(filename string, password []byte) (*KeyStore, error) {
+// LoadFromFile loads the key store from the specified file.
+func LoadFromFile(filename string, password []byte) (*KeyStore, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
+	return LoadFromReader(file, password)
+}
+
+// LoadFromReader loads the key store from the specified file.
+func LoadFromReader(reader io.Reader, password []byte) (*KeyStore, error) {
 	ks := &KeyStore{
 		entries: make(map[string]interface{}),
 	}
-	err = ks.Parse(file, password)
+	err := ks.Parse(reader, password)
 	if err != nil {
 		return nil, err
 	}

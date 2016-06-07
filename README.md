@@ -19,3 +19,47 @@ Note that certigo requires Go 1.6 or later to build.
 We use [glide][1] for managing vendored dependencies. 
 
 [1]: https://glide.sh
+
+### Usage
+
+Certigo can read certificates/keystores in various formats and dump them to stdout.
+
+For example (from stdin):
+
+    $ certigo dump --format PEM < certificate.pem
+    CERTIFICATE 1
+    Serial: 11578389349061131131
+    Not Before: 2016-05-27 21:15:31 +0000 UTC
+    Not After : 2017-10-09 21:15:31 +0000 UTC
+    Signature algorithm: SHA1-RSA
+    Subject Info:
+    	CommonName: ApertureScience
+    	Organization: [Aperture Science]
+    	OrganizationalUnit: [Research and Development]
+    	Country: [US]
+    	Locality: [San Francisco]
+    Issuer Info:
+    	CommonName: ApertureScience
+    	Organization: [Aperture Science]
+    	OrganizationalUnit: [Research and Development]
+    	Country: [US]
+    	Locality: [San Francisco]
+
+Or from a file:
+
+    $ certigo dump keystore.jceks 
+    Enter password: some-password
+    CERTIFICATE 1
+    Alias: trusted-cert-some-alias
+    Serial: 15734933907626610346
+    Not Before: 2014-03-14 14:10:45 +0000 UTC
+    Not After : 2015-03-14 14:10:45 +0000 UTC
+    Signature algorithm: SHA1-RSA
+    Subject Info:
+    	CommonName: Test User
+    	Organization: [Test Organization]
+    	Country: [US]
+    Issuer Info:
+    	CommonName: Test User
+    	Organization: [Test Organization]
+    	Country: [US]
