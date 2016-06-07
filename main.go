@@ -123,6 +123,10 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			block, data = pem.Decode(data)
 		}
 	case "DER":
+		data, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
 		cert, err := x509.ParseCertificate(data)
 		if err != nil {
 			return nil, err
