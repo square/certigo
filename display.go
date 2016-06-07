@@ -28,7 +28,8 @@ import (
 	"github.com/fatih/color"
 )
 
-var layout = `Not Before: {{.NotBefore | certStart}}
+var layout = `Serial: {{.SerialNumber}}
+Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
 Signature algorithm: {{.SignatureAlgorithm}}
 Subject Info: {{if .Subject.CommonName}}
@@ -50,8 +51,7 @@ Alternate DNS Names: {{range .DNSNames}}
 Alternate IP Addresses: {{range .IPAddresses}}	
 	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
 Email Addresses: {{range .EmailAddresses}}
-	{{.}} {{end}} {{end}} {{if .SerialNumber}}
-Serial Number: {{.SerialNumber}} {{end}}
+	{{.}} {{end}} {{end}}
 `
 
 // displayCert takes in an x509 Certificate object and an alias
