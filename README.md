@@ -24,6 +24,8 @@ We use [glide][1] for managing vendored dependencies.
 
 Certigo can read certificates/keystores in various formats and dump them to stdout.
 
+Currently supported formats are DER, PEM, JCEKS and PKCS12. It's a one-stop shop for debugging/analyzing certs.
+
 For example (from stdin):
 
     $ certigo dump --format PEM < certificate.pem
