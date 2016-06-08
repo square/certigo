@@ -32,7 +32,7 @@ import (
 var layout = `Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature algorithm: {{.SignatureAlgorithm | algorithm}}
+Signature : {{.SignatureAlgorithm | algorithm}}
 Subject Info: {{if .Subject.CommonName}}
 	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
 	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
@@ -45,8 +45,11 @@ Issuer Info: {{if .Issuer.CommonName}}
 	OrganizationalUnit: {{.Issuer.OrganizationalUnit}} {{end}} {{if .Issuer.Country}}
 	Country: {{.Issuer.Country}} {{end}} {{if .Issuer.Locality}}
 	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
-Subject Key ID  : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}} 
-Authority Key ID: {{.AuthorityKeyId | hexify}} {{end}} {{if .DNSNames}}
+Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
+Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
+Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
+Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
+  {{.}} {{end}} {{end}} {{if .DNSNames}}
 Alternate DNS Names: {{range .DNSNames}}
 	{{.}} {{end}} {{end}} {{if .IPAddresses}}
 Alternate IP Addresses: {{range .IPAddresses}}	
