@@ -65,3 +65,9 @@ Or from a file:
     	CommonName: Test User
     	Organization: [Test Organization]
     	Country: [US]
+    	
+To dump a cert chain from a TLS server:
+
+    openssl s_client -connect squareup.com:443 -showcerts < /dev/null | certigo dump --format PEM
+    
+Unlike `openssl x509 -text`, certigo will dump the entire chain, not just the first certificate.
