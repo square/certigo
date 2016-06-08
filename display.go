@@ -52,7 +52,11 @@ Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
 Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
 Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
 Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
-  {{.}} {{end}} {{end}} {{if .DNSNames}}
+	{{.}} {{end}} {{end}} {{if .KeyUsage | keyUsage}}
+Key Usage: {{range .KeyUsage | keyUsage}}
+	{{.}} {{end}} {{end}} {{if .ExtKeyUsage}}
+Extended Key Usage: {{range .ExtKeyUsage}}
+	{{. | extKeyUsage}} {{end}} {{end}} {{if .DNSNames}}
 Alternate DNS Names: {{range .DNSNames}}
 	{{.}} {{end}} {{end}} {{if .IPAddresses}}
 Alternate IP Addresses: {{range .IPAddresses}}	
@@ -73,6 +77,8 @@ func displayCert(cert certWithAlias) {
 		"certStart":    certStart,
 		"certEnd":      certEnd,
 		"algorithm":    highlightAlgorithm,
+		"keyUsage":     keyUsage,
+		"extKeyUsage":  extKeyUsage,
 		"certWarnings": certWarnings,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
@@ -90,6 +96,33 @@ var (
 	red    = color.New(color.Bold, color.FgRed)
 )
 
+var keyUsageStrings = map[x509.KeyUsage]string{
+	x509.KeyUsageDigitalSignature:  "Digital Signature",
+	x509.KeyUsageContentCommitment: "Content Commitment",
+	x509.KeyUsageKeyEncipherment:   "Key Encipherment",
+	x509.KeyUsageDataEncipherment:  "Data Encipherment",
+	x509.KeyUsageKeyAgreement:      "Key Agreement",
+	x509.KeyUsageCertSign:          "Cert Sign",
+	x509.KeyUsageCRLSign:           "CRL Sign",
+	x509.KeyUsageEncipherOnly:      "Encipher Only",
+	x509.KeyUsageDecipherOnly:      "Decipher Only",
+}
+
+var extKeyUsageStrings = map[x509.ExtKeyUsage]string{
+	x509.ExtKeyUsageAny:                        "Any",
+	x509.ExtKeyUsageServerAuth:                 "Server Auth",
+	x509.ExtKeyUsageClientAuth:                 "Client Auth",
+	x509.ExtKeyUsageCodeSigning:                "Code Signing",
+	x509.ExtKeyUsageEmailProtection:            "Email Protection",
+	x509.ExtKeyUsageIPSECEndSystem:             "IPSEC End System",
+	x509.ExtKeyUsageIPSECTunnel:                "IPSEC Tunnel",
+	x509.ExtKeyUsageIPSECUser:                  "IPSEC User",
+	x509.ExtKeyUsageTimeStamping:               "Time Stamping",
+	x509.ExtKeyUsageOCSPSigning:                "OCSP Signing",
+	x509.ExtKeyUsageMicrosoftServerGatedCrypto: "Microsoft ServerGatedCrypto",
+	x509.ExtKeyUsageNetscapeServerGatedCrypto:  "Netscape ServerGatedCrypto",
+}
+
 var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
 	x509.MD2WithRSA:      red,
 	x509.MD5WithRSA:      red,
@@ -105,12 +138,34 @@ var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
 	x509.ECDSAWithSHA512: green,
 }
 
+// highlightAlgorithm changes the color of the signing algorithm
+// based on a set color map, e.g. to make SHA-1 show up red.
 func highlightAlgorithm(sig x509.SignatureAlgorithm) string {
 	color, ok := algorithmColors[sig]
 	if !ok {
 		return sig.String()
 	}
 	return color.SprintFunc()(sig.String())
+}
+
+// keyUsage decodes/prints key usage from a certificate.
+func keyUsage(ku x509.KeyUsage) []string {
+	out := []string{}
+	for key, value := range keyUsageStrings {
+		if ku&key > 0 {
+			out = append(out, value)
+		}
+	}
+	return out
+}
+
+// extKeyUsage decodes/prints extended key usage from a certificate.
+func extKeyUsage(eku x509.ExtKeyUsage) string {
+	val, ok := extKeyUsageStrings[eku]
+	if ok {
+		return val
+	}
+	return fmt.Sprintf("unknown:%d", eku)
 }
 
 // certStart takes a given start time for the validity of
