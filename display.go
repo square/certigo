@@ -18,6 +18,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
@@ -55,6 +58,8 @@ Alternate DNS Names: {{range .DNSNames}}
 Alternate IP Addresses: {{range .IPAddresses}}	
 	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
 Email Addresses: {{range .EmailAddresses}}
+	{{.}} {{end}} {{end}} {{if . | certWarnings}}
+Warnings: {{range . | certWarnings}}
 	{{.}} {{end}} {{end}}
 `
 
@@ -64,10 +69,11 @@ Email Addresses: {{range .EmailAddresses}}
 // the certificate is expired, not expired, or close to expiring.
 func displayCert(cert certWithAlias) {
 	funcMap := template.FuncMap{
-		"hexify":    hexify,
-		"certStart": certStart,
-		"certEnd":   certEnd,
-		"algorithm": highlightAlgorithm,
+		"hexify":       hexify,
+		"certStart":    certStart,
+		"certEnd":      certEnd,
+		"algorithm":    highlightAlgorithm,
+		"certWarnings": certWarnings,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
@@ -158,4 +164,55 @@ func hexify(arr []byte) string {
 		}
 	}
 	return hexed.String()
+}
+
+var badSignatureAlgorithms = []x509.SignatureAlgorithm{
+	x509.MD2WithRSA,
+	x509.MD5WithRSA,
+	x509.SHA1WithRSA,
+	x509.DSAWithSHA1,
+	x509.ECDSAWithSHA1,
+}
+
+// certWarnings prints a list of warnings to show common mistakes in certs.
+func certWarnings(cert *x509.Certificate) []string {
+	warnings := []string{}
+
+	if cert.Version < 2 {
+		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %s)", cert.Version+1))
+	}
+
+	if len(cert.UnhandledCriticalExtensions) > 0 {
+		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions", cert.Version+1))
+	}
+
+	alg, size := decodeKey(cert.PublicKey)
+	if (alg == "RSA" || alg == "DSA") && size < 2048 {
+		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 2048 bits", alg))
+	}
+	if alg == "ECDSA" && size < 224 {
+		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 224 bits", alg))
+	}
+
+	for _, alg := range badSignatureAlgorithms {
+		if cert.SignatureAlgorithm == alg {
+			warnings = append(warnings, red.SprintfFunc()("Using %s, which is an outdated signature algorithm", alg.String()))
+		}
+	}
+
+	return warnings
+}
+
+// decodeKey returns the algorithm and key size for a public key.
+func decodeKey(publicKey interface{}) (string, int) {
+	switch publicKey.(type) {
+	case *dsa.PublicKey:
+		return "DSA", publicKey.(*dsa.PublicKey).P.BitLen()
+	case *ecdsa.PublicKey:
+		return "ECDSA", publicKey.(*ecdsa.PublicKey).Curve.Params().BitSize
+	case *rsa.PublicKey:
+		return "RSA", publicKey.(*rsa.PublicKey).N.BitLen()
+	default:
+		return "", 0
+	}
 }
