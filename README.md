@@ -28,7 +28,7 @@ Currently supported formats are DER, PEM, JCEKS and PKCS12. It's a one-stop shop
 
 For example (from stdin):
 
-    $ certigo dump --format PEM < certificate.pem
+    $ certigo dump < certificate.pem
     ** CERTIFICATE 1 **
     Serial: 11578389349061131131
     Not Before: 2016-05-27 21:15:31 +0000 UTC
@@ -68,6 +68,6 @@ Or from a file:
     	
 To dump a cert chain from a TLS server:
 
-    openssl s_client -connect squareup.com:443 -showcerts < /dev/null | certigo dump --format PEM
+    openssl s_client -connect squareup.com:443 -showcerts < /dev/null | certigo dump
     
 Unlike `openssl x509 -text`, certigo will dump the entire chain, not just the first certificate.

@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -37,7 +38,7 @@ var (
 
 	dump     = app.Command("dump", "Display information about a certificate.")
 	dumpFile = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").String()
-	dumpType = dump.Flag("format", "Format of given input (based on file extension if not specified).").Short('f').String()
+	dumpType = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
 )
 
 var fileExtToFormat = map[string]string{
@@ -57,21 +58,22 @@ type certWithAlias struct {
 func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
-		format, ok := formatForFile(*dumpFile, *dumpType)
-		if !ok {
-			fmt.Fprint(os.Stderr, "unable to guess file type\n")
-			os.Exit(1)
-		}
-
-		file := os.Stdin
+		file := bufio.NewReader(os.Stdin)
 		var err error
 		if *dumpFile != "" {
-			file, err = os.Open(*dumpFile)
+			rawFile, err := os.Open(*dumpFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "unable to open file: %s\n", err)
 				os.Exit(1)
 			}
-			defer file.Close()
+			file = bufio.NewReader(rawFile)
+			defer rawFile.Close()
+		}
+
+		format, ok := formatForFile(file, *dumpFile, *dumpType)
+		if !ok {
+			fmt.Fprint(os.Stderr, "unable to guess file type\n")
+			os.Exit(1)
 		}
 
 		certs, err := getCerts(file, format)
@@ -90,12 +92,45 @@ func main() {
 
 // formatForFile returns the file format (either from flags or
 // based on file extension).
-func formatForFile(filename, format string) (string, bool) {
-	if format == "" {
-		guess, ok := fileExtToFormat[strings.ToLower(filepath.Ext(filename))]
-		return guess, ok
+func formatForFile(file *bufio.Reader, filename, format string) (string, bool) {
+	// First, honor --format flag we got from user
+	if format != "" {
+		return format, true
 	}
-	return format, true
+
+	// Second, attempt to guess based on extension
+	guess, ok := fileExtToFormat[strings.ToLower(filepath.Ext(filename))]
+	if ok {
+		return guess, true
+	}
+
+	// Third, attempt to guess based on first 4 bytes of input
+	data, err := file.Peek(4)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+
+	// Heuristics for guessing -- best effort.
+	magic := binary.BigEndian.Uint32(data)
+	if magic == 0xCECECECE || magic == 0xFEEDFEED {
+		// JCEKS/JKS files always start with this prefix
+		return "JCEKS", true
+	}
+	if magic == 0x2D2D2D2D || magic == 0x434f4e4e {
+		// Starts with '----' or 'CONN' (what s_client prints...)
+		return "PEM", true
+	}
+	if magic&0xFFFF0000 == 0x30820000 {
+		// Looks like the input is DER-encoded, so it's either PKCS12 or X.509.
+		if magic&0x0000FF00 == 0x0300 {
+			// Probably X.509
+			return "DER", true
+		}
+		return "PKCS12", true
+	}
+
+	return "", false
 }
 
 // getCerts takes in a filename and format type and returns an
