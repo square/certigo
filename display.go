@@ -234,7 +234,7 @@ func certWarnings(cert *x509.Certificate) []string {
 	warnings := []string{}
 
 	if cert.Version < 2 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %s)", cert.Version+1))
+		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {
