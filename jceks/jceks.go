@@ -349,9 +349,6 @@ func (ks *KeyStore) GetPrivateKeyAndCerts(alias string, password []byte) (
 		if len(t.certs) < 1 {
 			return nil, nil, fmt.Errorf("key has no certificates")
 		}
-		if (t.certs[0].KeyUsage & x509.KeyUsageDigitalSignature) == 0 {
-			return nil, nil, fmt.Errorf("key cannot be used for digital signatures: %x", t.certs[0].KeyUsage)
-		}
 		key, err = t.Recover(password)
 		if err == nil {
 			certs = t.certs
