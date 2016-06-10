@@ -84,7 +84,7 @@ func displayCert(cert certWithAlias) {
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
 	if cert.alias != "" {
-		fmt.Println("Alias:", cert.alias)
+		fmt.Println("Alias :", cert.alias)
 	}
 	t.Execute(os.Stdout, cert.cert)
 
