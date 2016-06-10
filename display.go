@@ -230,8 +230,22 @@ var badSignatureAlgorithms = []x509.SignatureAlgorithm{
 }
 
 // certWarnings prints a list of warnings to show common mistakes in certs.
-func certWarnings(cert *x509.Certificate) []string {
-	warnings := []string{}
+func certWarnings(cert *x509.Certificate) (warnings []string) {
+	if cert.SerialNumber.Sign() != 1 {
+		warnings = append(warnings, red.SprintfFunc()("Serial number in cert appears to be zero/negative"))
+	}
+
+	if cert.SerialNumber.BitLen() > 160 {
+		warnings = append(warnings, red.SprintfFunc()("Serial number too long; should be 20 bytes or less"))
+	}
+
+	if (cert.KeyUsage&x509.KeyUsageCertSign != 0) && !cert.IsCA {
+		warnings = append(warnings, red.SprintfFunc()("Key usage 'cert sign' is set, but is not a CA cert"))
+	}
+
+	if (cert.KeyUsage&x509.KeyUsageCertSign == 0) && cert.IsCA {
+		warnings = append(warnings, red.SprintfFunc()("Certificate is a CA cert, but key usage 'cert sign' missing"))
+	}
 
 	if cert.Version < 2 {
 		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
@@ -241,6 +255,13 @@ func certWarnings(cert *x509.Certificate) []string {
 		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions", cert.Version+1))
 	}
 
+	warnings = append(warnings, algWarnings(cert)...)
+
+	return
+}
+
+// algWarnings checks key sizes, signature algorithms.
+func algWarnings(cert *x509.Certificate) (warnings []string) {
 	alg, size := decodeKey(cert.PublicKey)
 	if (alg == "RSA" || alg == "DSA") && size < 2048 {
 		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 2048 bits", alg))
@@ -255,7 +276,17 @@ func certWarnings(cert *x509.Certificate) []string {
 		}
 	}
 
-	return warnings
+	if alg == "RSA" {
+		key := cert.PublicKey.(*rsa.PublicKey)
+		if key.E < 3 {
+			warnings = append(warnings, red.SprintfFunc()("Public key exponent in RSA key is less than 3"))
+		}
+		if key.N.Sign() != 1 {
+			warnings = append(warnings, red.SprintfFunc()("Public key modulus in RSA key appears to be zero/negative"))
+		}
+	}
+
+	return
 }
 
 // decodeKey returns the algorithm and key size for a public key.
