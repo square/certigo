@@ -28,9 +28,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gopkg.in/alecthomas/kingpin.v2"
+
 	"github.com/square/certigo/jceks"
 	"golang.org/x/crypto/pkcs12"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -88,6 +90,23 @@ func main() {
 			fmt.Println()
 		}
 	}
+}
+
+func readPassword(prompt string) (string, error) {
+	var tty *os.File
+	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		tty = os.Stdin
+	} else {
+		defer tty.Close()
+	}
+	tty.WriteString(prompt)
+	password, err := terminal.ReadPassword(int(tty.Fd()))
+	tty.WriteString("\n")
+	if err != nil {
+		return "", err
+	}
+	return string(password), err
 }
 
 // formatForFile returns the file format (either from flags or
@@ -171,9 +190,10 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 		if err != nil {
 			return nil, err
 		}
-		scanner := bufio.NewReader(os.Stdin)
-		fmt.Print("Enter password: ")
-		password, _ := scanner.ReadString('\n')
+		password, err := readPassword("Enter password: ")
+		if err != nil {
+			return nil, err
+		}
 		blocks, err := pkcs12.ToPEM(data, strings.TrimSuffix(password, "\n"))
 		if err != nil {
 			return nil, err
@@ -188,9 +208,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			}
 		}
 	case "JCEKS":
-		scanner := bufio.NewReader(os.Stdin)
-		fmt.Print("Enter password: ")
-		password, err := scanner.ReadString('\n')
+		password, err := readPassword("Enter password: ")
 		if err != nil {
 			return nil, err
 		}
@@ -206,8 +224,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			certs = append(certs, certWithAlias{cert: cert, alias: alias})
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
-			fmt.Printf("Enter password for alias [%s]: ", alias)
-			password, err := scanner.ReadString('\n')
+			password, err := readPassword(fmt.Sprintf("Enter password for alias [%s]: ", alias))
 			if err != nil {
 				return nil, err
 			}

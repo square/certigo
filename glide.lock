@@ -1,5 +1,5 @@
-hash: 21621818785615e3d0798f3dec9edbf60da7f4e5c19c86af52c8bcc6f2f3891c
-updated: 2016-06-02T14:23:24.530708211-07:00
+hash: 918830aee13a56a49c3b56fa2ec6357a4e3ef17e7d017d886a2e9f6305705a98
+updated: 2016-06-09T15:50:04.07365191-07:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -19,6 +19,7 @@ imports:
   version: 5bcd134fee4dd1475da17714aac19c0aa0142e2f
   subpackages:
   - pkcs12
+  - ssh/terminal
   - pkcs12/internal/rc2
 - name: golang.org/x/sys
   version: 076b546753157f758b316e59bcb51e6807c04057

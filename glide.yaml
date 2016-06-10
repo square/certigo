@@ -4,4 +4,5 @@ import:
 - package: golang.org/x/crypto
   subpackages:
   - pkcs12
+  - ssh/terminal
 - package: gopkg.in/alecthomas/kingpin.v2
