@@ -25,6 +25,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -38,9 +39,9 @@ import (
 var (
 	app = kingpin.New("certigo", "A command line certificate examination utility.")
 
-	dump     = app.Command("dump", "Display information about a certificate.")
-	dumpFile = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").String()
-	dumpType = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
+	dump      = app.Command("dump", "Display information about a certificate.")
+	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
+	dumpType  = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
 )
 
 var fileExtToFormat = map[string]string{
@@ -54,38 +55,50 @@ var fileExtToFormat = map[string]string{
 
 type certWithAlias struct {
 	alias string
+	file  string
 	cert  *x509.Certificate
 }
 
 func main() {
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
-		file := bufio.NewReader(os.Stdin)
-		var err error
-		if *dumpFile != "" {
-			rawFile, err := os.Open(*dumpFile)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "unable to open file: %s\n", err)
+		files := []*os.File{}
+		if *dumpFiles != nil {
+			for _, filename := range *dumpFiles {
+				rawFile, err := os.Open(filename)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "unable to open file: %s\n", err)
+					os.Exit(1)
+				}
+				files = append(files, rawFile)
+				defer rawFile.Close()
+			}
+		} else {
+			files = append(files, os.Stdin)
+		}
+
+		var certs []certWithAlias
+		for _, file := range files {
+			reader := bufio.NewReader(file)
+			format, ok := formatForFile(reader, file.Name(), *dumpType)
+			if !ok {
+				fmt.Fprintf(os.Stderr, "unable to guess file type (for file %s)\n", file.Name())
 				os.Exit(1)
 			}
-			file = bufio.NewReader(rawFile)
-			defer rawFile.Close()
-		}
 
-		format, ok := formatForFile(file, *dumpFile, *dumpType)
-		if !ok {
-			fmt.Fprint(os.Stderr, "unable to guess file type\n")
-			os.Exit(1)
-		}
-
-		certs, err := getCerts(file, format)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+			parsed, err := getCerts(reader, file.Name(), format)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s\n", err)
+				os.Exit(1)
+			}
+			certs = append(certs, parsed...)
 		}
 
 		for i, cert := range certs {
 			fmt.Printf("** CERTIFICATE %d **\n", i+1)
+			if cert.file != "" && len(files) > 1 {
+				fmt.Printf("File  : %s\n", path.Base(cert.file))
+			}
 			displayCert(cert)
 			fmt.Println()
 		}
@@ -158,7 +171,7 @@ func formatForFile(file *bufio.Reader, filename, format string) (string, bool) {
 // is specified for the file, getCerts guesses what format was used
 // based on the file extension used in the file name. If it can't
 // guess based on this it returns and error.
-func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
+func getCerts(reader io.Reader, filename string, format string) ([]certWithAlias, error) {
 	var certs []certWithAlias
 	switch format {
 	case "PEM":
@@ -172,7 +185,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, certWithAlias{cert: cert})
+			certs = append(certs, certWithAlias{file: filename, cert: cert})
 			block, data = pem.Decode(data)
 		}
 	case "DER":
@@ -184,7 +197,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 		if err != nil {
 			return nil, err
 		}
-		certs = append(certs, certWithAlias{cert: cert})
+		certs = append(certs, certWithAlias{file: filename, cert: cert})
 	case "PKCS12":
 		data, err := ioutil.ReadAll(reader)
 		if err != nil {
@@ -204,7 +217,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 				if err != nil {
 					return nil, err
 				}
-				certs = append(certs, certWithAlias{cert: cert})
+				certs = append(certs, certWithAlias{file: filename, cert: cert})
 			}
 		}
 	case "JCEKS":
@@ -221,7 +234,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 			if err != nil {
 				return nil, err
 			}
-			certs = append(certs, certWithAlias{cert: cert, alias: alias})
+			certs = append(certs, certWithAlias{alias: alias, file: filename, cert: cert})
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			password, err := readPassword(fmt.Sprintf("Enter password for alias [%s]: ", alias))
@@ -233,7 +246,7 @@ func getCerts(reader io.Reader, format string) ([]certWithAlias, error) {
 				return nil, err
 			}
 			for _, cert := range certArr {
-				certs = append(certs, certWithAlias{cert: cert, alias: alias})
+				certs = append(certs, certWithAlias{alias: alias, file: filename, cert: cert})
 			}
 		}
 	default:
