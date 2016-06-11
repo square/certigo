@@ -217,7 +217,7 @@ func getCerts(reader io.Reader, filename string, format string) ([]certWithAlias
 				if err != nil {
 					return nil, err
 				}
-				certs = append(certs, certWithAlias{file: filename, cert: cert})
+				certs = append(certs, certWithAlias{alias: block.Headers["friendlyName"], file: filename, cert: cert})
 			}
 		}
 	case "JCEKS":
