@@ -10,7 +10,7 @@ Certigo is a utility to examine and validate certificates in a variety of format
 
 To install certigo, simply use:
 
-    go get github.com/square/certigo
+    go get -u github.com/square/certigo
 
 Note that certigo requires Go 1.6 or later to build.
 
