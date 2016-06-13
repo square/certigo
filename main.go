@@ -50,6 +50,7 @@ var fileExtToFormat = map[string]string{
 	".p12":   "PKCS12",
 	".pfx":   "PKCS12",
 	".jceks": "JCEKS",
+	".jks":   "JCEKS", // Only partially supported
 	".der":   "DER",
 }
 
@@ -210,6 +211,9 @@ func getCerts(reader io.Reader, filename string, format string) ([]certWithAlias
 		blocks, err := pkcs12.ToPEM(data, strings.TrimSuffix(password, "\n"))
 		if err != nil {
 			return nil, err
+		}
+		if len(blocks) == 0 {
+			return nil, fmt.Errorf("keystore appears to be empty or password was incorrect")
 		}
 		for _, block := range blocks {
 			if block.Type == "CERTIFICATE" {
