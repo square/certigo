@@ -61,6 +61,8 @@ type certWithAlias struct {
 }
 
 func main() {
+	app.Version("1.0.1")
+
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
 		files := []*os.File{}
