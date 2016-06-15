@@ -4,7 +4,7 @@
      xmlns:xlink="http://www.w3.org/1999/xlink"
      width="100%" height="86em">
      <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2" />
-     <text font-family="monospace" y="10" font-size="1ex">
+     <text font-family="monospace" y="10" font-size="1em">
        <tspan  x="10" dy="1.2em">&#36; openssl s_client -connect squareup.com:443 -showcerts | ./certigo dump</tspan>
        <tspan x="10" dy="1.2em">depth=2 /C=US/O=Entrust, Inc./OU=See www.entrust.net/legal-terms/OU=(c) 2009 Entrust, Inc. - for authorized use only/CN=Entrust Root Certification Authority - G2</tspan>
        <tspan x="10" dy="1.2em">verify error:num=20:unable to get local issuer certificate</tspan>
