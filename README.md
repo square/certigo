@@ -28,12 +28,12 @@ Currently supported formats are DER, PEM, JCEKS and PKCS12. It's a one-stop shop
 
 For example (from stdin):
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/output_1.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/master/examples/928a0cb8a74703c7b85defb406946e3147920f5f.svg" width="100%" height="100%">
 
 Or from a file:
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/output_2.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/master/examples/a0afdd5348ef40e39a35c569e882f2a83328a5a4.svg" width="100%" height="100%">
 
 You can dump a cert chain from a TLS server. Unlike `openssl x509 -text`, certigo will dump the entire chain, not just the first certificate:
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/output_3.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/master/examples/f35442bbd71d7b5bc2107aac2f201c04c6076780.svg" width="100%" height="100%">
