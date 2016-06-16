@@ -68,7 +68,7 @@ Warnings: {{range . | certWarnings}}
 `
 
 // displayCert takes in an x509 Certificate object and an alias
-// (for jckes certs, blank otherwise), and prints out relevant
+// (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
 func displayCert(cert certWithAlias) {

@@ -18,6 +18,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
 	"encoding/pem"
@@ -43,6 +44,9 @@ var (
 	dump      = app.Command("dump", "Display information about a certificate.")
 	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
 	dumpType  = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
+
+	connect   = app.Command("connect", "Connect to a server and print its certificate")
+	connectTo = connect.Arg("server:port", "Hostname or IP to connect to").String()
 )
 
 var fileExtToFormat = map[string]string{
@@ -89,6 +93,19 @@ func main() {
 		readCerts(wg, certs, files)
 
 		wg.Wait()
+	case connect.FullCommand(): // Get certs by connecting to a server
+		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{
+			InsecureSkipVerify: true,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error connecting: %v\n", err)
+			os.Exit(1)
+		}
+		defer conn.Close()
+		for i, cert := range conn.ConnectionState().PeerCertificates {
+			fmt.Printf("** CERTIFICATE %d **\n", i+1)
+			displayCert(certWithAlias{cert: cert})
+		}
 	}
 }
 
