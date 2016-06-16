@@ -45,9 +45,9 @@ var (
 	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
 	dumpType  = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
 
-	connect     = app.Command("connect", "Connect to a server and print its certificate")
-	connectTo   = connect.Arg("server:port", "Hostname or IP to connect to").String()
-	connectName = connect.Flag("name", "Override the server name used for SNI").String()
+	connect     = app.Command("connect", "Connect to a server and print its certificate.")
+	connectTo   = connect.Arg("server:port", "Hostname or IP to connect to.").String()
+	connectName = connect.Flag("name", "Override the server name used for SNI.").String()
 )
 
 var fileExtToFormat = map[string]string{
