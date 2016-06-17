@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- X lines => X*1.2+1 height -->
+<svg version="1.1"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 60 55">
+     <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2"/>
+     <text font-family="monospace" font-size="1">
+       <tspan x="0.5" dy="1.2">&#36; ./certigo dump certs/cert.jks</tspan>
+       <tspan x="0.5" dy="1.2">Enter password:</tspan>
+       <tspan x="0.5" dy="1.2">** CERTIFICATE 1 **</tspan>
+       <tspan x="0.5" dy="1.2">Alias: second-key</tspan>
+       <tspan x="0.5" dy="1.2">Serial: 11578389349061131131</tspan>
+       <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2016-05-27 21:15:31 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Not After : <tspan fill="green">2017-10-09 21:15:31 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Signature : <tspan fill="red">SHA1-RSA</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Subject Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: ApertureScience</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Aperture Science]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [Research and Development]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Locality: [San Francisco]</tspan>
+       <tspan x="0.5" dy="1.2">Issuer Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: ApertureScience</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Aperture Science]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [Research and Development]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Locality: [San Francisco]</tspan>
+       <tspan x="0.5" dy="1.2">Warnings:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="red">Certificate is not in X509v3 format (version is 2)</tspan></tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="red">Using SHA1-RSA, which is an outdated signature algorithm</tspan></tspan>
+       <tspan x="0.5" dy="1.2">&#160;</tspan>
+       <tspan x="0.5" dy="1.2">** CERTIFICATE 2 **</tspan>
+       <tspan x="0.5" dy="1.2">Alias: mykey</tspan>
+       <tspan x="0.5" dy="1.2">Serial: 11578389349061131131</tspan>
+       <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2016-05-27 21:15:31 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Not After : <tspan fill="green">2017-10-09 21:15:31 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Signature : <tspan fill="red">SHA1-RSA</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Subject Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: ApertureScience</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Aperture Science]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [Research and Development]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Locality: [San Francisco]</tspan>
+       <tspan x="0.5" dy="1.2">Issuer Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: ApertureScience</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Aperture Science]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [Research and Development]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Locality: [San Francisco]</tspan>
+       <tspan x="0.5" dy="1.2">Warnings:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="red">Certificate is not in X509v3 format (version is 2)</tspan></tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="red">Using SHA1-RSA, which is an outdated signature algorithm</tspan></tspan>
+     </text>
+</svg>

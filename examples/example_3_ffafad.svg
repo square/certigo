@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- X lines => X*1.2+1 height -->
+<svg version="1.1"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 60 105.4">
+     <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2" />
+     <clipPath id="rect">
+       <rect x="0" y="0" width="99%" height="100%"/>
+     </clipPath>
+     <text font-family="monospace" font-size="1" clip-path="url(#rect)">
+       <tspan x="0.5" dy="1.2">&#36; openssl s_client -connect squareup.com:443 -showcerts | ./certigo dump</tspan>
+       <tspan x="0.5" dy="1.2">depth=2 /C=US/O=Entrust, Inc./OU=See www.entrust.net/legal-terms/OU=(c) 2009 Entrust, Inc. - for authorized use only/CN=Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">verify error:num=20:unable to get local issuer certificate</tspan>
+       <tspan x="0.5" dy="1.2">verify return:0</tspan>
+       <tspan x="0.5" dy="1.2">DONE</tspan>
+       <tspan x="0.5" dy="1.2">** CERTIFICATE 1 **</tspan>
+       <tspan x="0.5" dy="1.2">Serial: 1413474646</tspan>
+       <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2014-12-22 20:28:37 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Not After : <tspan fill="green">2016-08-01 00:41:40 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Signature : <tspan fill="green">SHA256-RSA</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Subject Info: </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Square, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Locality: [San Francisco]</tspan>
+       <tspan x="0.5" dy="1.2">Issuer Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [See www.entrust.net/legal-terms (c) 2014 Entrust, Inc. - for authorized use only]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">Subject Key ID &#160;&#160;: 6B:06:E5:5C:8A:AA:92:42:28:1F:0F:FF:15:61:A6:28:2B:0A:DE:85</tspan>
+       <tspan x="0.5" dy="1.2">Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A</tspan>
+       <tspan x="0.5" dy="1.2">Basic Constraints: CA:false</tspan>
+       <tspan x="0.5" dy="1.2">Key Usage: </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Key Encipherment</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Digital Signature</tspan>
+       <tspan x="0.5" dy="1.2">Extended Key Usage: </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Server Auth</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Client Auth</tspan>
+       <tspan x="0.5" dy="1.2">Alternate DNS Names:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;account.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;mkt.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;www.mkt.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;market.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;gosq.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;www.gosq.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;gosq.co</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;www.gosq.co</tspan>
+       <tspan x="0.5" dy="1.2">&#160;</tspan>
+       <tspan x="0.5" dy="1.2">** CERTIFICATE 2 **</tspan>
+       <tspan x="0.5" dy="1.2">Serial: 30215777750102225331854468774</tspan>
+       <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2014-12-15 15:25:03 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Not After : <tspan fill="green">2030-10-15 15:55:03 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Signature : <tspan fill="green">SHA256-RSA</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Subject Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [See www.entrust.net/legal-terms (c) 2014 Entrust, Inc. - for authorized use only]  </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">Issuer Info: </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [See www.entrust.net/legal-terms (c) 2009 Entrust, Inc. - for authorized use only]  </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">Subject Key ID &#160;&#160;: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A</tspan>
+       <tspan x="0.5" dy="1.2">Authority Key ID : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB</tspan>
+       <tspan x="0.5" dy="1.2">Basic Constraints: CA:true, pathlen:0</tspan>
+       <tspan x="0.5" dy="1.2">Key Usage:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CRL Sign</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Cert Sign</tspan>
+       <tspan x="0.5" dy="1.2">Extended Key Usage: </tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Client Auth</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Server Auth</tspan>
+       <tspan x="0.5" dy="1.2">&#160;</tspan>
+       <tspan x="0.5" dy="1.2">** CERTIFICATE 3 **</tspan>
+       <tspan x="0.5" dy="1.2">Serial: 1372799044</tspan>
+       <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2014-09-22 17:14:57 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Not After : <tspan fill="green">2024-09-23 01:31:53 +0000 UTC</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Signature : <tspan fill="green">SHA256-RSA</tspan></tspan>
+       <tspan x="0.5" dy="1.2">Subject Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [See www.entrust.net/legal-terms (c) 2009 Entrust, Inc. - for authorized use only]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">Issuer Info:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CommonName: Entrust Root Certification Authority</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Organization: [Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;OrganizationalUnit: [www.entrust.net/CPS is incorporated by reference (c) 2006 Entrust, Inc.]</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Country: [US]</tspan>
+       <tspan x="0.5" dy="1.2">Subject Key ID &#160;&#160;: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB</tspan>
+       <tspan x="0.5" dy="1.2">Authority Key ID : 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D</tspan>
+       <tspan x="0.5" dy="1.2">Basic Constraints: CA:true, pathlen:1</tspan>
+       <tspan x="0.5" dy="1.2">Key Usage:</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Cert Sign</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CRL Sign</tspan>
+     </text>
+</svg>
