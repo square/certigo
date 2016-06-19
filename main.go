@@ -107,6 +107,7 @@ func main() {
 		for i, cert := range conn.ConnectionState().PeerCertificates {
 			fmt.Printf("** CERTIFICATE %d **\n", i+1)
 			displayCert(certWithAlias{cert: cert})
+			fmt.Println()
 		}
 	}
 }
