@@ -6,7 +6,7 @@
      viewBox="0 0 60 51.4">
      <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2" />
      <text font-family="monospace" font-size="1">
-       <tspan x="0.5" dy="1.2">&#36; cat certs/cert.pem | ./certigo dump</tspan>
+       <tspan x="0.5" dy="1.2">&#36; certigo dump &#60; cert.pem</tspan>
        <tspan x="0.5" dy="1.2">** CERTIFICATE 1 **</tspan>
        <tspan x="0.5" dy="1.2">Serial: 11578389349061131131</tspan>
        <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2016-05-27 21:15:31 +0000 UTC</tspan></tspan>
