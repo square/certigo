@@ -252,7 +252,7 @@ func certWarnings(cert *x509.Certificate) (warnings []string) {
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions", cert.Version+1))
+		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions"))
 	}
 
 	warnings = append(warnings, algWarnings(cert)...)
