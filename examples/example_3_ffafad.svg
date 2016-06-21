@@ -9,7 +9,7 @@
        <rect x="0" y="0" width="99%" height="100%"/>
      </clipPath>
      <text font-family="monospace" font-size="1" clip-path="url(#rect)">
-       <tspan x="0.5" dy="1.2">&#36; ./certigo connect squareup.com:443</tspan>
+       <tspan x="0.5" dy="1.2">&#36; certigo connect squareup.com:443</tspan>
        <tspan x="0.5" dy="1.2">** CERTIFICATE 1 **</tspan>
        <tspan x="0.5" dy="1.2">Serial: 1413474646</tspan>
        <tspan x="0.5" dy="1.2">Not Before: <tspan fill="green">2014-12-22 20:28:37 +0000 UTC</tspan></tspan>

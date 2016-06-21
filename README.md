@@ -24,16 +24,41 @@ We use [glide][1] for managing vendored dependencies.
 
 Certigo can read certificates/keystores in various formats and dump them to stdout.
 
-Currently supported formats are DER, PEM, JCEKS and PKCS12. It's a one-stop shop for debugging/analyzing certs.
+Currently supported formats are DER, PEM, JCEKS/JKS and PKCS12. Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of PKCS12/JCEKS keystores into something more useful.
 
-For example (from stdin):
+```
+usage: certigo [<flags>] <command> [<args> ...]
+
+A command line certificate examination utility.
+
+Flags:
+  --help     Show context-sensitive help (also try --help-long and --help-man).
+  --version  Show application version.
+
+Commands:
+  help [<command>...]
+    Show help.
+
+  dump [<flags>] [<file>...]
+    Display information about a certificate.
+
+  connect [<flags>] [<server:port>]
+    Connect to a server and print its certificate.
+
+  pem [<flags>] [<file>...]
+    Convert input to PEM-formatted blocks.
+```
+
+### Examples
+
+Display information about a certificate (from stdin):
 
 <img src="https://cdn.rawgit.com/square/certigo/master/examples/example_1_245953.svg" width="100%" height="100%">
 
-Or from a file:
+Display information about a certificate (from a file):
 
 <img src="https://cdn.rawgit.com/square/certigo/master/examples/example_2_d848d5.svg" width="100%" height="100%">
 
-You can dump a cert chain from a TLS server. Unlike `openssl x509 -text`, certigo will dump the entire chain, not just the first certificate:
+Display information about a certificate from a remote server:
 
 <img src="https://cdn.rawgit.com/square/certigo/master/examples/example_3_ffafad.svg" width="100%" height="100%">

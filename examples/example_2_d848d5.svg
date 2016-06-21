@@ -6,7 +6,7 @@
      viewBox="0 0 60 55">
      <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2"/>
      <text font-family="monospace" font-size="1">
-       <tspan x="0.5" dy="1.2">&#36; ./certigo dump certs/cert.jks</tspan>
+       <tspan x="0.5" dy="1.2">&#36; certigo dump keystore.jceks</tspan>
        <tspan x="0.5" dy="1.2">Enter password:</tspan>
        <tspan x="0.5" dy="1.2">** CERTIFICATE 1 **</tspan>
        <tspan x="0.5" dy="1.2">Alias: second-key</tspan>
