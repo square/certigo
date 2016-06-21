@@ -232,6 +232,10 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 		scanner := pemScanner(reader)
 		for scanner.Scan() {
 			block, _ := pem.Decode(scanner.Bytes())
+			if block.Type != "CERTIFICATE" {
+				// Skip non-certificate PEM blocks
+				continue
+			}
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error parsing certificate: %s", err)
