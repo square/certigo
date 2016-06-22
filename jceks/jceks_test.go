@@ -175,7 +175,7 @@ func TestPrivateKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !equalRSAPrivateKey(key, expected) {
+	if !equalRSAPrivateKey(key.(*rsa.PrivateKey), expected) {
 		t.Fatalf("keys are not equal")
 	}
 

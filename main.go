@@ -18,6 +18,9 @@ package main
 
 import (
 	"bufio"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
@@ -28,6 +31,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -276,7 +280,6 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 	case "PEM":
 		scanner := pemScanner(reader)
 		for scanner.Scan() {
-			fmt.Fprintf(os.Stderr, "found a block\n")
 			block, _ := pem.Decode(scanner.Bytes())
 			if block.Type != "CERTIFICATE" {
 				// Skip non-certificate PEM blocks
@@ -290,7 +293,6 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 			wg.Add(1)
 			out <- certWithAlias{file: filename, cert: cert}
 		}
-		fmt.Fprintf(os.Stderr, "done\n")
 	case "DER":
 		data, err := ioutil.ReadAll(reader)
 		if err != nil {
@@ -422,11 +424,7 @@ func convertToPem(wg *sync.WaitGroup, reader io.Reader, filename string, format 
 				os.Exit(1)
 			}
 			wg.Add(1)
-			out <- &pem.Block{
-				Type:    "RSA PRIVATE KEY",
-				Bytes:   x509.MarshalPKCS1PrivateKey(key),
-				Headers: map[string]string{"alias": alias},
-			}
+			out <- keyToPem(key, map[string]string{"alias": alias})
 			for _, cert := range certs {
 				wg.Add(1)
 				out <- &pem.Block{
@@ -440,4 +438,31 @@ func convertToPem(wg *sync.WaitGroup, reader io.Reader, filename string, format 
 		fmt.Fprintf(os.Stderr, "unknown file type: %s\n", format)
 		os.Exit(1)
 	}
+}
+
+// Convert a key into one or more PEM blocks for output
+func keyToPem(key crypto.PrivateKey, headers map[string]string) *pem.Block {
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		return &pem.Block{
+			Type:    "RSA PRIVATE KEY",
+			Bytes:   x509.MarshalPKCS1PrivateKey(k),
+			Headers: headers,
+		}
+	case *ecdsa.PrivateKey:
+		raw, err := x509.MarshalECPrivateKey(k)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error marshaling key: %s\n", reflect.TypeOf(key))
+			os.Exit(1)
+		}
+		return &pem.Block{
+			Type:    "EC PRIVATE KEY",
+			Bytes:   raw,
+			Headers: headers,
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "unknown key type: %s\n", reflect.TypeOf(key))
+		os.Exit(1)
+	}
+	return nil
 }
