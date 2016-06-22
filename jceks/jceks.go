@@ -23,7 +23,7 @@ package jceks
 
 import (
 	"bytes"
-	"crypto/rsa"
+	"crypto"
 	"crypto/sha1"
 	"crypto/subtle"
 	"crypto/x509"
@@ -46,6 +46,7 @@ const (
 var (
 	oidKeyProtector = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 42, 2, 17, 1, 1}
 	oidPublicKeyRSA = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
+	oidPublicKeyEC  = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
 )
 
 type encryptedPrivateKeyInfo struct {
@@ -65,11 +66,19 @@ type privateKeyEntry struct {
 	certs      []*x509.Certificate
 }
 
+// From https://golang.org/src/crypto/x509/sec1.go (also: see RFC 5915)
+type ecPrivateKey struct {
+	Version       int
+	PrivateKey    []byte
+	NamedCurveOID asn1.ObjectIdentifier `asn1:"optional,explicit,tag:0"`
+	PublicKey     asn1.BitString        `asn1:"optional,explicit,tag:1"`
+}
+
 func (e *privateKeyEntry) String() string {
 	return fmt.Sprintf("private-key: %s", e.date)
 }
 
-func (e *privateKeyEntry) Recover(password []byte) (*rsa.PrivateKey, error) {
+func (e *privateKeyEntry) Recover(password []byte) (crypto.PrivateKey, error) {
 	var eKey encryptedPrivateKeyInfo
 	_, err := asn1.Unmarshal(e.encodedKey, &eKey)
 	if err != nil {
@@ -95,10 +104,32 @@ func (e *privateKeyEntry) Recover(password []byte) (*rsa.PrivateKey, error) {
 	if _, err := asn1.Unmarshal(decryptedKey, &pKey); err != nil {
 		return nil, err
 	}
-	if !pKey.Algo.Algorithm.Equal(oidPublicKeyRSA) {
-		return nil, fmt.Errorf("unsupported private-key algorithm: %v", pKey.Algo.Algorithm)
+	if pKey.Algo.Algorithm.Equal(oidPublicKeyRSA) {
+		return x509.ParsePKCS1PrivateKey(pKey.PrivateKey)
 	}
-	return x509.ParsePKCS1PrivateKey(pKey.PrivateKey)
+	if pKey.Algo.Algorithm.Equal(oidPublicKeyEC) {
+		// In a JCEKS file, the EC private key blob contains only the key itself, without the
+		// named curve OID. Instead, the named curve OID is in a separate field (in the algorithm
+		// indentifier for the keystore entry). However to parse the EC key properly we need the
+		// EC key blob to have the curve OID...
+		key := ecPrivateKey{}
+		oid := asn1.ObjectIdentifier{}
+		// Parse EC private key
+		_, err := asn1.Unmarshal(pKey.PrivateKey, &key)
+		if err != nil {
+			return nil, fmt.Errorf("problem parsing ec key asn.1 struct: %s", err)
+		}
+		// Parse named curve OID from algorithm identifier
+		_, err = asn1.Unmarshal(pKey.Algo.Parameters.FullBytes, &oid)
+		if err != nil {
+			return nil, fmt.Errorf("problem parsing ec key asn.1 struct: %s", err)
+		}
+		// Update key to add named curve info, re-marshal, and parse
+		key.NamedCurveOID = oid
+		raw, _ := asn1.Marshal(key)
+		return x509.ParseECPrivateKey(raw)
+	}
+	return nil, fmt.Errorf("unsupported private-key algorithm: %v", pKey.Algo.Algorithm)
 }
 
 type trustedCertEntry struct {
@@ -338,7 +369,7 @@ func (ks *KeyStore) Parse(r io.Reader, password []byte) error {
 // nil if the private key does not exist or alias points to a non
 // private key entry.
 func (ks *KeyStore) GetPrivateKeyAndCerts(alias string, password []byte) (
-	key *rsa.PrivateKey, certs []*x509.Certificate, err error) {
+	key crypto.PrivateKey, certs []*x509.Certificate, err error) {
 
 	entry := ks.entries[alias]
 	if entry == nil {

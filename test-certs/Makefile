@@ -64,7 +64,7 @@ example-expired.crt: example-expired.csr
 
 # Example ECC key
 example-elliptic-sha1.key:
-	openssl ecparam -genkey -name prime256v1 -out $@
+	openssl ecparam -genkey -name secp521r1 -out $@
 
 example-elliptic-sha1.crt: example-elliptic-sha1.csr
 	openssl x509 -req -in $< -signkey $(@:.crt=.key) -out $@ -days 2500 -extfile openssl.ext -extensions leaf
