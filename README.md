@@ -53,12 +53,12 @@ Commands:
 
 Display information about a certificate (from stdin):
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/example_1_245953.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/beac5ca8f48521a8361df8c953e66902f1d6632c/examples/example_1_245953.svg" width="100%" height="100%">
 
 Display information about a certificate (from a file):
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/example_2_d848d5.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/beac5ca8f48521a8361df8c953e66902f1d6632c/examples/example_2_d848d5.svg" width="100%" height="100%">
 
 Display information about a certificate from a remote server:
 
-<img src="https://cdn.rawgit.com/square/certigo/master/examples/example_3_ffafad.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/beac5ca8f48521a8361df8c953e66902f1d6632c/examples/example_3_ffafad.svg" width="100%" height="100%">
