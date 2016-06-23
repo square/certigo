@@ -49,9 +49,10 @@ var (
 	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
 	dumpType  = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
 
-	connect     = app.Command("connect", "Connect to a server and print its certificate.")
-	connectTo   = connect.Arg("server:port", "Hostname or IP to connect to.").String()
-	connectName = connect.Flag("name", "Override the server name used for SNI.").String()
+	connect       = app.Command("connect", "Connect to a server and print its certificate.")
+	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
+	connectName   = connect.Flag("name", "Override the server name used for SNI.").String()
+	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 
 	toPem      = app.Command("pem", "Convert input to PEM-formatted blocks.")
 	toPemFiles = toPem.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
@@ -94,6 +95,7 @@ func main() {
 		wg.Wait()
 	case connect.FullCommand(): // Get certs by connecting to a server
 		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{
+			// We verify later manually so we can print results
 			InsecureSkipVerify: true,
 			ServerName:         *connectName,
 		})
@@ -107,6 +109,14 @@ func main() {
 			displayCert(certWithAlias{cert: cert})
 			fmt.Println()
 		}
+
+		var hostname string
+		if *connectName != "" {
+			hostname = *connectName
+		} else {
+			hostname = strings.Split(*connectTo, ":")[0]
+		}
+		verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
 	case toPem.FullCommand(): // Convert input to PEM blocks
 		files := inputFiles(*toPemFiles)
 		defer func() {
