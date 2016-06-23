@@ -53,7 +53,7 @@ Commands:
 
 Display information about a certificate (from a file, or from stdin):
 
-<img src="https://cdn.rawgit.com/square/certigo/0a5ff1bfe36ca773052237681f7457101b0b3a64/examples/example_1.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/d162d5520fb1624ad5bc55ad4bbef406ca8f2a9d/examples/example_1.svg" width="100%" height="100%">
 
 Export certificates/keys from a JCEKS/PKCS12 keystore into PEM blocks:
 
