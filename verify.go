@@ -40,23 +40,15 @@ func caBundle(caPath string) *x509.CertPool {
 	return bundle
 }
 
-func verifyChain(certs []*x509.Certificate) {
+func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 	intermediates := x509.NewCertPool()
-
 	for i := 1; i < len(certs); i++ {
 		intermediates.AddCert(certs[i])
 	}
 
-	var hostname string
-	if *connectName != "" {
-		hostname = *connectName
-	} else {
-		hostname = strings.Split(*connectTo, ":")[0]
-	}
-
 	opts := x509.VerifyOptions{
-		DNSName:       hostname,
-		Roots:         caBundle(*connectCaPath),
+		DNSName:       dnsName,
+		Roots:         caBundle(caPath),
 		Intermediates: intermediates,
 	}
 

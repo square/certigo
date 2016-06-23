@@ -109,7 +109,14 @@ func main() {
 			displayCert(certWithAlias{cert: cert})
 			fmt.Println()
 		}
-		verifyChain(conn.ConnectionState().PeerCertificates)
+
+		var hostname string
+		if *connectName != "" {
+			hostname = *connectName
+		} else {
+			hostname = strings.Split(*connectTo, ":")[0]
+		}
+		verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
 	case toPem.FullCommand(): // Convert input to PEM blocks
 		files := inputFiles(*toPemFiles)
 		defer func() {
