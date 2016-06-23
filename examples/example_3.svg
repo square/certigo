@@ -3,10 +3,10 @@
 <svg version="1.1"
      xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
-     viewBox="0 0 60 100.6">
+     viewBox="0 0 60 111.4">
      <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2" />
      <clipPath id="rect">
-       <rect x="0" y="0" width="99%" height="100%"/>
+       <rect x="0" y="0" width="59.5" height="100%"/>
      </clipPath>
      <text font-family="monospace" font-size="1" clip-path="url(#rect)">
        <tspan x="0.5" dy="1.2">&#36; certigo connect squareup.com:443</tspan>
@@ -92,5 +92,14 @@
        <tspan x="0.5" dy="1.2">Key Usage:</tspan>
        <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Cert Sign</tspan>
        <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CRL Sign</tspan>
+       <tspan x="0.5" dy="1.2">&#160;</tspan>
+       <tspan x="0.5" dy="1.2"><tspan fill="green">Server certificates appear to be valid (found 2 chains):</tspan></tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;[0] www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;[1] www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority <tspan fill="red">[SHA1-RSA]</tspan></tspan>
      </text>
 </svg>
