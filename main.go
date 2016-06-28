@@ -29,11 +29,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -59,6 +57,11 @@ var (
 	toPemType  = toPem.Flag("format", "Format of given input (heuristic guess if not specified).").String()
 )
 
+const (
+	nameHeader = "friendlyName"
+	fileHeader = "originFile"
+)
+
 var fileExtToFormat = map[string]string{
 	".pem":   "PEM",
 	".crt":   "PEM",
@@ -67,12 +70,6 @@ var fileExtToFormat = map[string]string{
 	".jceks": "JCEKS",
 	".jks":   "JCEKS", // Only partially supported
 	".der":   "DER",
-}
-
-type certWithAlias struct {
-	alias string
-	file  string
-	cert  *x509.Certificate
 }
 
 func main() {
@@ -87,12 +84,17 @@ func main() {
 			}
 		}()
 
-		wg := &sync.WaitGroup{}
-		certs := make(chan certWithAlias, 1)
+		i := 0
+		readCerts(files, func(block *pem.Block) {
+			if block.Type != "CERTIFICATE" {
+				return
+			}
 
-		go displayCerts(wg, certs, len(files) > 1)
-		readCerts(wg, certs, files)
-		wg.Wait()
+			fmt.Printf("** CERTIFICATE %d **\n", i+1)
+			displayCertFromPem(block)
+			fmt.Println()
+			i++
+		})
 	case connect.FullCommand(): // Get certs by connecting to a server
 		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{
 			// We verify later manually so we can print results
@@ -106,7 +108,7 @@ func main() {
 		defer conn.Close()
 		for i, cert := range conn.ConnectionState().PeerCertificates {
 			fmt.Printf("** CERTIFICATE %d **\n", i+1)
-			displayCert(certWithAlias{cert: cert})
+			displayCert(certWithName{cert: cert})
 			fmt.Println()
 		}
 
@@ -125,22 +127,9 @@ func main() {
 			}
 		}()
 
-		wg := &sync.WaitGroup{}
-		blocks := make(chan *pem.Block, 1)
-
-		go func() {
-			for block := range blocks {
-				err := pem.Encode(os.Stdout, block)
-				wg.Done()
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "error writing output: %s\n", err)
-					os.Exit(1)
-				}
-			}
-		}()
-
-		convertCerts(wg, blocks, files)
-		wg.Wait()
+		readCerts(files, func(block *pem.Block) {
+			pem.Encode(os.Stdout, block)
+		})
 	}
 }
 
@@ -161,7 +150,7 @@ func inputFiles(fileNames []string) []*os.File {
 	return files
 }
 
-func readCerts(wg *sync.WaitGroup, certs chan<- certWithAlias, files []*os.File) {
+func readCerts(files []*os.File, callback func(*pem.Block)) {
 	for _, file := range files {
 		reader := bufio.NewReaderSize(file, 4)
 		format, ok := formatForFile(reader, file.Name(), *dumpType)
@@ -170,34 +159,7 @@ func readCerts(wg *sync.WaitGroup, certs chan<- certWithAlias, files []*os.File)
 			os.Exit(1)
 		}
 
-		readCertsFromFile(wg, reader, file.Name(), format, certs)
-	}
-}
-
-func convertCerts(wg *sync.WaitGroup, certs chan<- *pem.Block, files []*os.File) {
-	for _, file := range files {
-		reader := bufio.NewReaderSize(file, 4)
-		format, ok := formatForFile(reader, file.Name(), *toPemType)
-		if !ok {
-			fmt.Fprintf(os.Stderr, "unable to guess file type (for file %s)\n", file.Name())
-			os.Exit(1)
-		}
-
-		convertToPem(wg, reader, file.Name(), format, certs)
-	}
-}
-
-func displayCerts(wg *sync.WaitGroup, certs <-chan certWithAlias, showFiles bool) {
-	i := 1
-	for cert := range certs {
-		fmt.Printf("** CERTIFICATE %d **\n", i)
-		if cert.file != "" && showFiles {
-			fmt.Printf("File  : %s\n", path.Base(cert.file))
-		}
-		displayCert(cert)
-		fmt.Println()
-		wg.Done()
-		i++
+		readCertsFromFile(reader, file.Name(), format, callback)
 	}
 }
 
@@ -282,26 +244,20 @@ func pemScanner(reader io.Reader) *bufio.Scanner {
 	return scanner
 }
 
-// readCertsFromFile takes in a filename and format type and returns an
-// array of all the certificates found in that file along with aliases
-// for each cert if the format of the input was jceks.
-func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, format string, out chan<- certWithAlias) {
+// readCertsFromFile takes some input and converts it to PEM blocks.
+func readCertsFromFile(reader io.Reader, filename string, format string, callback func(*pem.Block)) {
+	headers := map[string]string{}
+	if filename != "" {
+		headers[fileHeader] = filename
+	}
+
 	switch format {
 	case "PEM":
 		scanner := pemScanner(reader)
 		for scanner.Scan() {
 			block, _ := pem.Decode(scanner.Bytes())
-			if block.Type != "CERTIFICATE" {
-				// Skip non-certificate PEM blocks
-				continue
-			}
-			cert, err := x509.ParseCertificate(block.Bytes)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing certificate: %s\n", err)
-				os.Exit(1)
-			}
-			wg.Add(1)
-			out <- certWithAlias{file: filename, cert: cert}
+			block.Headers = mergeHeaders(block.Headers, headers)
+			callback(block)
 		}
 	case "DER":
 		data, err := ioutil.ReadAll(reader)
@@ -314,8 +270,7 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 			fmt.Fprintf(os.Stderr, "error parsing certificate: %s\n", err)
 			os.Exit(1)
 		}
-		wg.Add(1)
-		out <- certWithAlias{file: filename, cert: cert}
+		callback(certToPem(cert, headers))
 	case "PKCS12":
 		data, err := ioutil.ReadAll(reader)
 		if err != nil {
@@ -329,15 +284,8 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 			os.Exit(1)
 		}
 		for _, block := range blocks {
-			if block.Type == "CERTIFICATE" {
-				cert, err := x509.ParseCertificate(block.Bytes)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "error parsing certificate: %s\n", err)
-					os.Exit(1)
-				}
-				wg.Add(1)
-				out <- certWithAlias{file: filename, cert: cert}
-			}
+			block.Headers = mergeHeaders(block.Headers, headers)
+			callback(block)
 		}
 	case "JCEKS":
 		password := readPassword("Enter password: ")
@@ -348,83 +296,7 @@ func readCertsFromFile(wg *sync.WaitGroup, reader io.Reader, filename string, fo
 		}
 		for _, alias := range keyStore.ListCerts() {
 			cert, _ := keyStore.GetCert(alias)
-			wg.Add(1)
-			out <- certWithAlias{file: filename, cert: cert}
-		}
-		for _, alias := range keyStore.ListPrivateKeys() {
-			password := readPassword(fmt.Sprintf("Enter password for alias [%s]: ", alias))
-			_, certs, err := keyStore.GetPrivateKeyAndCerts(alias, []byte(password))
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing keystore: %s\n", err)
-				os.Exit(1)
-			}
-			for _, cert := range certs {
-				wg.Add(1)
-				out <- certWithAlias{file: filename, cert: cert}
-			}
-		}
-	default:
-		fmt.Fprintf(os.Stderr, "unknown file type: %s\n", format)
-		os.Exit(1)
-	}
-}
-
-// convertToPem takes some input and converts it to PEM blocks.
-func convertToPem(wg *sync.WaitGroup, reader io.Reader, filename string, format string, out chan<- *pem.Block) {
-	switch format {
-	case "PEM":
-		scanner := pemScanner(reader)
-		for scanner.Scan() {
-			block, _ := pem.Decode(scanner.Bytes())
-			wg.Add(1)
-			out <- block
-		}
-	case "DER":
-		data, err := ioutil.ReadAll(reader)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading input: %s\n", err)
-			os.Exit(1)
-		}
-		_, err = x509.ParseCertificate(data)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing certificate: %s\n", err)
-			os.Exit(1)
-		}
-		wg.Add(1)
-		out <- &pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: data,
-		}
-	case "PKCS12":
-		data, err := ioutil.ReadAll(reader)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading input: %s\n", err)
-			os.Exit(1)
-		}
-		password := readPassword("Enter password: ")
-		blocks, err := pkcs12.ToPEM(data, password)
-		if err != nil || len(blocks) == 0 {
-			fmt.Fprint(os.Stderr, "keystore appears to be empty or password was incorrect")
-			os.Exit(1)
-		}
-		for _, block := range blocks {
-			wg.Add(1)
-			out <- block
-		}
-	case "JCEKS":
-		password := readPassword("Enter password: ")
-		keyStore, err := jceks.LoadFromReader(reader, []byte(password))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing keystore: %s\n", err)
-			os.Exit(1)
-		}
-		for _, alias := range keyStore.ListCerts() {
-			cert, _ := keyStore.GetCert(alias)
-			wg.Add(1)
-			out <- &pem.Block{
-				Type:  "CERTIFICATE",
-				Bytes: cert.Raw,
-			}
+			callback(certToPem(cert, mergeHeaders(headers, map[string]string{nameHeader: alias})))
 		}
 		for _, alias := range keyStore.ListPrivateKeys() {
 			password := readPassword(fmt.Sprintf("Enter password for alias [%s]: ", alias))
@@ -433,20 +305,34 @@ func convertToPem(wg *sync.WaitGroup, reader io.Reader, filename string, format 
 				fmt.Fprintf(os.Stderr, "error parsing keystore: %s\n", err)
 				os.Exit(1)
 			}
-			wg.Add(1)
-			out <- keyToPem(key, map[string]string{"alias": alias})
+			callback(keyToPem(key, mergeHeaders(headers, map[string]string{nameHeader: alias})))
 			for _, cert := range certs {
-				wg.Add(1)
-				out <- &pem.Block{
-					Type:    "CERTIFICATE",
-					Bytes:   cert.Raw,
-					Headers: map[string]string{"alias": alias},
-				}
+				callback(certToPem(cert, mergeHeaders(headers, map[string]string{nameHeader: alias})))
 			}
 		}
 	default:
 		fmt.Fprintf(os.Stderr, "unknown file type: %s\n", format)
 		os.Exit(1)
+	}
+}
+
+func mergeHeaders(baseHeaders, extraHeaders map[string]string) (headers map[string]string) {
+	headers = map[string]string{}
+	for k, v := range baseHeaders {
+		headers[k] = v
+	}
+	for k, v := range extraHeaders {
+		headers[k] = v
+	}
+	return
+}
+
+// Convert a cert into a PEM block for output
+func certToPem(cert *x509.Certificate, headers map[string]string) *pem.Block {
+	return &pem.Block{
+		Type:    "CERTIFICATE",
+		Bytes:   cert.Raw,
+		Headers: headers,
 	}
 }
 
