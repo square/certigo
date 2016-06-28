@@ -69,6 +69,11 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 			} else {
 				name = fmt.Sprintf("Serial #%s", cert.SerialNumber.String())
 			}
+
+			if isSelfSigned(cert) {
+				name += green.SprintfFunc()(" [self-signed]")
+			}
+
 			for _, alg := range badSignatureAlgorithms {
 				if cert.SignatureAlgorithm == alg {
 					name += red.SprintfFunc()(" [%s]", alg.String())
@@ -77,6 +82,10 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 			}
 			names = append(names, name)
 		}
-		fmt.Printf("\t[%d] %s\n", i, strings.Join(names, "\n\t\t=> "))
+		fmt.Printf("[%d] %s\n", i, strings.Join(names, "\n\t=> "))
 	}
+}
+
+func isSelfSigned(cert *x509.Certificate) bool {
+	return cert.CheckSignatureFrom(cert) == nil
 }

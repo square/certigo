@@ -35,7 +35,7 @@ import (
 var layout = `Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | algorithm}}
+Signature : {{.SignatureAlgorithm | algorithm}} {{if . | isSelfSigned}}(self-signed){{end}}
 Subject Info: {{if .Subject.CommonName}}
 	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
 	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
@@ -80,6 +80,7 @@ func displayCert(cert certWithAlias) {
 		"keyUsage":     keyUsage,
 		"extKeyUsage":  extKeyUsage,
 		"certWarnings": certWarnings,
+		"isSelfSigned": isSelfSigned,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
