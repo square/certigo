@@ -3,14 +3,15 @@
 <svg version="1.1"
      xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
-     viewBox="0 0 60 38.2">
+     viewBox="0 0 60 40.6">
      <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7" stroke-width="2"/>
      <text font-family="monospace" font-size="1">
-       <tspan x="0.5" dy="1.2">&#36; certigo pem keystore.p12</tspan>
+       <tspan x="0.5" dy="1.2">&#36; certigo dump --pem keystore.p12</tspan>
        <tspan x="0.5" dy="1.2">Enter password:</tspan>
        <tspan x="0.5" dy="1.2">-----BEGIN CERTIFICATE-----</tspan>
        <tspan x="0.5" dy="1.2">friendlyName: example-elliptic-sha1</tspan>
        <tspan x="0.5" dy="1.2">localKeyId: dd50ce5c559b63733fbd0f6f95ce4d7527777698</tspan>
+       <tspan x="0.5" dy="1.2">originFile: keystore.p12</tspan>
        <tspan x="0.5" dy="1.2">&#160;</tspan>
        <tspan x="0.5" dy="1.2">MIICiDCCAeqgAwIBAgIJAJ/xjMI6FKOAMAkGByqGSM49BAEwXjELMAkGA1UEBhMC</tspan>
        <tspan x="0.5" dy="1.2">VVMxCzAJBgNVBAgTAkNBMRAwDgYDVQQKEwdjZXJ0aWdvMRAwDgYDVQQLEwdleGFt</tspan>
@@ -30,6 +31,7 @@
        <tspan x="0.5" dy="1.2">-----BEGIN PRIVATE KEY-----</tspan>
        <tspan x="0.5" dy="1.2">friendlyName: example-elliptic-sha1</tspan>
        <tspan x="0.5" dy="1.2">localKeyId: dd50ce5c559b63733fbd0f6f95ce4d7527777698</tspan>
+       <tspan x="0.5" dy="1.2">originFile: keystore.p12</tspan>
        <tspan x="0.5" dy="1.2">&#160;</tspan>
        <tspan x="0.5" dy="1.2">MIHcAgEBBEIBc4MT0rgcDEaimeP7Bxlhp3hAI2/KySFbOu6cg40taVXhXnaDAPqV</tspan>
        <tspan x="0.5" dy="1.2">tKj3kru+1DhvxBCrUewzKo5u9g+OC7xdu8qgBwYFK4EEACOhgYkDgYYABAEQWNjT</tspan>
