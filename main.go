@@ -43,12 +43,12 @@ import (
 var (
 	app = kingpin.New("certigo", "A command line certificate examination utility.")
 
-	dump      = app.Command("dump", "Display information about a certificate.")
+	dump      = app.Command("dump", "Display information about a certificate from a file/stdin.")
 	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
 	dumpType  = dump.Flag("type", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
 	dumpPem   = dump.Flag("pem", "Write output as PEM blocks instead of human-readble format.").Bool()
 
-	connect       = app.Command("connect", "Connect to a server and print its certificate.")
+	connect       = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
 	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
