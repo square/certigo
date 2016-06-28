@@ -94,12 +94,12 @@
        <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;CRL Sign</tspan>
        <tspan x="0.5" dy="1.2">&#160;</tspan>
        <tspan x="0.5" dy="1.2"><tspan fill="green">Server certificates appear to be valid (found 2 chains):</tspan></tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;[0] www.squareup.com</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;[1] www.squareup.com</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2</tspan>
-       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority <tspan fill="red">[SHA1-RSA]</tspan></tspan>
+       <tspan x="0.5" dy="1.2">[0] www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2 <tspan fill="green">[self-signed]</tspan></tspan>
+       <tspan x="0.5" dy="1.2">[1] www.squareup.com</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Certification Authority - L1M</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority - G2</tspan>
+       <tspan x="0.5" dy="1.2">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;=> Entrust Root Certification Authority <tspan fill="green">[self-signed]</tspan> <tspan fill="red">[SHA1-RSA]</tspan></tspan>
      </text>
 </svg>

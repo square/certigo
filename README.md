@@ -40,25 +40,22 @@ Commands:
     Show help.
 
   dump [<flags>] [<file>...]
-    Display information about a certificate.
+    Display information about a certificate from a file/stdin.
 
   connect [<flags>] [<server:port>]
-    Connect to a server and print its certificate.
-
-  pem [<flags>] [<file>...]
-    Convert input to PEM-formatted blocks.
+    Connect to a server and print its certificate(s).
 ```
 
 ### Examples
 
 Display information about a certificate (from a file, or from stdin):
 
-<img src="https://cdn.rawgit.com/square/certigo/d162d5520fb1624ad5bc55ad4bbef406ca8f2a9d/examples/example_1.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_1.svg" width="100%" height="100%">
 
-Export certificates/keys from a JCEKS/PKCS12 keystore into PEM blocks:
+Export certificates/keys from a keystore into PEM blocks:
 
-<img src="https://cdn.rawgit.com/square/certigo/0a5ff1bfe36ca773052237681f7457101b0b3a64/examples/example_2.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_2.svg" width="100%" height="100%">
 
 Display information about a certificate from a remote server:
 
-<img src="https://cdn.rawgit.com/square/certigo/0a5ff1bfe36ca773052237681f7457101b0b3a64/examples/example_3.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_3.svg" width="100%" height="100%">
