@@ -244,7 +244,7 @@ func pemScanner(reader io.Reader) *bufio.Scanner {
 // readCertsFromFile takes some input and converts it to PEM blocks.
 func readCertsFromFile(reader io.Reader, filename string, format string, callback func(*pem.Block)) {
 	headers := map[string]string{}
-	if filename != "" {
+	if filename != "" && filename != os.Stdin.Name() {
 		headers[fileHeader] = filename
 	}
 
