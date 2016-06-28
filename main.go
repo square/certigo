@@ -45,16 +45,14 @@ var (
 
 	dump      = app.Command("dump", "Display information about a certificate.")
 	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
-	dumpType  = dump.Flag("format", "Format of given input (heuristic guess if not specified).").String()
+	dumpType  = dump.Flag("type", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
+	dumpPem   = dump.Flag("pem", "Write output as PEM blocks instead of human-readble format.").Bool()
 
 	connect       = app.Command("connect", "Connect to a server and print its certificate.")
 	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
-	connectName   = connect.Flag("name", "Override the server name used for SNI.").String()
+	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-
-	toPem      = app.Command("pem", "Convert input to PEM-formatted blocks.")
-	toPemFiles = toPem.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
-	toPemType  = toPem.Flag("format", "Format of given input (heuristic guess if not specified).").String()
+	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readble format.").Bool()
 )
 
 const (
@@ -86,10 +84,14 @@ func main() {
 
 		i := 0
 		readCerts(files, func(block *pem.Block) {
-			if block.Type != "CERTIFICATE" {
+			if *dumpPem {
+				pem.Encode(os.Stdout, block)
 				return
 			}
 
+			if block.Type != "CERTIFICATE" {
+				return
+			}
 			fmt.Printf("** CERTIFICATE %d **\n", i+1)
 			displayCertFromPem(block)
 			fmt.Println()
@@ -107,29 +109,24 @@ func main() {
 		}
 		defer conn.Close()
 		for i, cert := range conn.ConnectionState().PeerCertificates {
-			fmt.Printf("** CERTIFICATE %d **\n", i+1)
-			displayCert(certWithName{cert: cert})
-			fmt.Println()
-		}
-
-		var hostname string
-		if *connectName != "" {
-			hostname = *connectName
-		} else {
-			hostname = strings.Split(*connectTo, ":")[0]
-		}
-		verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
-	case toPem.FullCommand(): // Convert input to PEM blocks
-		files := inputFiles(*toPemFiles)
-		defer func() {
-			for _, file := range files {
-				file.Close()
+			if *connectPem {
+				pem.Encode(os.Stdout, certToPem(cert, nil))
+			} else {
+				fmt.Printf("** CERTIFICATE %d **\n", i+1)
+				displayCert(certWithName{cert: cert})
+				fmt.Println()
 			}
-		}()
+		}
 
-		readCerts(files, func(block *pem.Block) {
-			pem.Encode(os.Stdout, block)
-		})
+		if !*connectPem {
+			var hostname string
+			if *connectName != "" {
+				hostname = *connectName
+			} else {
+				hostname = strings.Split(*connectTo, ":")[0]
+			}
+			verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
+		}
 	}
 }
 
