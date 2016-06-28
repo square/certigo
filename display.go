@@ -23,6 +23,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
@@ -67,11 +68,35 @@ Warnings: {{range . | certWarnings}}
 	{{.}} {{end}} {{end}}
 `
 
-// displayCert takes in an x509 Certificate object and an alias
+type certWithName struct {
+	name string
+	file string
+	cert *x509.Certificate
+}
+
+func displayCertFromPem(block *pem.Block) {
+	raw, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
+		os.Exit(1)
+	}
+
+	cert := certWithName{cert: raw}
+	if val, ok := block.Headers[nameHeader]; ok {
+		cert.name = val
+	}
+	if val, ok := block.Headers[fileHeader]; ok {
+		cert.file = val
+	}
+
+	displayCert(cert)
+}
+
+// displayCert takes in an x509.Certificate object and an alias
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert certWithAlias) {
+func displayCert(cert certWithName) {
 	funcMap := template.FuncMap{
 		"hexify":       hexify,
 		"certStart":    certStart,
@@ -84,8 +109,8 @@ func displayCert(cert certWithAlias) {
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
-	if cert.alias != "" {
-		fmt.Println("Alias :", cert.alias)
+	if cert.name != "" {
+		fmt.Println("Alias :", cert.name)
 	}
 	t.Execute(os.Stdout, cert.cert)
 
