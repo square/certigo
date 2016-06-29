@@ -43,10 +43,11 @@ import (
 var (
 	app = kingpin.New("certigo", "A command line certificate examination utility.")
 
-	dump      = app.Command("dump", "Display information about a certificate from a file/stdin.")
-	dumpFiles = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
-	dumpType  = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
-	dumpPem   = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
+	dump         = app.Command("dump", "Display information about a certificate from a file/stdin.")
+	dumpFiles    = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
+	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
+	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
+	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (if required).").String()
 
 	connect       = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
@@ -161,6 +162,10 @@ func readCerts(files []*os.File, callback func(*pem.Block)) {
 }
 
 func readPassword(prompt string) string {
+	if *dumpPassword != "" {
+		return *dumpPassword
+	}
+
 	var tty *os.File
 	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
