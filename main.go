@@ -72,7 +72,7 @@ var fileExtToFormat = map[string]string{
 }
 
 func main() {
-	app.Version("1.1.0")
+	app.Version("1.2.0")
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
