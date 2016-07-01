@@ -12,6 +12,8 @@ To install certigo, simply use:
 
     go get -u github.com/square/certigo
 
+On macOS you can also use homebrew to install.
+
 Note that certigo requires Go 1.6 or later to build.
 
 ### Develop
