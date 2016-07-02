@@ -36,36 +36,36 @@ import (
 var layout = `Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | algorithm}} {{if . | isSelfSigned}}(self-signed){{end}}
-Subject Info: {{if .Subject.CommonName}}
-	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
-	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
-	OrganizationalUnit: {{.Subject.OrganizationalUnit}} {{end}} {{if .Subject.Country}}
-	Country: {{.Subject.Country}} {{end}} {{if .Subject.Locality}}
-	Locality: {{.Subject.Locality}} {{end}}
-Issuer Info: {{if .Issuer.CommonName}}
-	CommonName: {{.Issuer.CommonName}} {{end}} {{if .Issuer.Organization}}
-	Organization: {{.Issuer.Organization}} {{end}} {{if .Issuer.OrganizationalUnit}}
-	OrganizationalUnit: {{.Issuer.OrganizationalUnit}} {{end}} {{if .Issuer.Country}}
-	Country: {{.Issuer.Country}} {{end}} {{if .Issuer.Locality}}
-	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
-Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
-Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
-Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
-Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
-	{{.}} {{end}} {{end}} {{if .KeyUsage | keyUsage}}
-Key Usage: {{range .KeyUsage | keyUsage}}
-	{{.}} {{end}} {{end}} {{if .ExtKeyUsage}}
-Extended Key Usage: {{range .ExtKeyUsage}}
-	{{. | extKeyUsage}} {{end}} {{end}} {{if .DNSNames}}
-Alternate DNS Names: {{range .DNSNames}}
-	{{.}} {{end}} {{end}} {{if .IPAddresses}}
-Alternate IP Addresses: {{range .IPAddresses}}	
-	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
-Email Addresses: {{range .EmailAddresses}}
-	{{.}} {{end}} {{end}} {{if . | certWarnings}}
-Warnings: {{range . | certWarnings}}
-	{{.}} {{end}} {{end}}
+Signature : {{.SignatureAlgorithm | algorithm}}{{if . | isSelfSigned}} (self-signed){{end}}
+Subject Info:{{if .Subject.CommonName}}
+	CommonName: {{.Subject.CommonName}}{{end}}{{if .Subject.Organization}}
+	Organization: {{.Subject.Organization}}{{end}}{{if .Subject.OrganizationalUnit}}
+	OrganizationalUnit: {{.Subject.OrganizationalUnit}}{{end}}{{if .Subject.Country}}
+	Country: {{.Subject.Country}}{{end}}{{if .Subject.Locality}}
+	Locality: {{.Subject.Locality}}{{end}}
+Issuer Info:{{if .Issuer.CommonName}}
+	CommonName: {{.Issuer.CommonName}}{{end}}{{if .Issuer.Organization}}
+	Organization: {{.Issuer.Organization}}{{end}}{{if .Issuer.OrganizationalUnit}}
+	OrganizationalUnit: {{.Issuer.OrganizationalUnit}}{{end}}{{if .Issuer.Country}}
+	Country: {{.Issuer.Country}}{{end}}{{if .Issuer.Locality}}
+	Locality: {{.Issuer.Locality}}{{end}}{{if .SubjectKeyId}} 
+Subject Key ID   : {{.SubjectKeyId | hexify}}{{end}}{{if .AuthorityKeyId}}
+Authority Key ID : {{.AuthorityKeyId | hexify}}{{end}}{{if .BasicConstraintsValid}}
+Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}}{{if .PermittedDNSDomains}}
+Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}:{{range .PermittedDNSDomains}}
+	{{.}}{{end}}{{end}}{{if .KeyUsage | keyUsage}}
+Key Usage:{{range .KeyUsage | keyUsage}}
+	{{.}}{{end}}{{end}}{{if .ExtKeyUsage}}
+Extended Key Usage:{{range .ExtKeyUsage}}
+	{{. | extKeyUsage}}{{end}}{{end}}{{if .DNSNames}}
+Alternate DNS Names:{{range .DNSNames}}
+	{{.}}{{end}}{{end}}{{if .IPAddresses}}
+Alternate IP Addresses:{{range .IPAddresses}}
+	{{.}}{{end}}{{end}}{{if .EmailAddresses}}
+Email Addresses:{{range .EmailAddresses}}
+	{{.}}{{end}}{{end}}{{if . | certWarnings}}
+Warnings:{{range . | certWarnings}}
+	{{.}}{{end}}{{end}}
 `
 
 type certWithName struct {
