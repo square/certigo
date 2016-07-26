@@ -26,6 +26,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -164,14 +165,36 @@ var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
 	x509.ECDSAWithSHA512: green,
 }
 
+var algoName = [...]string{
+	x509.MD2WithRSA:      "MD2-RSA",
+	x509.MD5WithRSA:      "MD5-RSA",
+	x509.SHA1WithRSA:     "SHA1-RSA",
+	x509.SHA256WithRSA:   "SHA256-RSA",
+	x509.SHA384WithRSA:   "SHA384-RSA",
+	x509.SHA512WithRSA:   "SHA512-RSA",
+	x509.DSAWithSHA1:     "DSA-SHA1",
+	x509.DSAWithSHA256:   "DSA-SHA256",
+	x509.ECDSAWithSHA1:   "ECDSA-SHA1",
+	x509.ECDSAWithSHA256: "ECDSA-SHA256",
+	x509.ECDSAWithSHA384: "ECDSA-SHA384",
+	x509.ECDSAWithSHA512: "ECDSA-SHA512",
+}
+
+func algString(algo x509.SignatureAlgorithm) string {
+	if 0 < algo && int(algo) < len(algoName) {
+		return algoName[algo]
+	}
+	return strconv.Itoa(int(algo))
+}
+
 // highlightAlgorithm changes the color of the signing algorithm
 // based on a set color map, e.g. to make SHA-1 show up red.
 func highlightAlgorithm(sig x509.SignatureAlgorithm) string {
 	color, ok := algorithmColors[sig]
 	if !ok {
-		return sig.String()
+		return algString(sig)
 	}
-	return color.SprintFunc()(sig.String())
+	return color.SprintFunc()(algString(sig))
 }
 
 // keyUsage decodes/prints key usage from a certificate.
@@ -298,7 +321,7 @@ func algWarnings(cert *x509.Certificate) (warnings []string) {
 
 	for _, alg := range badSignatureAlgorithms {
 		if cert.SignatureAlgorithm == alg {
-			warnings = append(warnings, red.SprintfFunc()("Using %s, which is an outdated signature algorithm", alg.String()))
+			warnings = append(warnings, red.SprintfFunc()("Using %s, which is an outdated signature algorithm", algString(alg)))
 		}
 	}
 
