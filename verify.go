@@ -76,7 +76,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 
 			for _, alg := range badSignatureAlgorithms {
 				if cert.SignatureAlgorithm == alg {
-					name += red.SprintfFunc()(" [%s]", alg.String())
+					name += red.SprintfFunc()(" [%s]", algString(alg))
 					break
 				}
 			}
