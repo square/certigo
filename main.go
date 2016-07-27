@@ -282,12 +282,22 @@ func readCertsFromFile(reader io.Reader, filename string, format string, callbac
 			fmt.Fprintf(os.Stderr, "error reading input: %s\n", err)
 			os.Exit(1)
 		}
-		cert, err := x509.ParseCertificate(data)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing certificate: %s\n", err)
-			os.Exit(1)
+		x509Certs, err := x509.ParseCertificates(data)
+		if err == nil {
+			for _, cert := range x509Certs {
+				callback(certToPem(cert, headers))
+			}
+			return
 		}
-		callback(certToPem(cert, headers))
+		p7bBlocks, err := pkcs7.ParseSignedData(data)
+		if err == nil {
+			for _, block := range p7bBlocks {
+				callback(pkcs7ToPem(block, headers))
+			}
+			return
+		}
+		fmt.Fprintf(os.Stderr, "error parsing certificates from DER data\n")
+		os.Exit(1)
 	case "PKCS12":
 		data, err := ioutil.ReadAll(reader)
 		if err != nil {
@@ -344,7 +354,7 @@ func mergeHeaders(baseHeaders, extraHeaders map[string]string) (headers map[stri
 	return
 }
 
-// Convert a cert into a PEM block for output
+// Convert an X.509 cert into a PEM block for output.
 func certToPem(cert *x509.Certificate, headers map[string]string) *pem.Block {
 	return &pem.Block{
 		Type:    "CERTIFICATE",
@@ -353,7 +363,16 @@ func certToPem(cert *x509.Certificate, headers map[string]string) *pem.Block {
 	}
 }
 
-// Convert a key into one or more PEM blocks for output
+// Convert a PKCS7 envelope into a PEM block for output.
+func pkcs7ToPem(block *pkcs7.SignedDataEnvelope, headers map[string]string) *pem.Block {
+	return &pem.Block{
+		Type:    "PKCS7",
+		Bytes:   block.Raw,
+		Headers: headers,
+	}
+}
+
+// Convert a key into one or more PEM blocks for output.
 func keyToPem(key crypto.PrivateKey, headers map[string]string) *pem.Block {
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
