@@ -75,7 +75,7 @@ type certWithName struct {
 	cert *x509.Certificate
 }
 
-func displayCertFromPem(block *pem.Block) {
+func displayCertFromX509(block *pem.Block) {
 	raw, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
