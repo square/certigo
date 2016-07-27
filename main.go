@@ -36,6 +36,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/square/certigo/jceks"
+	"github.com/square/certigo/pkcs7"
 	"golang.org/x/crypto/pkcs12"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -64,6 +65,8 @@ const (
 var fileExtToFormat = map[string]string{
 	".pem":   "PEM",
 	".crt":   "PEM",
+	".p7b":   "PEM",
+	".p7c":   "PEM",
 	".p12":   "PKCS12",
 	".pfx":   "PKCS12",
 	".jceks": "JCEKS",
@@ -90,13 +93,25 @@ func main() {
 				return
 			}
 
-			if block.Type != "CERTIFICATE" {
-				return
+			switch block.Type {
+			case "CERTIFICATE":
+				fmt.Printf("** CERTIFICATE %d **\n", i+1)
+				displayCertFromX509(block)
+				fmt.Println()
+				i++
+			case "PKCS7":
+				certs, err := pkcs7.ExtractCertificates(block.Bytes)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "error parsing PKCS7 block: %s\n", err)
+					os.Exit(1)
+				}
+				for _, cert := range certs {
+					fmt.Printf("** CERTIFICATE %d **\n", i+1)
+					displayCert(certWithName{cert: cert})
+					fmt.Println()
+					i++
+				}
 			}
-			fmt.Printf("** CERTIFICATE %d **\n", i+1)
-			displayCertFromPem(block)
-			fmt.Println()
-			i++
 		})
 	case connect.FullCommand(): // Get certs by connecting to a server
 		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{

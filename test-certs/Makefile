@@ -5,6 +5,7 @@ TARGETS = \
 all: \
 	$(addsuffix .crt,$(TARGETS)) \
 	$(addsuffix .p12,$(TARGETS)) \
+	$(addsuffix .p7b,$(TARGETS)) \
 	$(addsuffix .jceks,$(TARGETS))
 
 clean:
@@ -21,6 +22,9 @@ clean:
 
 %.p12: %.crt %.key
 	openssl pkcs12 -export -out $@ -in $< -inkey $(@:.p12=.key) -name $(@:.p12=) -password pass:password
+
+%.p7b: %.crt
+	openssl crl2pkcs7 -nocrl -certfile $< -out $@
 
 %.jceks: %.p12
 	keytool -importkeystore \
