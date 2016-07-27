@@ -28,7 +28,7 @@ We use [glide][1] for managing vendored dependencies.
 
 Certigo can read certificates/keystores in various formats and dump them to stdout.
 
-Currently supported formats are DER, PEM, JCEKS/JKS, PKCS7 and PKCS12. Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of PKCS12/JCEKS keystores into something more useful.
+Currently supported formats are X.509 (DER/PEM), JCEKS/JKS, PKCS7 and PKCS12. Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of PKCS12/JCEKS keystores into something more useful.
 
 ```
 usage: certigo [<flags>] <command> [<args> ...]
