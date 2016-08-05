@@ -6,6 +6,8 @@
 
 Certigo is a utility to examine and validate certificates in a variety of formats.
 
+Currently supported formats are X.509 (DER/PEM), JCEKS/JKS, PKCS7 and PKCS12. Need support for an exotic certificate storage format that's not yet supported? Open an issue on Github and maybe we can add it. We enjoy the challenge!
+
 ### Install
 
 To install certigo, simply use:
@@ -28,7 +30,7 @@ We use [glide][1] for managing vendored dependencies.
 
 Certigo can read certificates/keystores in various formats and dump them to stdout.
 
-Currently supported formats are X.509 (DER/PEM), JCEKS/JKS, PKCS7 and PKCS12. Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of PKCS12/JCEKS keystores into something more useful.
+Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of unusual container formats into something more useful.
 
 ```
 usage: certigo [<flags>] <command> [<args> ...]
