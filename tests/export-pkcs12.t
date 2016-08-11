@@ -60,10 +60,6 @@ Dump PEM blocks from a PKCS12 keystore.
 
   $ certigo dump --pem --password password example.p12
   -----BEGIN CERTIFICATE-----
-  friendlyName: example-expired
-  localKeyId: ba95b425d439cd6903f9d002c7b0b91d94df3a3f
-  originFile: example.p12
-  
   MIIDLDCCAhQCCQCa74bQsAj2/jANBgkqhkiG9w0BAQsFADBYMQswCQYDVQQGEwJV
   UzELMAkGA1UECBMCQ0ExEDAOBgNVBAoTB2NlcnRpZ28xEDAOBgNVBAsTB2V4YW1w
   bGUxGDAWBgNVBAMTD2V4YW1wbGUtZXhwaXJlZDAeFw0xNjA2MTAyMjE0MTJaFw0x
@@ -83,10 +79,6 @@ Dump PEM blocks from a PKCS12 keystore.
   YSv7SyFevNwDwcxcAq6uVitKi0YCqHiNZ7Ye3/BGRDUFpK2IASUo8YbXYNyA/6nu
   -----END CERTIFICATE-----
   -----BEGIN PRIVATE KEY-----
-  friendlyName: example-expired
-  localKeyId: ba95b425d439cd6903f9d002c7b0b91d94df3a3f
-  originFile: example.p12
-  
   MIIEowIBAAKCAQEAs6JY7Hm/NAsH3nuMOOSBno6WmwsTYEw3hk4eyprWiI/Npoia
   iZVCGahT8NAKqLDW5t9vgKz6c4ffi5/aQ2scichq3QS7pELAYlS4b+ey3dA6hj62
   MOTTO4Ad5bFbbRZG+Mdm2Ayvl6eV6catQhMvxt7aIoY9+bodyIYC1zZVqwQ5sOT+
