@@ -54,12 +54,12 @@ Commands:
 
 Display information about a certificate (from a file, or from stdin):
 
-<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_1.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_1.svg" width="100%" height="100%">
 
 Export certificates/keys from a keystore into PEM blocks:
 
-<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_2.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_2.svg" width="100%" height="100%">
 
 Display information about a certificate from a remote server:
 
-<img src="https://cdn.rawgit.com/square/certigo/142ea7a63126d1366194cf0eb746abbac2eb3f09/examples/example_3.svg" width="100%" height="100%">
+<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_3.svg" width="100%" height="100%">
