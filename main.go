@@ -89,6 +89,7 @@ func main() {
 		i := 0
 		readCerts(files, func(block *pem.Block) {
 			if *dumpPem {
+				block.Headers = nil
 				pem.Encode(os.Stdout, block)
 				return
 			}
@@ -307,7 +308,7 @@ func readCertsFromFile(reader io.Reader, filename string, format string, callbac
 		password := readPassword("Enter password: ")
 		blocks, err := pkcs12.ToPEM(data, password)
 		if err != nil || len(blocks) == 0 {
-			fmt.Fprint(os.Stderr, "keystore appears to be empty or password was incorrect")
+			fmt.Fprint(os.Stderr, "keystore appears to be empty or password was incorrect\n")
 			os.Exit(1)
 		}
 		for _, block := range blocks {

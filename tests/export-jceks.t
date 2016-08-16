@@ -53,9 +53,6 @@ Dump PEM blocks from a JCEKS keystore.
 
   $ certigo dump --pem --password password example.jceks
   -----BEGIN RSA PRIVATE KEY-----
-  friendlyName: example-root
-  originFile: example.jceks
-  
   MIIEpQIBAAKCAQEAyjhKEojYzEPP81BXEFvPS1sPlHk1yhsDQ0qRo8ovIwSmdZVj
   25zJq4yOg2fUXnrxx86gXSmbfvTRTxRM+3YwzEQciLiYUb84XxQX5WiHUnjZNvja
   VGhblFFHeiCHj7tAHUb3ifGRh10cAnhAyFQmUuKAWDxzoV/8zFg4PL0juKUsU4xn
@@ -83,9 +80,6 @@ Dump PEM blocks from a JCEKS keystore.
   OcNCwOR/omok5c6d1Yje4MI4tpx5U4xqbSpO9AGat3flt/amjshl+94=
   -----END RSA PRIVATE KEY-----
   -----BEGIN CERTIFICATE-----
-  friendlyName: example-root
-  originFile: example.jceks
-  
   MIIDUzCCAjugAwIBAgIJAKg+LQlirffwMA0GCSqGSIb3DQEBCwUAMFUxCzAJBgNV
   BAYTAlVTMQswCQYDVQQIEwJDQTEQMA4GA1UEChMHY2VydGlnbzEQMA4GA1UECxMH
   ZXhhbXBsZTEVMBMGA1UEAxMMZXhhbXBsZS1yb290MB4XDTE2MDYxMDIyMTQxMVoX
