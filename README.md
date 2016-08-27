@@ -1,6 +1,7 @@
 # certigo
 
 [![license](http://img.shields.io/badge/license-apache_2.0-blue.svg?style=flat)](https://raw.githubusercontent.com/square/certigo/master/LICENSE)
+[![release](https://img.shields.io/github/release/square/certigo.svg?style=flat)](https://github.com/square/certigo/releases)
 [![build](https://travis-ci.org/square/certigo.svg?branch=master)](https://travis-ci.org/square/certigo)
 [![report](https://goreportcard.com/badge/github.com/square/certigo)](https://goreportcard.com/report/github.com/square/certigo)
 
