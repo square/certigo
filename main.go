@@ -24,6 +24,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -49,12 +50,14 @@ var (
 	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (if required).").String()
+	dumpJson     = dump.Flag("json", "Write output as machine-readable JSON format.").Bool()
 
 	connect       = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
 	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
+	connectJson   = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
 )
 
 const (
@@ -77,6 +80,7 @@ var fileExtToFormat = map[string]string{
 func main() {
 	app.Version("1.3.0")
 
+	result := displayResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
 		files := inputFiles(*dumpFiles)
@@ -86,7 +90,6 @@ func main() {
 			}
 		}()
 
-		i := 0
 		readCerts(files, func(block *pem.Block) {
 			if *dumpPem {
 				block.Headers = nil
@@ -96,10 +99,7 @@ func main() {
 
 			switch block.Type {
 			case "CERTIFICATE":
-				fmt.Printf("** CERTIFICATE %d **\n", i+1)
-				displayCertFromX509(block)
-				fmt.Println()
-				i++
+				result.Certificates = append(result.Certificates, createDisplayCertFromX509(block))
 			case "PKCS7":
 				certs, err := pkcs7.ExtractCertificates(block.Bytes)
 				if err != nil {
@@ -107,13 +107,22 @@ func main() {
 					os.Exit(1)
 				}
 				for _, cert := range certs {
-					fmt.Printf("** CERTIFICATE %d **\n", i+1)
-					displayCert(certWithName{cert: cert})
-					fmt.Println()
-					i++
+					result.Certificates = append(result.Certificates, createDisplayCert(certWithName{cert: cert}))
 				}
 			}
 		})
+
+		if *dumpJson {
+			blob, _ := json.Marshal(result)
+			fmt.Println(string(blob))
+		} else {
+			for i, cert := range result.Certificates {
+				fmt.Printf("** CERTIFICATE %d **\n", i+1)
+				displayCert(cert)
+				fmt.Println()
+			}
+		}
+
 	case connect.FullCommand(): // Get certs by connecting to a server
 		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{
 			// We verify later manually so we can print results
@@ -125,13 +134,11 @@ func main() {
 			os.Exit(1)
 		}
 		defer conn.Close()
-		for i, cert := range conn.ConnectionState().PeerCertificates {
+		for _, cert := range conn.ConnectionState().PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, certToPem(cert, nil))
 			} else {
-				fmt.Printf("** CERTIFICATE %d **\n", i+1)
-				displayCert(certWithName{cert: cert})
-				fmt.Println()
+				result.Certificates = append(result.Certificates, createDisplayCert(certWithName{cert: cert}))
 			}
 		}
 
@@ -142,7 +149,20 @@ func main() {
 			} else {
 				hostname = strings.Split(*connectTo, ":")[0]
 			}
-			verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
+			verifyResult := verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
+			result.VerifyResult = &verifyResult
+		}
+
+		if *connectJson {
+			blob, _ := json.Marshal(result)
+			fmt.Println(string(blob))
+		} else {
+			for i, cert := range result.Certificates {
+				fmt.Printf("** CERTIFICATE %d **\n", i+1)
+				displayCert(cert)
+				fmt.Println()
+			}
+			printVerifyResult(*result.VerifyResult)
 		}
 	}
 }
