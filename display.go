@@ -31,13 +31,16 @@ import (
 	"text/template"
 	"time"
 
+	"math/big"
+
 	"github.com/fatih/color"
 )
 
-var layout = `Serial: {{.SerialNumber}}
+var layout = `{{if .Alias}}{{.Alias}}
+{{end}}Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | algorithm}} {{if . | isSelfSigned}}(self-signed){{end}}
+Signature : {{.SignatureAlgorithm}} {{if .IsSelfSigned}}(self-signed){{end}}
 Subject Info: {{if .Subject.CommonName}}
 	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
 	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
@@ -49,23 +52,23 @@ Issuer Info: {{if .Issuer.CommonName}}
 	Organization: {{.Issuer.Organization}} {{end}} {{if .Issuer.OrganizationalUnit}}
 	OrganizationalUnit: {{.Issuer.OrganizationalUnit}} {{end}} {{if .Issuer.Country}}
 	Country: {{.Issuer.Country}} {{end}} {{if .Issuer.Locality}}
-	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
-Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
-Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
-Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
-Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
-	{{.}} {{end}} {{end}} {{if .KeyUsage | keyUsage}}
-Key Usage: {{range .KeyUsage | keyUsage}}
+	Locality: {{.Issuer.Locality}} {{end}} {{if .Subject.KeyId}}
+Subject Key ID   : {{.Subject.KeyId}} {{end}} {{if .Issuer.KeyId}}
+Authority Key ID : {{.Issuer.KeyId}} {{end}} {{if .BasicConstraints}}
+Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if ge .BasicConstraints.MaxPathLen 0}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}} {{end}} {{if .NameConstraints.PermittedDNSDomains}}
+Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
+	{{.}} {{end}} {{end}} {{if .KeyUsage}}
+Key Usage: {{range .KeyUsage}}
 	{{.}} {{end}} {{end}} {{if .ExtKeyUsage}}
 Extended Key Usage: {{range .ExtKeyUsage}}
-	{{. | extKeyUsage}} {{end}} {{end}} {{if .DNSNames}}
-Alternate DNS Names: {{range .DNSNames}}
-	{{.}} {{end}} {{end}} {{if .IPAddresses}}
-Alternate IP Addresses: {{range .IPAddresses}}	
+	{{.}} {{end}} {{end}} {{if .AltDNSNames}}
+Alternate DNS Names: {{range .AltDNSNames}}
+	{{.}} {{end}} {{end}} {{if .AltIPAddresses}}
+Alternate IP Addresses: {{range .AltIPAddresses}}
 	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
 Email Addresses: {{range .EmailAddresses}}
-	{{.}} {{end}} {{end}} {{if . | certWarnings}}
-Warnings: {{range . | certWarnings}}
+	{{.}} {{end}} {{end}} {{if .Warnings}}
+Warnings: {{range .Warnings}}
 	{{.}} {{end}} {{end}}
 `
 
@@ -75,7 +78,103 @@ type certWithName struct {
 	cert *x509.Certificate
 }
 
-func displayCertFromX509(block *pem.Block) {
+type dn struct {
+	CommonName         string   `json:"common_name"`
+	Organization       []string `json:"organization"`
+	OrganizationalUnit []string `json:"organizational_unit"`
+	Country            []string `json:"country"`
+	Locality           []string `json:"locality"`
+	KeyId              string   `json:"key_id,omitempty"`
+}
+
+type basicConstraints struct {
+	IsCA       bool `json:"is_ca"`
+	MaxPathLen int  `json:"pathlen"`
+}
+
+type nameConstraints struct {
+	Critical            bool     `json:"critical"`
+	PermittedDNSDomains []string `json:"permitted_dns_domains"`
+}
+
+type certBlob struct {
+	Alias              string           `json:"alias,omitempty"`
+	SerialNumber       *big.Int         `json:"serial"`
+	NotBefore          int64            `json:"not_before"`
+	NotAfter           int64            `json:"not_after"`
+	SignatureAlgorithm string           `json:"signature_algorithm"`
+	IsSelfSigned       bool             `json:"is_self_signed"`
+	Subject            dn               `json:"subject"`
+	Issuer             dn               `json:"issuer"`
+	BasicConstraints   basicConstraints `json:"basic_constraints"`
+	NameConstraints    nameConstraints  `json:"name_constraints"`
+	KeyUsage           []string         `json:"key_usage"`
+	ExtKeyUsage        []string         `json:"extended_key_usage"`
+	AltDNSNames        []string         `json:"alternate_dns_names,omitempty"`
+	AltIPAddresses     []string         `json:"alternate_ip_addresses,omitempty"`
+	EmailAddresses     []string         `json:"email_addresses,omitempty"`
+	Warnings           []string         `json:"warnings,omitempty"`
+	original           *x509.Certificate
+}
+
+type displayResult struct {
+	Certificates []certBlob `json:"certificates"`
+	VerifyResult *vResult   `json:"verify_result,omitempty"`
+}
+
+func createDisplayCert(cert certWithName) (dispCert certBlob) {
+	dispCert = certBlob{
+		SerialNumber:       cert.cert.SerialNumber,
+		NotBefore:          cert.cert.NotBefore.Unix(),
+		NotAfter:           cert.cert.NotAfter.Unix(),
+		SignatureAlgorithm: algString(cert.cert.SignatureAlgorithm),
+		IsSelfSigned:       isSelfSigned(cert.cert),
+		Subject: dn{
+			CommonName:         cert.cert.Subject.CommonName,
+			Organization:       cert.cert.Subject.Organization,
+			OrganizationalUnit: cert.cert.Subject.OrganizationalUnit,
+			Country:            cert.cert.Subject.Country,
+			Locality:           cert.cert.Subject.Locality,
+			KeyId:              hexify(cert.cert.SubjectKeyId),
+		},
+		Issuer: dn{
+			CommonName:         cert.cert.Issuer.CommonName,
+			Organization:       cert.cert.Issuer.Organization,
+			OrganizationalUnit: cert.cert.Issuer.OrganizationalUnit,
+			Country:            cert.cert.Issuer.Country,
+			Locality:           cert.cert.Issuer.Locality,
+			KeyId:              hexify(cert.cert.AuthorityKeyId),
+		},
+		BasicConstraints: basicConstraints{
+			IsCA:       cert.cert.IsCA,
+			MaxPathLen: cert.cert.MaxPathLen,
+		},
+		NameConstraints: nameConstraints{
+			Critical:            cert.cert.PermittedDNSDomainsCritical,
+			PermittedDNSDomains: cert.cert.PermittedDNSDomains,
+		},
+		KeyUsage:       keyUsage(cert.cert.KeyUsage),
+		ExtKeyUsage:    []string{},
+		AltDNSNames:    cert.cert.DNSNames,
+		AltIPAddresses: []string{},
+		EmailAddresses: cert.cert.EmailAddresses,
+		Warnings:       certWarnings(cert.cert),
+		original:       cert.cert,
+	}
+	if cert.name != "" {
+		dispCert.Alias = cert.name
+	}
+	for _, v := range cert.cert.ExtKeyUsage {
+		dispCert.ExtKeyUsage = append(dispCert.ExtKeyUsage, extKeyUsage(v))
+	}
+	for _, v := range cert.cert.IPAddresses {
+		dispCert.AltIPAddresses = append(dispCert.AltIPAddresses, v.String())
+	}
+
+	return
+}
+
+func createDisplayCertFromX509(block *pem.Block) certBlob {
 	raw, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
@@ -90,31 +189,24 @@ func displayCertFromX509(block *pem.Block) {
 		cert.file = val
 	}
 
-	displayCert(cert)
+	return createDisplayCert(cert)
 }
 
-// displayCert takes in an x509.Certificate object and an alias
+// displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert certWithName) {
+func displayCert(cert certBlob) {
+	cert.SignatureAlgorithm = highlightAlgorithm(cert.original.SignatureAlgorithm)
+	cert.Warnings = fmtCertWarnings(cert.original)
+
 	funcMap := template.FuncMap{
-		"hexify":       hexify,
-		"certStart":    certStart,
-		"certEnd":      certEnd,
-		"algorithm":    highlightAlgorithm,
-		"keyUsage":     keyUsage,
-		"extKeyUsage":  extKeyUsage,
-		"certWarnings": certWarnings,
-		"isSelfSigned": isSelfSigned,
+		"certStart": certStart,
+		"certEnd":   certEnd,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
-	if cert.name != "" {
-		fmt.Println("Alias :", cert.name)
-	}
-	t.Execute(os.Stdout, cert.cert)
-
+	t.Execute(os.Stdout, cert)
 }
 
 var (
@@ -224,16 +316,17 @@ func extKeyUsage(eku x509.ExtKeyUsage) string {
 // be green. If it has been less than a day the string will
 // be yellow. If the certificate is not yet valid, the string
 // will be red.
-func certStart(start time.Time) string {
+func certStart(start int64) string {
+	startTime := time.Unix(start, 0)
 	now := time.Now()
 	day, _ := time.ParseDuration("24h")
-	threshold := start.Add(day)
+	threshold := startTime.Add(day)
 	if now.After(threshold) {
-		return green.SprintfFunc()(start.String())
-	} else if now.After(start) {
-		return yellow.SprintfFunc()(start.String())
+		return green.SprintfFunc()(startTime.String())
+	} else if now.After(startTime) {
+		return yellow.SprintfFunc()(startTime.String())
 	} else {
-		return red.SprintfFunc()(start.String())
+		return red.SprintfFunc()(startTime.String())
 	}
 }
 
@@ -244,16 +337,17 @@ func certStart(start time.Time) string {
 // green string. If the certificate is less than a month
 // from expiry it returns a yellow string. If the certificate
 // is expired it returns a red string.
-func certEnd(end time.Time) string {
+func certEnd(end int64) string {
+	endTime := time.Unix(end, 0)
 	now := time.Now()
 	month, _ := time.ParseDuration("720h")
 	threshold := now.Add(month)
-	if threshold.Before(end) {
-		return green.SprintfFunc()(end.String())
-	} else if now.Before(end) {
-		return yellow.SprintfFunc()(end.String())
+	if threshold.Before(endTime) {
+		return green.SprintfFunc()(endTime.String())
+	} else if now.Before(endTime) {
+		return yellow.SprintfFunc()(endTime.String())
 	} else {
-		return red.SprintfFunc()(end.String())
+		return red.SprintfFunc()(endTime.String())
 	}
 }
 
@@ -278,30 +372,38 @@ var badSignatureAlgorithms = []x509.SignatureAlgorithm{
 	x509.ECDSAWithSHA1,
 }
 
+func fmtCertWarnings(cert *x509.Certificate) (warnings []string) {
+	unfmtWarnings := certWarnings(cert)
+	for _, v := range unfmtWarnings {
+		warnings = append(warnings, red.SprintfFunc()("%s", v))
+	}
+	return
+}
+
 // certWarnings prints a list of warnings to show common mistakes in certs.
 func certWarnings(cert *x509.Certificate) (warnings []string) {
 	if cert.SerialNumber.Sign() != 1 {
-		warnings = append(warnings, red.SprintfFunc()("Serial number in cert appears to be zero/negative"))
+		warnings = append(warnings, "Serial number in cert appears to be zero/negative")
 	}
 
 	if cert.SerialNumber.BitLen() > 160 {
-		warnings = append(warnings, red.SprintfFunc()("Serial number too long; should be 20 bytes or less"))
+		warnings = append(warnings, "Serial number too long; should be 20 bytes or less")
 	}
 
 	if (cert.KeyUsage&x509.KeyUsageCertSign != 0) && !cert.IsCA {
-		warnings = append(warnings, red.SprintfFunc()("Key usage 'cert sign' is set, but is not a CA cert"))
+		warnings = append(warnings, "Key usage 'cert sign' is set, but is not a CA cert")
 	}
 
 	if (cert.KeyUsage&x509.KeyUsageCertSign == 0) && cert.IsCA {
-		warnings = append(warnings, red.SprintfFunc()("Certificate is a CA cert, but key usage 'cert sign' missing"))
+		warnings = append(warnings, "Certificate is a CA cert, but key usage 'cert sign' missing")
 	}
 
 	if cert.Version < 2 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
+		warnings = append(warnings, fmt.Sprintf("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions"))
+		warnings = append(warnings, "Certificate has unhandled critical extensions")
 	}
 
 	warnings = append(warnings, algWarnings(cert)...)
@@ -313,25 +415,25 @@ func certWarnings(cert *x509.Certificate) (warnings []string) {
 func algWarnings(cert *x509.Certificate) (warnings []string) {
 	alg, size := decodeKey(cert.PublicKey)
 	if (alg == "RSA" || alg == "DSA") && size < 2048 {
-		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 2048 bits", alg))
+		warnings = append(warnings, fmt.Sprintf("Size of %s key should be at least 2048 bits", alg))
 	}
 	if alg == "ECDSA" && size < 224 {
-		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 224 bits", alg))
+		warnings = append(warnings, fmt.Sprintf("Size of %s key should be at least 224 bits", alg))
 	}
 
 	for _, alg := range badSignatureAlgorithms {
 		if cert.SignatureAlgorithm == alg {
-			warnings = append(warnings, red.SprintfFunc()("Using %s, which is an outdated signature algorithm", algString(alg)))
+			warnings = append(warnings, fmt.Sprintf("Using %s, which is an outdated signature algorithm", algString(alg)))
 		}
 	}
 
 	if alg == "RSA" {
 		key := cert.PublicKey.(*rsa.PublicKey)
 		if key.E < 3 {
-			warnings = append(warnings, red.SprintfFunc()("Public key exponent in RSA key is less than 3"))
+			warnings = append(warnings, "Public key exponent in RSA key is less than 3")
 		}
 		if key.N.Sign() != 1 {
-			warnings = append(warnings, red.SprintfFunc()("Public key modulus in RSA key appears to be zero/negative"))
+			warnings = append(warnings, "Public key modulus in RSA key appears to be zero/negative")
 		}
 	}
 
