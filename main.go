@@ -55,6 +55,11 @@ var (
 	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
+
+	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
+	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
+	verifyName   = verify.Flag("name", "Server name to verify certificate against.").Required().String()
+	verifyCaPath = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 )
 
 const (
@@ -144,7 +149,48 @@ func main() {
 			}
 			verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
 		}
+	case verify.FullCommand():
+		file := inputFile(*verifyFile)
+		defer file.Close()
+
+		chain := []*x509.Certificate{}
+		readCerts([]*os.File{file}, func(block *pem.Block) {
+			switch block.Type {
+			case "CERTIFICATE":
+				cert, err := x509.ParseCertificate(block.Bytes)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
+					os.Exit(1)
+				}
+				chain = append(chain, cert)
+			case "PKCS7":
+				certs, err := pkcs7.ExtractCertificates(block.Bytes)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "error parsing PKCS7 block: %s\n", err)
+					os.Exit(1)
+				}
+				chain = append(chain, certs...)
+			}
+		})
+
+		valid := verifyChain(chain, *verifyName, *verifyCaPath)
+		if !valid {
+			os.Exit(1)
+		}
 	}
+}
+
+func inputFile(fileName string) *os.File {
+	if fileName == "" {
+		return os.Stdin
+	}
+
+	rawFile, err := os.Open(fileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to open file: %s\n", err)
+		os.Exit(1)
+	}
+	return rawFile
 }
 
 func inputFiles(fileNames []string) []*os.File {
