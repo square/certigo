@@ -40,7 +40,7 @@ func caBundle(caPath string) *x509.CertPool {
 	return bundle
 }
 
-func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
+func verifyChain(certs []*x509.Certificate, dnsName, caPath string) bool {
 	intermediates := x509.NewCertPool()
 	for i := 1; i < len(certs); i++ {
 		intermediates.AddCert(certs[i])
@@ -56,7 +56,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 	if err != nil {
 		red.Printf("Failed to verify certificate chain:\n")
 		fmt.Printf("\t%s\n", err)
-		return
+		return false
 	}
 
 	green.Printf("Server certificates appear to be valid (found %d chains):\n", len(chains))
@@ -84,6 +84,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) {
 		}
 		fmt.Printf("[%d] %s\n", i, strings.Join(names, "\n\t=> "))
 	}
+	return true
 }
 
 func isSelfSigned(cert *x509.Certificate) bool {
