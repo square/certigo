@@ -23,20 +23,19 @@ import (
 	"os"
 )
 
-type vCert struct {
-	Name               string `json:"name"`
-	IsSelfSigned       bool   `json:"is_self_signed"`
-	SignatureAlgorithm string `json:"signature_algorithm"`
-	original           *x509.Certificate
+type simpleVerifyCert struct {
+	Name               string       `json:"name"`
+	IsSelfSigned       bool         `json:"is_self_signed"`
+	SignatureAlgorithm simpleSigAlg `json:"signature_algorithm"`
 }
 
-type vChain struct {
-	Certs []vCert `json:"chain"`
+type simpleVerifyChain struct {
+	Certs []simpleVerifyCert `json:"chain"`
 }
 
-type vResult struct {
-	Error  string   `json:"error,omitempty"`
-	Chains []vChain `json:"chains"`
+type simpleVerification struct {
+	Error  string              `json:"error,omitempty"`
+	Chains []simpleVerifyChain `json:"chains"`
 }
 
 func caBundle(caPath string) *x509.CertPool {
@@ -55,8 +54,8 @@ func caBundle(caPath string) *x509.CertPool {
 	return bundle
 }
 
-func verifyChain(certs []*x509.Certificate, dnsName, caPath string) vResult {
-	result := vResult{}
+func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerification {
+	result := simpleVerification{}
 
 	intermediates := x509.NewCertPool()
 	for i := 1; i < len(certs); i++ {
@@ -77,17 +76,16 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) vResult {
 
 	//green.Printf("Server certificates appear to be valid (found %d chains):\n", len(chains))
 	for _, chain := range chains {
-		aChain := vChain{}
+		aChain := simpleVerifyChain{}
 		for _, cert := range chain {
-			aCert := vCert{}
+			aCert := simpleVerifyCert{}
 			if cert.Subject.CommonName != "" {
 				aCert.Name = cert.Subject.CommonName
 			} else {
 				aCert.Name = fmt.Sprintf("Serial #%s", cert.SerialNumber.String())
 			}
 			aCert.IsSelfSigned = isSelfSigned(cert)
-			aCert.SignatureAlgorithm = algString(cert.SignatureAlgorithm)
-			aCert.original = cert
+			aCert.SignatureAlgorithm = simpleSigAlg(cert.SignatureAlgorithm)
 			aChain.Certs = append(aChain.Certs, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)
@@ -95,13 +93,13 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) vResult {
 	return result
 }
 
-func fmtCert(cert vCert) string {
+func fmtCert(cert simpleVerifyCert) string {
 	name := cert.Name
 	if cert.IsSelfSigned {
 		name += green.SprintfFunc()(" [self-signed]")
 	}
 	for _, alg := range badSignatureAlgorithms {
-		if cert.original.SignatureAlgorithm == alg {
+		if x509.SignatureAlgorithm(cert.SignatureAlgorithm) == alg {
 			name += red.SprintfFunc()(" [%s]", algString(alg))
 			break
 		}
@@ -109,19 +107,19 @@ func fmtCert(cert vCert) string {
 	return name
 }
 
-func printVerifyResult(result vResult) {
+func printVerifyResult(result simpleVerification) {
 	if result.Error != "" {
 		red.Printf("Failed to verify certificate chain:\n")
 		fmt.Printf("\t%s\n", result.Error)
 		return
 	}
 	for i, chain := range result.Chains {
-		fmt.Printf("[%d] %s", i, fmtCert(chain.Certs[0]))
+		fmt.Printf("[%d] %s\n", i, fmtCert(chain.Certs[0]))
 		for j, cert := range chain.Certs {
 			if j == 0 {
 				continue
 			}
-			fmt.Printf("\n\t=> %s", fmtCert(cert))
+			fmt.Printf("\t=> %s\n", fmtCert(cert))
 
 		}
 	}
