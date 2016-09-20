@@ -85,7 +85,7 @@ var fileExtToFormat = map[string]string{
 func main() {
 	app.Version("1.3.0")
 
-	result := displayResult{}
+	result := simpleResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
 		files := inputFiles(*dumpFiles)
@@ -104,7 +104,7 @@ func main() {
 
 			switch block.Type {
 			case "CERTIFICATE":
-				result.Certificates = append(result.Certificates, createDisplayCertFromX509(block))
+				result.Certificates = append(result.Certificates, createSimpleCertificateFromX509(block))
 			case "PKCS7":
 				certs, err := pkcs7.ExtractCertificates(block.Bytes)
 				if err != nil {
@@ -112,7 +112,7 @@ func main() {
 					os.Exit(1)
 				}
 				for _, cert := range certs {
-					result.Certificates = append(result.Certificates, createDisplayCert(certWithName{cert: cert}))
+					result.Certificates = append(result.Certificates, createSimpleCertificate(certWithName{cert: cert}))
 				}
 			}
 		})
@@ -143,7 +143,7 @@ func main() {
 			if *connectPem {
 				pem.Encode(os.Stdout, certToPem(cert, nil))
 			} else {
-				result.Certificates = append(result.Certificates, createDisplayCert(certWithName{cert: cert}))
+				result.Certificates = append(result.Certificates, createSimpleCertificate(certWithName{cert: cert}))
 			}
 		}
 
