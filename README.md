@@ -51,6 +51,9 @@ Commands:
 
   connect [<flags>] [<server:port>]
     Connect to a server and print its certificate(s).
+
+  verify --name=NAME [<flags>] [<file>]
+    Verify a certificate chain from file/stdin against a name.
 ```
 
 ### Examples
