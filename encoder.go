@@ -77,8 +77,8 @@ type simpleCertificate struct {
 	IsSelfSigned       bool                `json:"is_self_signed"`
 	Subject            simplePkixName      `json:"subject"`
 	Issuer             simplePkixName      `json:"issuer"`
-	BasicConstraints   basicConstraints    `json:"basic_constraints"`
-	NameConstraints    nameConstraints     `json:"name_constraints"`
+	BasicConstraints   *basicConstraints   `json:"basic_constraints,omitempty"`
+	NameConstraints    *nameConstraints    `json:"name_constraints,omitempty"`
 	KeyUsage           simpleKeyUsage      `json:"key_usage,omitempty"`
 	ExtKeyUsage        []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
 	AltDNSNames        []string            `json:"dns_names,omitempty"`
@@ -126,7 +126,7 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 	}
 
 	if c.cert.BasicConstraintsValid {
-		out.BasicConstraints = basicConstraints{
+		out.BasicConstraints = &basicConstraints{
 			IsCA: c.cert.IsCA,
 		}
 		if c.cert.MaxPathLen > 0 || c.cert.MaxPathLenZero {
@@ -135,7 +135,7 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 	}
 
 	if len(c.cert.PermittedDNSDomains) > 0 {
-		out.NameConstraints = nameConstraints{
+		out.NameConstraints = &nameConstraints{
 			Critical:            c.cert.PermittedDNSDomainsCritical,
 			PermittedDNSDomains: c.cert.PermittedDNSDomains,
 		}

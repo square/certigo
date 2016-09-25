@@ -116,10 +116,8 @@ func printVerifyResult(result simpleVerification) {
 				continue
 			}
 			fmt.Printf("\t=> %s\n", fmtCert(cert))
-
 		}
 	}
-	return true
 }
 
 func isSelfSigned(cert *x509.Certificate) bool {

@@ -63,6 +63,7 @@ var (
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
 	verifyName   = verify.Flag("name", "Server name to verify certificate against.").Required().String()
 	verifyCaPath = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	verifyJSON   = verify.Flag("json", "Write output as machine-readable JSON format.").Bool()
 )
 
 const (
@@ -124,7 +125,7 @@ func main() {
 			for i, cert := range result.Certificates {
 				fmt.Printf("** CERTIFICATE %d **\n", i+1)
 				displayCert(cert)
-				fmt.Println()
+				fmt.Printf("\n\n")
 			}
 		}
 
@@ -165,7 +166,7 @@ func main() {
 			for i, cert := range result.Certificates {
 				fmt.Printf("** CERTIFICATE %d **\n", i+1)
 				displayCert(cert)
-				fmt.Println()
+				fmt.Print("\n\n")
 			}
 			printVerifyResult(*result.VerifyResult)
 		}
@@ -193,8 +194,14 @@ func main() {
 			}
 		})
 
-		valid := verifyChain(chain, *verifyName, *verifyCaPath)
-		if !valid {
+		verifyResult := verifyChain(chain, *verifyName, *verifyCaPath)
+		if *verifyJSON {
+			blob, _ := json.Marshal(verifyResult)
+			fmt.Println(string(blob))
+		} else {
+			printVerifyResult(verifyResult)
+		}
+		if verifyResult.Error != "" {
 			os.Exit(1)
 		}
 	}
