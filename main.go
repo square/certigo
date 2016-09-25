@@ -50,14 +50,14 @@ var (
 	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (if required).").String()
-	dumpJson     = dump.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Bool()
 
 	connect       = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
 	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
-	connectJson   = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	connectJSON   = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
 
 	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -117,7 +117,7 @@ func main() {
 			}
 		})
 
-		if *dumpJson {
+		if *dumpJSON {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
 		} else {
@@ -158,7 +158,7 @@ func main() {
 			result.VerifyResult = &verifyResult
 		}
 
-		if *connectJson {
+		if *connectJSON {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
 		} else {

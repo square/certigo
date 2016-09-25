@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"net"
 	"strconv"
 	"strings"
@@ -61,7 +60,7 @@ var algoName = [...]string{
 
 type basicConstraints struct {
 	IsCA       bool `json:"is_ca"`
-	MaxPathLen int  `json:"pathlen"`
+	MaxPathLen *int `json:"pathlen,omitempty"`
 }
 
 type nameConstraints struct {
@@ -71,7 +70,7 @@ type nameConstraints struct {
 
 type simpleCertificate struct {
 	Alias              string              `json:"alias,omitempty"`
-	SerialNumber       *big.Int            `json:"serial"`
+	SerialNumber       string              `json:"serial"`
 	NotBefore          time.Time           `json:"not_before"`
 	NotAfter           time.Time           `json:"not_after"`
 	SignatureAlgorithm simpleSigAlg        `json:"signature_algorithm"`
@@ -82,15 +81,15 @@ type simpleCertificate struct {
 	NameConstraints    nameConstraints     `json:"name_constraints"`
 	KeyUsage           simpleKeyUsage      `json:"key_usage,omitempty"`
 	ExtKeyUsage        []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
-	AltDNSNames        []string            `json:"alternate_dns_names,omitempty"`
-	AltIPAddresses     []net.IP            `json:"alternate_ip_addresses,omitempty"`
+	AltDNSNames        []string            `json:"dns_names,omitempty"`
+	AltIPAddresses     []net.IP            `json:"ip_addresses,omitempty"`
 	EmailAddresses     []string            `json:"email_addresses,omitempty"`
 	Warnings           []string            `json:"warnings,omitempty"`
 }
 
 type simplePkixName struct {
 	Name  pkix.Name
-	KeyId []byte
+	KeyID []byte
 }
 
 type simpleKeyUsage x509.KeyUsage
@@ -106,26 +105,18 @@ type simpleResult struct {
 func createSimpleCertificate(c certWithName) simpleCertificate {
 	out := simpleCertificate{
 		Alias:              c.name,
-		SerialNumber:       c.cert.SerialNumber,
+		SerialNumber:       c.cert.SerialNumber.String(),
 		NotBefore:          c.cert.NotBefore,
 		NotAfter:           c.cert.NotAfter,
 		SignatureAlgorithm: simpleSigAlg(c.cert.SignatureAlgorithm),
 		IsSelfSigned:       isSelfSigned(c.cert),
 		Subject: simplePkixName{
 			Name:  c.cert.Subject,
-			KeyId: c.cert.SubjectKeyId,
+			KeyID: c.cert.SubjectKeyId,
 		},
 		Issuer: simplePkixName{
 			Name:  c.cert.Issuer,
-			KeyId: c.cert.AuthorityKeyId,
-		},
-		BasicConstraints: basicConstraints{
-			IsCA:       c.cert.IsCA,
-			MaxPathLen: c.cert.MaxPathLen,
-		},
-		NameConstraints: nameConstraints{
-			Critical:            c.cert.PermittedDNSDomainsCritical,
-			PermittedDNSDomains: c.cert.PermittedDNSDomains,
+			KeyID: c.cert.AuthorityKeyId,
 		},
 		KeyUsage:       simpleKeyUsage(c.cert.KeyUsage),
 		AltDNSNames:    c.cert.DNSNames,
@@ -133,6 +124,23 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 		EmailAddresses: c.cert.EmailAddresses,
 		Warnings:       certWarnings(c.cert),
 	}
+
+	if c.cert.BasicConstraintsValid {
+		out.BasicConstraints = basicConstraints{
+			IsCA: c.cert.IsCA,
+		}
+		if c.cert.MaxPathLen > 0 || c.cert.MaxPathLenZero {
+			out.BasicConstraints.MaxPathLen = &c.cert.MaxPathLen
+		}
+	}
+
+	if len(c.cert.PermittedDNSDomains) > 0 {
+		out.NameConstraints = nameConstraints{
+			Critical:            c.cert.PermittedDNSDomainsCritical,
+			PermittedDNSDomains: c.cert.PermittedDNSDomains,
+		}
+	}
+
 	simpleEku := []simpleExtKeyUsage{}
 	for _, eku := range c.cert.ExtKeyUsage {
 		simpleEku = append(simpleEku, simpleExtKeyUsage(eku))
@@ -157,7 +165,7 @@ func (p simplePkixName) MarshalJSON() ([]byte, error) {
 		out["organization"] = p.Name.Organization
 	}
 	if len(p.Name.OrganizationalUnit) > 0 {
-		out["organization_unit"] = p.Name.OrganizationalUnit
+		out["organizational_unit"] = p.Name.OrganizationalUnit
 	}
 	if len(p.Name.Country) > 0 {
 		out["country"] = p.Name.Country
@@ -165,8 +173,8 @@ func (p simplePkixName) MarshalJSON() ([]byte, error) {
 	if len(p.Name.Locality) > 0 {
 		out["locality"] = p.Name.Locality
 	}
-	if len(p.KeyId) > 0 {
-		out["key_id"] = hexify(p.KeyId)
+	if len(p.KeyID) > 0 {
+		out["key_id"] = hexify(p.KeyID)
 	}
 
 	return json.Marshal(out)
