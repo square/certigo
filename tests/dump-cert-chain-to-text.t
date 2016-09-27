@@ -127,8 +127,8 @@ Dump a live cert chain (squareup-chain.crt)
   Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Basic Constraints: CA:false
   Key Usage:
-  \tKey Encipherment (esc)
   \tDigital Signature (esc)
+  \tKey Encipherment (esc)
   Extended Key Usage:
   \tServer Auth (esc)
   \tClient Auth (esc)
