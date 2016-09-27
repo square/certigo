@@ -6,8 +6,7 @@ env:
   - GO15VENDOREXPERIMENT=1
 
 go:
-  - 1.5
-  - 1.6
+  - 1.7
 
 before_install:
   - go get github.com/Masterminds/glide
