@@ -17,56 +17,50 @@
 package main
 
 import (
-	"bytes"
-	"crypto/dsa"
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"crypto/x509"
-	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 	"text/template"
 	"time"
 
 	"github.com/fatih/color"
 )
 
-var layout = `Serial: {{.SerialNumber}}
+var layout = `{{if .Alias}}{{.Alias}}
+{{end}}Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | algorithm}} {{if . | isSelfSigned}}(self-signed){{end}}
-Subject Info: {{if .Subject.CommonName}}
-	CommonName: {{.Subject.CommonName}}{{end}} {{if .Subject.Organization}}
-	Organization: {{.Subject.Organization}} {{end}} {{if .Subject.OrganizationalUnit}}
-	OrganizationalUnit: {{.Subject.OrganizationalUnit}} {{end}} {{if .Subject.Country}}
-	Country: {{.Subject.Country}} {{end}} {{if .Subject.Locality}}
-	Locality: {{.Subject.Locality}} {{end}}
-Issuer Info: {{if .Issuer.CommonName}}
-	CommonName: {{.Issuer.CommonName}} {{end}} {{if .Issuer.Organization}}
-	Organization: {{.Issuer.Organization}} {{end}} {{if .Issuer.OrganizationalUnit}}
-	OrganizationalUnit: {{.Issuer.OrganizationalUnit}} {{end}} {{if .Issuer.Country}}
-	Country: {{.Issuer.Country}} {{end}} {{if .Issuer.Locality}}
-	Locality: {{.Issuer.Locality}} {{end}} {{if .SubjectKeyId}} 
-Subject Key ID   : {{.SubjectKeyId | hexify}} {{end}} {{if .AuthorityKeyId}}
-Authority Key ID : {{.AuthorityKeyId | hexify}} {{end}} {{if .BasicConstraintsValid}}
-Basic Constraints: CA:{{.IsCA}}{{if ge .MaxPathLen 0}}, pathlen:{{.MaxPathLen}}{{end}} {{end}} {{if .PermittedDNSDomains}}
-Name Constraints {{if .PermittedDNSDomainsCritical}}(critical){{end}}: {{range .PermittedDNSDomains}}
-	{{.}} {{end}} {{end}} {{if .KeyUsage | keyUsage}}
+Signature : {{.SignatureAlgorithm | highlightAlgorithm}} {{if .IsSelfSigned}}(self-signed){{end}}
+Subject Info: {{if .Subject.Name.CommonName}}
+	CommonName: {{.Subject.Name.CommonName}}{{end}} {{if .Subject.Name.Organization}}
+	Organization: {{.Subject.Name.Organization}} {{end}} {{if .Subject.Name.OrganizationalUnit}}
+	OrganizationalUnit: {{.Subject.Name.OrganizationalUnit}} {{end}} {{if .Subject.Name.Country}}
+	Country: {{.Subject.Name.Country}} {{end}} {{if .Subject.Name.Locality}}
+	Locality: {{.Subject.Name.Locality}} {{end}}
+Issuer Info: {{if .Issuer.Name.CommonName}}
+	CommonName: {{.Issuer.Name.CommonName}} {{end}} {{if .Issuer.Name.Organization}}
+	Organization: {{.Issuer.Name.Organization}} {{end}} {{if .Issuer.Name.OrganizationalUnit}}
+	OrganizationalUnit: {{.Issuer.Name.OrganizationalUnit}} {{end}} {{if .Issuer.Name.Country}}
+	Country: {{.Issuer.Name.Country}} {{end}} {{if .Issuer.Name.Locality}}
+	Locality: {{.Issuer.Name.Locality}} {{end}} {{if .Subject.KeyId}}
+Subject Key ID   : {{.Subject.KeyId | hexify}} {{end}} {{if .Issuer.KeyId}}
+Authority Key ID : {{.Issuer.KeyId | hexify}} {{end}} {{if .BasicConstraints}}
+Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if ge .BasicConstraints.MaxPathLen 0}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}} {{end}} {{if .NameConstraints.PermittedDNSDomains}}
+Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
+	{{.}} {{end}} {{end}} {{if .KeyUsage}}
 Key Usage: {{range .KeyUsage | keyUsage}}
 	{{.}} {{end}} {{end}} {{if .ExtKeyUsage}}
 Extended Key Usage: {{range .ExtKeyUsage}}
-	{{. | extKeyUsage}} {{end}} {{end}} {{if .DNSNames}}
-Alternate DNS Names: {{range .DNSNames}}
-	{{.}} {{end}} {{end}} {{if .IPAddresses}}
-Alternate IP Addresses: {{range .IPAddresses}}	
+	{{. | extKeyUsage}} {{end}} {{end}} {{if .AltDNSNames}}
+Alternate DNS Names: {{range .AltDNSNames}}
+	{{.}} {{end}} {{end}} {{if .AltIPAddresses}}
+Alternate IP Addresses: {{range .AltIPAddresses}}
 	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
 Email Addresses: {{range .EmailAddresses}}
-	{{.}} {{end}} {{end}} {{if . | certWarnings}}
-Warnings: {{range . | certWarnings}}
-	{{.}} {{end}} {{end}}
+	{{.}} {{end}} {{end}} {{if .Warnings}}
+Warnings: {{range .Warnings}}
+	{{. | redify}} {{end}} {{end}}
 `
 
 type certWithName struct {
@@ -75,7 +69,7 @@ type certWithName struct {
 	cert *x509.Certificate
 }
 
-func displayCertFromX509(block *pem.Block) {
+func createSimpleCertificateFromX509(block *pem.Block) simpleCertificate {
 	raw, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
@@ -90,31 +84,26 @@ func displayCertFromX509(block *pem.Block) {
 		cert.file = val
 	}
 
-	displayCert(cert)
+	return createSimpleCertificate(cert)
 }
 
-// displayCert takes in an x509.Certificate object and an alias
+// displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert certWithName) {
+func displayCert(cert simpleCertificate) {
 	funcMap := template.FuncMap{
-		"hexify":       hexify,
-		"certStart":    certStart,
-		"certEnd":      certEnd,
-		"algorithm":    highlightAlgorithm,
-		"keyUsage":     keyUsage,
-		"extKeyUsage":  extKeyUsage,
-		"certWarnings": certWarnings,
-		"isSelfSigned": isSelfSigned,
+		"certStart":          certStart,
+		"certEnd":            certEnd,
+		"redify":             redify,
+		"highlightAlgorithm": highlightAlgorithm,
+		"hexify":             hexify,
+		"keyUsage":           keyUsage,
+		"extKeyUsage":        extKeyUsage,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, _ = t.Parse(layout)
-	if cert.name != "" {
-		fmt.Println("Alias :", cert.name)
-	}
-	t.Execute(os.Stdout, cert.cert)
-
+	t.Execute(os.Stdout, cert)
 }
 
 var (
@@ -122,33 +111,6 @@ var (
 	yellow = color.New(color.Bold, color.FgYellow)
 	red    = color.New(color.Bold, color.FgRed)
 )
-
-var keyUsageStrings = map[x509.KeyUsage]string{
-	x509.KeyUsageDigitalSignature:  "Digital Signature",
-	x509.KeyUsageContentCommitment: "Content Commitment",
-	x509.KeyUsageKeyEncipherment:   "Key Encipherment",
-	x509.KeyUsageDataEncipherment:  "Data Encipherment",
-	x509.KeyUsageKeyAgreement:      "Key Agreement",
-	x509.KeyUsageCertSign:          "Cert Sign",
-	x509.KeyUsageCRLSign:           "CRL Sign",
-	x509.KeyUsageEncipherOnly:      "Encipher Only",
-	x509.KeyUsageDecipherOnly:      "Decipher Only",
-}
-
-var extKeyUsageStrings = map[x509.ExtKeyUsage]string{
-	x509.ExtKeyUsageAny:                        "Any",
-	x509.ExtKeyUsageServerAuth:                 "Server Auth",
-	x509.ExtKeyUsageClientAuth:                 "Client Auth",
-	x509.ExtKeyUsageCodeSigning:                "Code Signing",
-	x509.ExtKeyUsageEmailProtection:            "Email Protection",
-	x509.ExtKeyUsageIPSECEndSystem:             "IPSEC End System",
-	x509.ExtKeyUsageIPSECTunnel:                "IPSEC Tunnel",
-	x509.ExtKeyUsageIPSECUser:                  "IPSEC User",
-	x509.ExtKeyUsageTimeStamping:               "Time Stamping",
-	x509.ExtKeyUsageOCSPSigning:                "OCSP Signing",
-	x509.ExtKeyUsageMicrosoftServerGatedCrypto: "Microsoft ServerGatedCrypto",
-	x509.ExtKeyUsageNetscapeServerGatedCrypto:  "Netscape ServerGatedCrypto",
-}
 
 var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
 	x509.MD2WithRSA:      red,
@@ -165,56 +127,15 @@ var algorithmColors = map[x509.SignatureAlgorithm]*color.Color{
 	x509.ECDSAWithSHA512: green,
 }
 
-var algoName = [...]string{
-	x509.MD2WithRSA:      "MD2-RSA",
-	x509.MD5WithRSA:      "MD5-RSA",
-	x509.SHA1WithRSA:     "SHA1-RSA",
-	x509.SHA256WithRSA:   "SHA256-RSA",
-	x509.SHA384WithRSA:   "SHA384-RSA",
-	x509.SHA512WithRSA:   "SHA512-RSA",
-	x509.DSAWithSHA1:     "DSA-SHA1",
-	x509.DSAWithSHA256:   "DSA-SHA256",
-	x509.ECDSAWithSHA1:   "ECDSA-SHA1",
-	x509.ECDSAWithSHA256: "ECDSA-SHA256",
-	x509.ECDSAWithSHA384: "ECDSA-SHA384",
-	x509.ECDSAWithSHA512: "ECDSA-SHA512",
-}
-
-func algString(algo x509.SignatureAlgorithm) string {
-	if 0 < algo && int(algo) < len(algoName) {
-		return algoName[algo]
-	}
-	return strconv.Itoa(int(algo))
-}
-
 // highlightAlgorithm changes the color of the signing algorithm
 // based on a set color map, e.g. to make SHA-1 show up red.
-func highlightAlgorithm(sig x509.SignatureAlgorithm) string {
+func highlightAlgorithm(sigAlg simpleSigAlg) string {
+	sig := x509.SignatureAlgorithm(sigAlg)
 	color, ok := algorithmColors[sig]
 	if !ok {
 		return algString(sig)
 	}
 	return color.SprintFunc()(algString(sig))
-}
-
-// keyUsage decodes/prints key usage from a certificate.
-func keyUsage(ku x509.KeyUsage) []string {
-	out := []string{}
-	for key, value := range keyUsageStrings {
-		if ku&key > 0 {
-			out = append(out, value)
-		}
-	}
-	return out
-}
-
-// extKeyUsage decodes/prints extended key usage from a certificate.
-func extKeyUsage(eku x509.ExtKeyUsage) string {
-	val, ok := extKeyUsageStrings[eku]
-	if ok {
-		return val
-	}
-	return fmt.Sprintf("unknown:%d", eku)
 }
 
 // certStart takes a given start time for the validity of
@@ -257,19 +178,6 @@ func certEnd(end time.Time) string {
 	}
 }
 
-// hexify returns a colon separated, hexadecimal representation
-// of a given byte array.
-func hexify(arr []byte) string {
-	var hexed bytes.Buffer
-	for i := 0; i < len(arr); i++ {
-		hexed.WriteString(strings.ToUpper(hex.EncodeToString(arr[i : i+1])))
-		if i < len(arr)-1 {
-			hexed.WriteString(":")
-		}
-	}
-	return hexed.String()
-}
-
 var badSignatureAlgorithms = []x509.SignatureAlgorithm{
 	x509.MD2WithRSA,
 	x509.MD5WithRSA,
@@ -278,76 +186,6 @@ var badSignatureAlgorithms = []x509.SignatureAlgorithm{
 	x509.ECDSAWithSHA1,
 }
 
-// certWarnings prints a list of warnings to show common mistakes in certs.
-func certWarnings(cert *x509.Certificate) (warnings []string) {
-	if cert.SerialNumber.Sign() != 1 {
-		warnings = append(warnings, red.SprintfFunc()("Serial number in cert appears to be zero/negative"))
-	}
-
-	if cert.SerialNumber.BitLen() > 160 {
-		warnings = append(warnings, red.SprintfFunc()("Serial number too long; should be 20 bytes or less"))
-	}
-
-	if (cert.KeyUsage&x509.KeyUsageCertSign != 0) && !cert.IsCA {
-		warnings = append(warnings, red.SprintfFunc()("Key usage 'cert sign' is set, but is not a CA cert"))
-	}
-
-	if (cert.KeyUsage&x509.KeyUsageCertSign == 0) && cert.IsCA {
-		warnings = append(warnings, red.SprintfFunc()("Certificate is a CA cert, but key usage 'cert sign' missing"))
-	}
-
-	if cert.Version < 2 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
-	}
-
-	if len(cert.UnhandledCriticalExtensions) > 0 {
-		warnings = append(warnings, red.SprintfFunc()("Certificate has unhandled critical extensions"))
-	}
-
-	warnings = append(warnings, algWarnings(cert)...)
-
-	return
-}
-
-// algWarnings checks key sizes, signature algorithms.
-func algWarnings(cert *x509.Certificate) (warnings []string) {
-	alg, size := decodeKey(cert.PublicKey)
-	if (alg == "RSA" || alg == "DSA") && size < 2048 {
-		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 2048 bits", alg))
-	}
-	if alg == "ECDSA" && size < 224 {
-		warnings = append(warnings, red.SprintfFunc()("Size of %s key should be at least 224 bits", alg))
-	}
-
-	for _, alg := range badSignatureAlgorithms {
-		if cert.SignatureAlgorithm == alg {
-			warnings = append(warnings, red.SprintfFunc()("Using %s, which is an outdated signature algorithm", algString(alg)))
-		}
-	}
-
-	if alg == "RSA" {
-		key := cert.PublicKey.(*rsa.PublicKey)
-		if key.E < 3 {
-			warnings = append(warnings, red.SprintfFunc()("Public key exponent in RSA key is less than 3"))
-		}
-		if key.N.Sign() != 1 {
-			warnings = append(warnings, red.SprintfFunc()("Public key modulus in RSA key appears to be zero/negative"))
-		}
-	}
-
-	return
-}
-
-// decodeKey returns the algorithm and key size for a public key.
-func decodeKey(publicKey interface{}) (string, int) {
-	switch publicKey.(type) {
-	case *dsa.PublicKey:
-		return "DSA", publicKey.(*dsa.PublicKey).P.BitLen()
-	case *ecdsa.PublicKey:
-		return "ECDSA", publicKey.(*ecdsa.PublicKey).Curve.Params().BitSize
-	case *rsa.PublicKey:
-		return "RSA", publicKey.(*rsa.PublicKey).N.BitLen()
-	default:
-		return "", 0
-	}
+func redify(text string) string {
+	return red.SprintfFunc()("%s", text)
 }
