@@ -31,37 +31,36 @@ var layout = `{{if .Alias}}{{.Alias}}
 {{end}}Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | highlightAlgorithm}} {{if .IsSelfSigned}}(self-signed){{end}}
-Subject Info: {{if .Subject.Name.CommonName}}
-	CommonName: {{.Subject.Name.CommonName}}{{end}} {{if .Subject.Name.Organization}}
-	Organization: {{.Subject.Name.Organization}} {{end}} {{if .Subject.Name.OrganizationalUnit}}
-	OrganizationalUnit: {{.Subject.Name.OrganizationalUnit}} {{end}} {{if .Subject.Name.Country}}
-	Country: {{.Subject.Name.Country}} {{end}} {{if .Subject.Name.Locality}}
-	Locality: {{.Subject.Name.Locality}} {{end}}
-Issuer Info: {{if .Issuer.Name.CommonName}}
-	CommonName: {{.Issuer.Name.CommonName}} {{end}} {{if .Issuer.Name.Organization}}
-	Organization: {{.Issuer.Name.Organization}} {{end}} {{if .Issuer.Name.OrganizationalUnit}}
-	OrganizationalUnit: {{.Issuer.Name.OrganizationalUnit}} {{end}} {{if .Issuer.Name.Country}}
-	Country: {{.Issuer.Name.Country}} {{end}} {{if .Issuer.Name.Locality}}
-	Locality: {{.Issuer.Name.Locality}} {{end}} {{if .Subject.KeyId}}
-Subject Key ID   : {{.Subject.KeyId | hexify}} {{end}} {{if .Issuer.KeyId}}
-Authority Key ID : {{.Issuer.KeyId | hexify}} {{end}} {{if .BasicConstraints}}
-Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if ge .BasicConstraints.MaxPathLen 0}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}} {{end}} {{if .NameConstraints.PermittedDNSDomains}}
+Signature : {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
+Subject Info:{{if .Subject.Name.CommonName}}
+	CommonName: {{.Subject.Name.CommonName}}{{end}}{{if .Subject.Name.Organization}}
+	Organization: {{.Subject.Name.Organization}}{{end}}{{if .Subject.Name.OrganizationalUnit}}
+	OrganizationalUnit: {{.Subject.Name.OrganizationalUnit}}{{end}}{{if .Subject.Name.Country}}
+	Country: {{.Subject.Name.Country}}{{end}}{{if .Subject.Name.Locality}}
+	Locality: {{.Subject.Name.Locality}}{{end}}
+Issuer Info:{{if .Issuer.Name.CommonName}}
+	CommonName: {{.Issuer.Name.CommonName}}{{end}}{{if .Issuer.Name.Organization}}
+	Organization: {{.Issuer.Name.Organization}}{{end}}{{if .Issuer.Name.OrganizationalUnit}}
+	OrganizationalUnit: {{.Issuer.Name.OrganizationalUnit}}{{end}}{{if .Issuer.Name.Country}}
+	Country: {{.Issuer.Name.Country}}{{end}}{{if .Issuer.Name.Locality}}
+	Locality: {{.Issuer.Name.Locality}}{{end}}{{if .Subject.KeyID}}
+Subject Key ID   : {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
+Authority Key ID : {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
+Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
 Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
-	{{.}} {{end}} {{end}} {{if .KeyUsage}}
-Key Usage: {{range .KeyUsage | keyUsage}}
-	{{.}} {{end}} {{end}} {{if .ExtKeyUsage}}
-Extended Key Usage: {{range .ExtKeyUsage}}
-	{{. | extKeyUsage}} {{end}} {{end}} {{if .AltDNSNames}}
-Alternate DNS Names: {{range .AltDNSNames}}
-	{{.}} {{end}} {{end}} {{if .AltIPAddresses}}
-Alternate IP Addresses: {{range .AltIPAddresses}}
-	{{.}} {{end}} {{end}} {{if .EmailAddresses}}
-Email Addresses: {{range .EmailAddresses}}
-	{{.}} {{end}} {{end}} {{if .Warnings}}
-Warnings: {{range .Warnings}}
-	{{. | redify}} {{end}} {{end}}
-`
+	{{.}}{{end}}{{end}}{{if .KeyUsage}}
+Key Usage:{{range .KeyUsage | keyUsage}}
+	{{.}}{{end}}{{end}}{{if .ExtKeyUsage}}
+Extended Key Usage:{{range .ExtKeyUsage}}
+	{{. | extKeyUsage}}{{end}}{{end}}{{if .AltDNSNames}}
+Alternate DNS Names:{{range .AltDNSNames}}
+	{{.}}{{end}}{{end}}{{if .AltIPAddresses}}
+Alternate IP Addresses:{{range .AltIPAddresses}}
+	{{.}}{{end}}{{end}}{{if .EmailAddresses}}
+Email Addresses:{{range .EmailAddresses}}
+	{{.}}{{end}}{{end}}{{if .Warnings}}
+Warnings:{{range .Warnings}}
+	{{. | redify}}{{end}}{{end}}`
 
 type certWithName struct {
 	name string
@@ -102,8 +101,16 @@ func displayCert(cert simpleCertificate) {
 		"extKeyUsage":        extKeyUsage,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
-	t, _ = t.Parse(layout)
-	t.Execute(os.Stdout, cert)
+	t, err := t.Parse(layout)
+	if err != nil {
+		// Should never happen
+		panic(err)
+	}
+	err = t.Execute(os.Stdout, cert)
+	if err != nil {
+		// Should never happen
+		panic(err)
+	}
 }
 
 var (

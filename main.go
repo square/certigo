@@ -162,7 +162,7 @@ func main() {
 		if *connectJSON {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
-		} else {
+		} else if !*connectPem {
 			for i, cert := range result.Certificates {
 				fmt.Printf("** CERTIFICATE %d **\n", i+1)
 				displayCert(cert)

@@ -17,6 +17,18 @@ import (
 	"time"
 )
 
+var keyUsages = []x509.KeyUsage{
+	x509.KeyUsageDigitalSignature,
+	x509.KeyUsageContentCommitment,
+	x509.KeyUsageKeyEncipherment,
+	x509.KeyUsageDataEncipherment,
+	x509.KeyUsageKeyAgreement,
+	x509.KeyUsageCertSign,
+	x509.KeyUsageCRLSign,
+	x509.KeyUsageEncipherOnly,
+	x509.KeyUsageDecipherOnly,
+}
+
 var keyUsageStrings = map[x509.KeyUsage]string{
 	x509.KeyUsageDigitalSignature:  "Digital Signature",
 	x509.KeyUsageContentCommitment: "Content Commitment",
@@ -210,9 +222,9 @@ func hexify(arr []byte) string {
 func keyUsage(sKu simpleKeyUsage) []string {
 	ku := x509.KeyUsage(sKu)
 	out := []string{}
-	for key, value := range keyUsageStrings {
+	for _, key := range keyUsages {
 		if ku&key > 0 {
-			out = append(out, value)
+			out = append(out, keyUsageStrings[key])
 		}
 	}
 	return out
