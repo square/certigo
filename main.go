@@ -84,7 +84,7 @@ var fileExtToFormat = map[string]string{
 }
 
 func main() {
-	app.Version("1.3.0")
+	app.Version("1.4.0")
 
 	result := simpleResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
