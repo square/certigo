@@ -60,26 +60,26 @@ var algoName = [...]string{
 }
 
 type basicConstraints struct {
-	IsCA       bool `json:"is_ca"`
-	MaxPathLen int  `json:"pathlen"`
+	IsCA       bool `json:"is_ca,omitempty"`
+	MaxPathLen int  `json:"pathlen,omitempty"`
 }
 
 type nameConstraints struct {
-	Critical            bool     `json:"critical"`
+	Critical            bool     `json:"critical,omitempty"`
 	PermittedDNSDomains []string `json:"permitted_dns_domains,omitempty"`
 }
 
 type simpleCertificate struct {
 	Alias              string              `json:"alias,omitempty"`
-	SerialNumber       *big.Int            `json:"serial"`
+	SerialNumber       *big.Int            `json:"serial,string"`
 	NotBefore          time.Time           `json:"not_before"`
 	NotAfter           time.Time           `json:"not_after"`
 	SignatureAlgorithm simpleSigAlg        `json:"signature_algorithm"`
 	IsSelfSigned       bool                `json:"is_self_signed"`
 	Subject            simplePkixName      `json:"subject"`
 	Issuer             simplePkixName      `json:"issuer"`
-	BasicConstraints   basicConstraints    `json:"basic_constraints"`
-	NameConstraints    nameConstraints     `json:"name_constraints"`
+	BasicConstraints   *basicConstraints   `json:"basic_constraints,omitempty"`
+	NameConstraints    *nameConstraints    `json:"name_constraints,omitempty"`
 	KeyUsage           simpleKeyUsage      `json:"key_usage,omitempty"`
 	ExtKeyUsage        []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
 	AltDNSNames        []string            `json:"alternate_dns_names,omitempty"`
@@ -119,14 +119,6 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 			Name:  c.cert.Issuer,
 			KeyId: c.cert.AuthorityKeyId,
 		},
-		BasicConstraints: basicConstraints{
-			IsCA:       c.cert.IsCA,
-			MaxPathLen: c.cert.MaxPathLen,
-		},
-		NameConstraints: nameConstraints{
-			Critical:            c.cert.PermittedDNSDomainsCritical,
-			PermittedDNSDomains: c.cert.PermittedDNSDomains,
-		},
 		KeyUsage:       simpleKeyUsage(c.cert.KeyUsage),
 		AltDNSNames:    c.cert.DNSNames,
 		AltIPAddresses: c.cert.IPAddresses,
@@ -138,6 +130,24 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 		simpleEku = append(simpleEku, simpleExtKeyUsage(eku))
 	}
 	out.ExtKeyUsage = simpleEku
+
+	bc := basicConstraints{
+		IsCA: c.cert.IsCA,
+	}
+	if c.cert.MaxPathLen > 0 {
+		bc.MaxPathLen = c.cert.MaxPathLen
+	}
+	if isBasicConstraintsEmpty(bc) {
+		out.BasicConstraints = &bc
+	}
+
+	nc := nameConstraints{
+		Critical:            c.cert.PermittedDNSDomainsCritical,
+		PermittedDNSDomains: c.cert.PermittedDNSDomains,
+	}
+	if isNameConstraintsEmpty(nc) {
+		out.NameConstraints = &nc
+	}
 
 	return out
 }
@@ -182,6 +192,14 @@ func (e simpleExtKeyUsage) MarshalJSON() ([]byte, error) {
 
 func (s simpleSigAlg) MarshalJSON() ([]byte, error) {
 	return json.Marshal(algString(x509.SignatureAlgorithm(s)))
+}
+
+func isBasicConstraintsEmpty(bc basicConstraints) bool {
+	return !bc.IsCA && bc.MaxPathLen > 0
+}
+
+func isNameConstraintsEmpty(nc nameConstraints) bool {
+	return !nc.Critical && len(nc.PermittedDNSDomains) > 0
 }
 
 // hexify returns a colon separated, hexadecimal representation
