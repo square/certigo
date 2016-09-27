@@ -46,7 +46,7 @@ Issuer Info:{{if .Issuer.Name.CommonName}}
 	Locality: {{.Issuer.Name.Locality}}{{end}}{{if .Subject.KeyID}}
 Subject Key ID   : {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
 Authority Key ID : {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
-Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if ge .BasicConstraints.MaxPathLen 0}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
+Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
 Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}{{if .KeyUsage}}
 Key Usage:{{range .KeyUsage | keyUsage}}
