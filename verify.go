@@ -51,7 +51,9 @@ func caBundle(caPath string) *x509.CertPool {
 }
 
 func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerification {
-	result := simpleVerification{}
+	result := simpleVerification{
+		Chains: [][]simpleVerifyCert{},
+	}
 
 	intermediates := x509.NewCertPool()
 	for i := 1; i < len(certs); i++ {
