@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net"
 	"strconv"
 	"strings"
@@ -64,13 +65,13 @@ type basicConstraints struct {
 }
 
 type nameConstraints struct {
-	Critical            bool     `json:"critical"`
+	Critical            bool     `json:"critical,omitempty"`
 	PermittedDNSDomains []string `json:"permitted_dns_domains,omitempty"`
 }
 
 type simpleCertificate struct {
 	Alias              string              `json:"alias,omitempty"`
-	SerialNumber       string              `json:"serial"`
+	SerialNumber       *big.Int            `json:"serial,string"`
 	NotBefore          time.Time           `json:"not_before"`
 	NotAfter           time.Time           `json:"not_after"`
 	SignatureAlgorithm simpleSigAlg        `json:"signature_algorithm"`
@@ -105,7 +106,7 @@ type simpleResult struct {
 func createSimpleCertificate(c certWithName) simpleCertificate {
 	out := simpleCertificate{
 		Alias:              c.name,
-		SerialNumber:       c.cert.SerialNumber.String(),
+		SerialNumber:       c.cert.SerialNumber,
 		NotBefore:          c.cert.NotBefore,
 		NotAfter:           c.cert.NotAfter,
 		SignatureAlgorithm: simpleSigAlg(c.cert.SignatureAlgorithm),
