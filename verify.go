@@ -18,6 +18,7 @@ package main
 
 import (
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -27,6 +28,7 @@ type simpleVerifyCert struct {
 	Name               string       `json:"name"`
 	IsSelfSigned       bool         `json:"is_self_signed"`
 	SignatureAlgorithm simpleSigAlg `json:"signature_algorithm"`
+	PEM                string       `json:"pem"`
 }
 
 type simpleVerification struct {
@@ -76,14 +78,17 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 	for _, chain := range chains {
 		aChain := []simpleVerifyCert{}
 		for _, cert := range chain {
-			aCert := simpleVerifyCert{}
+			aCert := simpleVerifyCert{
+				IsSelfSigned:       isSelfSigned(cert),
+				SignatureAlgorithm: simpleSigAlg(cert.SignatureAlgorithm),
+				PEM:                string(pem.EncodeToMemory(certToPem(cert, nil))),
+			}
+
 			if cert.Subject.CommonName != "" {
 				aCert.Name = cert.Subject.CommonName
 			} else {
 				aCert.Name = fmt.Sprintf("Serial #%s", cert.SerialNumber.String())
 			}
-			aCert.IsSelfSigned = isSelfSigned(cert)
-			aCert.SignatureAlgorithm = simpleSigAlg(cert.SignatureAlgorithm)
 			aChain = append(aChain, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)

@@ -9,6 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net"
 	"strconv"
@@ -97,6 +98,7 @@ type simpleCertificate struct {
 	AltIPAddresses     []net.IP            `json:"ip_addresses,omitempty"`
 	EmailAddresses     []string            `json:"email_addresses,omitempty"`
 	Warnings           []string            `json:"warnings,omitempty"`
+	PEM                string              `json:"pem,omitempty"`
 }
 
 type simplePkixName struct {
@@ -135,6 +137,7 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 		AltIPAddresses: c.cert.IPAddresses,
 		EmailAddresses: c.cert.EmailAddresses,
 		Warnings:       certWarnings(c.cert),
+		PEM:            string(pem.EncodeToMemory(certToPem(c.cert, nil))),
 	}
 
 	if c.cert.BasicConstraintsValid {
