@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package main
+package lib
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"os"
 	"text/template"
 	"time"
 
@@ -68,11 +70,15 @@ type certWithName struct {
 	cert *x509.Certificate
 }
 
-func createSimpleCertificateFromX509(block *pem.Block) simpleCertificate {
+func (c certWithName) MarshalJSON() ([]byte, error) {
+	out := createSimpleCertificate(c.name, c.cert)
+	return json.Marshal(out)
+}
+
+func createSimpleCertificateFromX509(block *pem.Block) (simpleCertificate, error) {
 	raw, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading cert: %s", err)
-		os.Exit(1)
+		return simpleCertificate{}, fmt.Errorf("error reading cert: %s", err)
 	}
 
 	cert := certWithName{cert: raw}
@@ -83,14 +89,34 @@ func createSimpleCertificateFromX509(block *pem.Block) simpleCertificate {
 		cert.file = val
 	}
 
-	return createSimpleCertificate(cert)
+	return createSimpleCertificate(cert.name, cert.cert), nil
+}
+
+// EncodeX509ToJSON encodes an X.509 certificate into a JSON string.
+func EncodeX509ToJSON(cert *x509.Certificate) []byte {
+	out := createSimpleCertificate("", cert)
+	raw, err := json.Marshal(out)
+	if err != nil {
+		panic(err)
+	}
+	return raw
+}
+
+// EncodeX509ToObject encodes an X.509 certificate into a JSON-serializable object.
+func EncodeX509ToObject(cert *x509.Certificate) interface{} {
+	return createSimpleCertificate("", cert)
+}
+
+// EncodeX509ToText encodes an X.509 certificate into human-readable text.
+func EncodeX509ToText(cert *x509.Certificate) []byte {
+	return displayCert(createSimpleCertificate("", cert))
 }
 
 // displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert simpleCertificate) {
+func displayCert(cert simpleCertificate) []byte {
 	funcMap := template.FuncMap{
 		"certStart":          certStart,
 		"certEnd":            certEnd,
@@ -106,11 +132,15 @@ func displayCert(cert simpleCertificate) {
 		// Should never happen
 		panic(err)
 	}
-	err = t.Execute(os.Stdout, cert)
+	var buffer bytes.Buffer
+	w := bufio.NewWriter(&buffer)
+	err = t.Execute(w, cert)
 	if err != nil {
 		// Should never happen
 		panic(err)
 	}
+	w.Flush()
+	return buffer.Bytes()
 }
 
 var (
@@ -183,14 +213,6 @@ func certEnd(end time.Time) string {
 	} else {
 		return red.SprintfFunc()(end.String())
 	}
-}
-
-var badSignatureAlgorithms = []x509.SignatureAlgorithm{
-	x509.MD2WithRSA,
-	x509.MD5WithRSA,
-	x509.SHA1WithRSA,
-	x509.DSAWithSHA1,
-	x509.ECDSAWithSHA1,
 }
 
 func redify(text string) string {
