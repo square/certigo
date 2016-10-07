@@ -18,22 +18,75 @@ package main
 
 import (
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
+
+	"github.com/fatih/color"
+	"github.com/square/certigo/lib"
 )
 
+var (
+	green  = color.New(color.Bold, color.FgGreen)
+	yellow = color.New(color.Bold, color.FgYellow)
+	red    = color.New(color.Bold, color.FgRed)
+)
+
+var algoName = [...]string{
+	x509.MD2WithRSA:      "MD2-RSA",
+	x509.MD5WithRSA:      "MD5-RSA",
+	x509.SHA1WithRSA:     "SHA1-RSA",
+	x509.SHA256WithRSA:   "SHA256-RSA",
+	x509.SHA384WithRSA:   "SHA384-RSA",
+	x509.SHA512WithRSA:   "SHA512-RSA",
+	x509.DSAWithSHA1:     "DSA-SHA1",
+	x509.DSAWithSHA256:   "DSA-SHA256",
+	x509.ECDSAWithSHA1:   "ECDSA-SHA1",
+	x509.ECDSAWithSHA256: "ECDSA-SHA256",
+	x509.ECDSAWithSHA384: "ECDSA-SHA384",
+	x509.ECDSAWithSHA512: "ECDSA-SHA512",
+}
+
+var badSignatureAlgorithms = [...]x509.SignatureAlgorithm{
+	x509.MD2WithRSA,
+	x509.MD5WithRSA,
+	x509.SHA1WithRSA,
+	x509.DSAWithSHA1,
+	x509.ECDSAWithSHA1,
+}
+
 type simpleVerifyCert struct {
-	Name               string       `json:"name"`
-	IsSelfSigned       bool         `json:"is_self_signed"`
-	SignatureAlgorithm simpleSigAlg `json:"signature_algorithm"`
-	PEM                string       `json:"pem"`
+	Name               string `json:"name"`
+	IsSelfSigned       bool   `json:"is_self_signed"`
+	PEM                string `json:"pem"`
+	signatureAlgorithm x509.SignatureAlgorithm
 }
 
 type simpleVerification struct {
 	Error  string               `json:"error,omitempty"`
 	Chains [][]simpleVerifyCert `json:"chains"`
+}
+
+type simpleResult struct {
+	Certificates []*x509.Certificate `json:"certificates"`
+	VerifyResult *simpleVerification `json:"verify_result,omitempty"`
+}
+
+func (s simpleResult) MarshalJSON() ([]byte, error) {
+	certs := make([]interface{}, len(s.Certificates))
+	for i, c := range s.Certificates {
+		certs[i] = lib.EncodeX509ToObject(c)
+	}
+
+	out := map[string]interface{}{}
+	out["certificates"] = certs
+	if s.VerifyResult != nil {
+		out["verify_result"] = s.VerifyResult
+	}
+	return json.Marshal(out)
 }
 
 func caBundle(caPath string) *x509.CertPool {
@@ -74,14 +127,13 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 		return result
 	}
 
-	//green.Printf("Server certificates appear to be valid (found %d chains):\n", len(chains))
 	for _, chain := range chains {
 		aChain := []simpleVerifyCert{}
 		for _, cert := range chain {
 			aCert := simpleVerifyCert{
-				IsSelfSigned:       isSelfSigned(cert),
-				SignatureAlgorithm: simpleSigAlg(cert.SignatureAlgorithm),
-				PEM:                string(pem.EncodeToMemory(certToPem(cert, nil))),
+				IsSelfSigned:       lib.IsSelfSigned(cert),
+				signatureAlgorithm: cert.SignatureAlgorithm,
+				PEM:                string(pem.EncodeToMemory(lib.EncodeX509ToPEM(cert, nil))),
 			}
 
 			if cert.Subject.CommonName != "" {
@@ -89,6 +141,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 			} else {
 				aCert.Name = fmt.Sprintf("Serial #%s", cert.SerialNumber.String())
 			}
+
 			aChain = append(aChain, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)
@@ -102,12 +155,19 @@ func fmtCert(cert simpleVerifyCert) string {
 		name += green.SprintfFunc()(" [self-signed]")
 	}
 	for _, alg := range badSignatureAlgorithms {
-		if x509.SignatureAlgorithm(cert.SignatureAlgorithm) == alg {
+		if cert.signatureAlgorithm == alg {
 			name += red.SprintfFunc()(" [%s]", algString(alg))
 			break
 		}
 	}
 	return name
+}
+
+func algString(algo x509.SignatureAlgorithm) string {
+	if 0 < algo && int(algo) < len(algoName) {
+		return algoName[algo]
+	}
+	return strconv.Itoa(int(algo))
 }
 
 func printVerifyResult(result simpleVerification) {
@@ -125,8 +185,4 @@ func printVerifyResult(result simpleVerification) {
 			fmt.Printf("\t=> %s\n", fmtCert(cert))
 		}
 	}
-}
-
-func isSelfSigned(cert *x509.Certificate) bool {
-	return cert.CheckSignatureFrom(cert) == nil
 }

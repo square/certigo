@@ -1,4 +1,20 @@
-package main
+/*-
+ * Copyright 2016 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package lib
 
 import (
 	"bytes"
@@ -81,6 +97,7 @@ type nameConstraints struct {
 	PermittedDNSDomains []string `json:"permitted_dns_domains,omitempty"`
 }
 
+// simpleCertificate is a JSON-representable certificate metadata holder.
 type simpleCertificate struct {
 	Alias              string              `json:"alias,omitempty"`
 	SerialNumber       string              `json:"serial"`
@@ -88,8 +105,8 @@ type simpleCertificate struct {
 	NotAfter           time.Time           `json:"not_after"`
 	SignatureAlgorithm simpleSigAlg        `json:"signature_algorithm"`
 	IsSelfSigned       bool                `json:"is_self_signed"`
-	Subject            simplePkixName      `json:"subject"`
-	Issuer             simplePkixName      `json:"issuer"`
+	Subject            simplePKIXName      `json:"subject"`
+	Issuer             simplePKIXName      `json:"issuer"`
 	BasicConstraints   *basicConstraints   `json:"basic_constraints,omitempty"`
 	NameConstraints    *nameConstraints    `json:"name_constraints,omitempty"`
 	KeyUsage           simpleKeyUsage      `json:"key_usage,omitempty"`
@@ -101,7 +118,7 @@ type simpleCertificate struct {
 	PEM                string              `json:"pem,omitempty"`
 }
 
-type simplePkixName struct {
+type simplePKIXName struct {
 	Name  pkix.Name
 	KeyID []byte
 }
@@ -111,53 +128,48 @@ type simpleExtKeyUsage x509.ExtKeyUsage
 
 type simpleSigAlg x509.SignatureAlgorithm
 
-type simpleResult struct {
-	Certificates []simpleCertificate `json:"certificates"`
-	VerifyResult *simpleVerification `json:"verify_result,omitempty"`
-}
-
-func createSimpleCertificate(c certWithName) simpleCertificate {
+func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertificate {
 	out := simpleCertificate{
-		Alias:              c.name,
-		SerialNumber:       c.cert.SerialNumber.String(),
-		NotBefore:          c.cert.NotBefore,
-		NotAfter:           c.cert.NotAfter,
-		SignatureAlgorithm: simpleSigAlg(c.cert.SignatureAlgorithm),
-		IsSelfSigned:       isSelfSigned(c.cert),
-		Subject: simplePkixName{
-			Name:  c.cert.Subject,
-			KeyID: c.cert.SubjectKeyId,
+		Alias:              name,
+		SerialNumber:       cert.SerialNumber.String(),
+		NotBefore:          cert.NotBefore,
+		NotAfter:           cert.NotAfter,
+		SignatureAlgorithm: simpleSigAlg(cert.SignatureAlgorithm),
+		IsSelfSigned:       IsSelfSigned(cert),
+		Subject: simplePKIXName{
+			Name:  cert.Subject,
+			KeyID: cert.SubjectKeyId,
 		},
-		Issuer: simplePkixName{
-			Name:  c.cert.Issuer,
-			KeyID: c.cert.AuthorityKeyId,
+		Issuer: simplePKIXName{
+			Name:  cert.Issuer,
+			KeyID: cert.AuthorityKeyId,
 		},
-		KeyUsage:       simpleKeyUsage(c.cert.KeyUsage),
-		AltDNSNames:    c.cert.DNSNames,
-		AltIPAddresses: c.cert.IPAddresses,
-		EmailAddresses: c.cert.EmailAddresses,
-		Warnings:       certWarnings(c.cert),
-		PEM:            string(pem.EncodeToMemory(certToPem(c.cert, nil))),
+		KeyUsage:       simpleKeyUsage(cert.KeyUsage),
+		AltDNSNames:    cert.DNSNames,
+		AltIPAddresses: cert.IPAddresses,
+		EmailAddresses: cert.EmailAddresses,
+		Warnings:       certWarnings(cert),
+		PEM:            string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 	}
 
-	if c.cert.BasicConstraintsValid {
+	if cert.BasicConstraintsValid {
 		out.BasicConstraints = &basicConstraints{
-			IsCA: c.cert.IsCA,
+			IsCA: cert.IsCA,
 		}
-		if c.cert.MaxPathLen > 0 || c.cert.MaxPathLenZero {
-			out.BasicConstraints.MaxPathLen = &c.cert.MaxPathLen
+		if cert.MaxPathLen > 0 || cert.MaxPathLenZero {
+			out.BasicConstraints.MaxPathLen = &cert.MaxPathLen
 		}
 	}
 
-	if len(c.cert.PermittedDNSDomains) > 0 {
+	if len(cert.PermittedDNSDomains) > 0 {
 		out.NameConstraints = &nameConstraints{
-			Critical:            c.cert.PermittedDNSDomainsCritical,
-			PermittedDNSDomains: c.cert.PermittedDNSDomains,
+			Critical:            cert.PermittedDNSDomainsCritical,
+			PermittedDNSDomains: cert.PermittedDNSDomains,
 		}
 	}
 
 	simpleEku := []simpleExtKeyUsage{}
-	for _, eku := range c.cert.ExtKeyUsage {
+	for _, eku := range cert.ExtKeyUsage {
 		simpleEku = append(simpleEku, simpleExtKeyUsage(eku))
 	}
 	out.ExtKeyUsage = simpleEku
@@ -165,12 +177,7 @@ func createSimpleCertificate(c certWithName) simpleCertificate {
 	return out
 }
 
-func (c certWithName) MarshalJSON() ([]byte, error) {
-	out := createSimpleCertificate(c)
-	return json.Marshal(out)
-}
-
-func (p simplePkixName) MarshalJSON() ([]byte, error) {
+func (p simplePKIXName) MarshalJSON() ([]byte, error) {
 	out := map[string]interface{}{}
 
 	if p.Name.CommonName != "" {
@@ -321,4 +328,9 @@ func algWarnings(cert *x509.Certificate) (warnings []string) {
 	}
 
 	return
+}
+
+// IsSelfSigned returns true iff the given certificate has a valid self-signature.
+func IsSelfSigned(cert *x509.Certificate) bool {
+	return cert.CheckSignatureFrom(cert) == nil
 }
