@@ -70,12 +70,12 @@ func main() {
 		}()
 
 		if *dumpPem {
-			lib.ReadPEMFromFiles(files, *dumpType, readPassword, func(block *pem.Block) {
+			lib.ReadAsPEMFromFiles(files, *dumpType, readPassword, func(block *pem.Block) {
 				block.Headers = nil
 				pem.Encode(os.Stdout, block)
 			})
 		} else {
-			lib.ReadX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate) {
+			lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate) {
 				result.Certificates = append(result.Certificates, cert)
 			})
 
@@ -135,7 +135,7 @@ func main() {
 		defer file.Close()
 
 		chain := []*x509.Certificate{}
-		lib.ReadX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert *x509.Certificate) {
+		lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert *x509.Certificate) {
 			chain = append(chain, cert)
 		})
 

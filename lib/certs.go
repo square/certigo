@@ -65,8 +65,11 @@ var badSignatureAlgorithms = [...]x509.SignatureAlgorithm{
 	x509.ECDSAWithSHA1,
 }
 
-// ReadPEMFromFiles will read PEM blocks from the given set of inputs.
-func ReadPEMFromFiles(files []*os.File, format string, password func(string) string, callback func(*pem.Block)) error {
+// ReadAsPEMFromFiles will read PEM blocks from the given set of inputs. Input
+// data may be in plain-text PEM files, DER-encoded certificates or PKCS7
+// envelopes, or PKCS12/JCEKS keystores. All inputs will be converted to PEM
+// blocks and passed to the callback.
+func ReadAsPEMFromFiles(files []*os.File, format string, password func(string) string, callback func(*pem.Block)) error {
 	for _, file := range files {
 		reader := bufio.NewReaderSize(file, 4)
 		format, err := formatForFile(reader, file.Name(), format)
@@ -79,8 +82,11 @@ func ReadPEMFromFiles(files []*os.File, format string, password func(string) str
 	return nil
 }
 
-// ReadPEM will read PEM blocks from the given set of inputs.
-func ReadPEM(readers []io.Reader, format string, password func(string) string, callback func(*pem.Block)) error {
+// ReadAsPEM will read PEM blocks from the given set of inputs. Input data may
+// be in plain-text PEM files, DER-encoded certificates or PKCS7 envelopes, or
+// PKCS12/JCEKS keystores. All inputs will be converted to PEM blocks and
+// passed to the callback.
+func ReadAsPEM(readers []io.Reader, format string, password func(string) string, callback func(*pem.Block)) error {
 	for _, r := range readers {
 		reader := bufio.NewReaderSize(r, 4)
 		format, err := formatForFile(reader, "", format)
@@ -93,8 +99,11 @@ func ReadPEM(readers []io.Reader, format string, password func(string) string, c
 	return nil
 }
 
-// ReadX509FromFiles will read X.509 certificates from the given set of inputs.
-func ReadX509FromFiles(files []*os.File, format string, password func(string) string, callback func(*x509.Certificate)) error {
+// ReadAsX509FromFiles will read X.509 certificates from the given set of
+// inputs. Input data may be in plain-text PEM files, DER-encoded certificates
+// or PKCS7 envelopes, or PKCS12/JCEKS keystores. All inputs will be converted
+// to X.509 certificates (private keys are skipped) and passed to the callback.
+func ReadAsX509FromFiles(files []*os.File, format string, password func(string) string, callback func(*x509.Certificate)) error {
 	for _, file := range files {
 		reader := bufio.NewReaderSize(file, 4)
 		format, err := formatForFile(reader, file.Name(), format)
@@ -108,8 +117,11 @@ func ReadX509FromFiles(files []*os.File, format string, password func(string) st
 	return nil
 }
 
-// ReadX509 will read X.509 certificates from the given set of inputs.
-func ReadX509(readers []io.Reader, format string, password func(string) string, callback func(*x509.Certificate)) error {
+// ReadAsX509 will read X.509 certificates from the given set of inputs. Input
+// data may be in plain-text PEM files, DER-encoded certificates or PKCS7
+// envelopes, or PKCS12/JCEKS keystores. All inputs will be converted to X.509
+// certificates (private keys are skipped) and passed to the callback.
+func ReadAsX509(readers []io.Reader, format string, password func(string) string, callback func(*x509.Certificate)) error {
 	for _, r := range readers {
 		reader := bufio.NewReaderSize(r, 4)
 		format, err := formatForFile(reader, "", format)
