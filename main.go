@@ -47,6 +47,8 @@ var (
 	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
 	connectJSON   = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	connectCert   = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
+	connectKey    = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
 
 	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -91,11 +93,7 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		conn, err := tls.Dial("tcp", *connectTo, &tls.Config{
-			// We verify later manually so we can print results
-			InsecureSkipVerify: true,
-			ServerName:         *connectName,
-		})
+		conn, err := tls.Dial("tcp", *connectTo, tlsConfigForConnect())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
 			os.Exit(1)
@@ -180,6 +178,31 @@ func inputFiles(fileNames []string) []*os.File {
 		files = append(files, os.Stdin)
 	}
 	return files
+}
+
+func tlsConfigForConnect() *tls.Config {
+	conf := &tls.Config{
+		// We verify later manually so we can print results
+		InsecureSkipVerify: true,
+		ServerName:         *connectName,
+	}
+
+	if *connectCert != "" {
+		keyFile := *connectCert
+		if *connectKey != "" {
+			keyFile = *connectKey
+		}
+
+		cert, err := tls.LoadX509KeyPair(*connectCert, keyFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "unable to read client certificate/key: %s\n", err)
+			os.Exit(1)
+		}
+
+		conf.Certificates = []tls.Certificate{cert}
+	}
+
+	return conf
 }
 
 func readPassword(alias string) string {
