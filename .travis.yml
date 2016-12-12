@@ -10,7 +10,7 @@ go:
 
 before_install:
   - go get github.com/Masterminds/glide
-  - pip install cram --user `whoami`
+  - pip install cram --user
 
 install:
   - go build .
