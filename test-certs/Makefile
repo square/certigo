@@ -1,6 +1,7 @@
 TARGETS = \
 	example-root example-leaf example-sha1 example-md5 example-root-bad-ku \
-	example-bad-serial example-small-key example-expired example-elliptic-sha1
+	example-bad-serial example-small-key example-expired example-elliptic-sha1 \
+	example-custom-oid
 
 all: \
 	$(addsuffix .crt,$(TARGETS)) \
@@ -72,3 +73,10 @@ example-elliptic-sha1.key:
 
 example-elliptic-sha1.crt: example-elliptic-sha1.csr
 	openssl x509 -req -in $< -signkey $(@:.crt=.key) -out $@ -days 2500 -extfile openssl.ext -extensions leaf
+
+# Custom OID
+example-custom-oid.csr: example-custom-oid.key
+	openssl req -new -config example-custom-oid.conf -key $< -out $@
+
+example-custom-oid.crt: example-custom-oid.csr
+	openssl x509 -req -sha256 -in $< -signkey $(@:.crt=.key) -out $@ -days 2500 -extfile openssl.ext -extensions leaf
