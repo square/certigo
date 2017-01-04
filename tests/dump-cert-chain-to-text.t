@@ -115,14 +115,16 @@ Dump a live cert chain (squareup-chain.crt)
   Signature : SHA256-RSA
   Subject Info:
   \tCommonName: www.squareup.com (esc)
-  \tOrganization: [Square, Inc.] (esc)
-  \tCountry: [US] (esc)
-  \tLocality: [San Francisco] (esc)
+  \tOrganization: Square, Inc. (esc)
+  \tCountry: US (esc)
+  \tLocality: San Francisco (esc)
+  \tProvince: California (esc)
   Issuer Info:
   \tCommonName: Entrust Certification Authority - L1M (esc)
-  \tOrganization: [Entrust, Inc.] (esc)
-  \tOrganizationalUnit: [See www.entrust.net/legal-terms (c) 2014 Entrust, Inc. - for authorized use only] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: Entrust, Inc. (esc)
+  \tOrganizationalUnit: See www.entrust.net/legal-terms (esc)
+  \tOrganizationalUnit: (c) 2014 Entrust, Inc. - for authorized use only (esc)
+  \tCountry: US (esc)
   Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
   Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Basic Constraints: CA:false
@@ -151,14 +153,16 @@ Dump a live cert chain (squareup-chain.crt)
   Signature : SHA256-RSA
   Subject Info:
   \tCommonName: Entrust Certification Authority - L1M (esc)
-  \tOrganization: [Entrust, Inc.] (esc)
-  \tOrganizationalUnit: [See www.entrust.net/legal-terms (c) 2014 Entrust, Inc. - for authorized use only] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: Entrust, Inc. (esc)
+  \tOrganizationalUnit: See www.entrust.net/legal-terms (esc)
+  \tOrganizationalUnit: (c) 2014 Entrust, Inc. - for authorized use only (esc)
+  \tCountry: US (esc)
   Issuer Info:
   \tCommonName: Entrust Root Certification Authority - G2 (esc)
-  \tOrganization: [Entrust, Inc.] (esc)
-  \tOrganizationalUnit: [See www.entrust.net/legal-terms (c) 2009 Entrust, Inc. - for authorized use only] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: Entrust, Inc. (esc)
+  \tOrganizationalUnit: See www.entrust.net/legal-terms (esc)
+  \tOrganizationalUnit: (c) 2009 Entrust, Inc. - for authorized use only (esc)
+  \tCountry: US (esc)
   Subject Key ID   : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Authority Key ID : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
   Basic Constraints: CA:true, pathlen:0
@@ -176,14 +180,16 @@ Dump a live cert chain (squareup-chain.crt)
   Signature : SHA256-RSA
   Subject Info:
   \tCommonName: Entrust Root Certification Authority - G2 (esc)
-  \tOrganization: [Entrust, Inc.] (esc)
-  \tOrganizationalUnit: [See www.entrust.net/legal-terms (c) 2009 Entrust, Inc. - for authorized use only] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: Entrust, Inc. (esc)
+  \tOrganizationalUnit: See www.entrust.net/legal-terms (esc)
+  \tOrganizationalUnit: (c) 2009 Entrust, Inc. - for authorized use only (esc)
+  \tCountry: US (esc)
   Issuer Info:
   \tCommonName: Entrust Root Certification Authority (esc)
-  \tOrganization: [Entrust, Inc.] (esc)
-  \tOrganizationalUnit: [www.entrust.net/CPS is incorporated by reference (c) 2006 Entrust, Inc.] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: Entrust, Inc. (esc)
+  \tOrganizationalUnit: www.entrust.net/CPS is incorporated by reference (esc)
+  \tOrganizationalUnit: (c) 2006 Entrust, Inc. (esc)
+  \tCountry: US (esc)
   Subject Key ID   : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
   Authority Key ID : 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
   Basic Constraints: CA:true, pathlen:1

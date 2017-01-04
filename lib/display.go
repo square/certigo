@@ -29,23 +29,51 @@ import (
 	"github.com/fatih/color"
 )
 
-var layout = `{{if .Alias}}{{.Alias}}
+var layout = `
+{{- define "PkixName" -}}
+{{- if .CommonName}}
+	CommonName: {{.CommonName}}
+{{- end -}}
+{{- range .Organization}}
+	Organization: {{.}}
+{{- end -}}
+{{- range .OrganizationalUnit}}
+	OrganizationalUnit: {{.}}
+{{- end -}}
+{{- range .Country}}
+	Country: {{.}}
+{{- end -}}
+{{- range .Locality}}
+	Locality: {{.}}
+{{- end -}}
+{{- range .Province}}
+	Province: {{.}}
+{{- end -}}
+{{- range .StreetAddress}}
+	StreetAddress: {{.}}
+{{- end -}}
+{{- range .PostalCode}}
+	PostalCode: {{.}}
+{{- end -}}
+{{- range .ExtraNames -}}
+	{{- range $index, $type := .Type }}
+		{{- if $index }}.{{else}}
+	{{end -}}
+		{{- $type -}}
+	{{- end }}: {{ .Value }}
+{{- end -}}
+{{end -}}
+
+{{- if .Alias}}{{.Alias}}
 {{end}}Serial: {{.SerialNumber}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
 Signature : {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
-Subject Info:{{if .Subject.Name.CommonName}}
-	CommonName: {{.Subject.Name.CommonName}}{{end}}{{if .Subject.Name.Organization}}
-	Organization: {{.Subject.Name.Organization}}{{end}}{{if .Subject.Name.OrganizationalUnit}}
-	OrganizationalUnit: {{.Subject.Name.OrganizationalUnit}}{{end}}{{if .Subject.Name.Country}}
-	Country: {{.Subject.Name.Country}}{{end}}{{if .Subject.Name.Locality}}
-	Locality: {{.Subject.Name.Locality}}{{end}}
-Issuer Info:{{if .Issuer.Name.CommonName}}
-	CommonName: {{.Issuer.Name.CommonName}}{{end}}{{if .Issuer.Name.Organization}}
-	Organization: {{.Issuer.Name.Organization}}{{end}}{{if .Issuer.Name.OrganizationalUnit}}
-	OrganizationalUnit: {{.Issuer.Name.OrganizationalUnit}}{{end}}{{if .Issuer.Name.Country}}
-	Country: {{.Issuer.Name.Country}}{{end}}{{if .Issuer.Name.Locality}}
-	Locality: {{.Issuer.Name.Locality}}{{end}}{{if .Subject.KeyID}}
+Subject Info:
+	{{- template "PkixName" .Subject.Name}}
+Issuer Info:
+	{{- template "PkixName" .Issuer.Name}}
+{{- if .Subject.KeyID}}
 Subject Key ID   : {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
 Authority Key ID : {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
 Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}

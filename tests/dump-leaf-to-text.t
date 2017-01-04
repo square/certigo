@@ -34,14 +34,16 @@ Dump an example certificate (example-leaf.crt)
   Signature : SHA256-RSA
   Subject Info:
   \tCommonName: example-leaf (esc)
-  \tOrganization: [certigo] (esc)
-  \tOrganizationalUnit: [example] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCountry: US (esc)
+  \tProvince: CA (esc)
   Issuer Info:
   \tCommonName: example-leaf (esc)
-  \tOrganization: [certigo] (esc)
-  \tOrganizationalUnit: [example] (esc)
-  \tCountry: [US] (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCountry: US (esc)
+  \tProvince: CA (esc)
   Extended Key Usage:
   \tClient Auth (esc)
   \tServer Auth (esc)
