@@ -26,41 +26,15 @@ import (
 	"text/template"
 	"time"
 
+	"encoding/asn1"
+
 	"github.com/fatih/color"
 )
 
 var layout = `
 {{- define "PkixName" -}}
-{{- if .CommonName}}
-	CommonName: {{.CommonName}}
-{{- end -}}
-{{- range .Organization}}
-	Organization: {{.}}
-{{- end -}}
-{{- range .OrganizationalUnit}}
-	OrganizationalUnit: {{.}}
-{{- end -}}
-{{- range .Country}}
-	Country: {{.}}
-{{- end -}}
-{{- range .Locality}}
-	Locality: {{.}}
-{{- end -}}
-{{- range .Province}}
-	Province: {{.}}
-{{- end -}}
-{{- range .StreetAddress}}
-	StreetAddress: {{.}}
-{{- end -}}
-{{- range .PostalCode}}
-	PostalCode: {{.}}
-{{- end -}}
-{{- range .ExtraNames -}}
-	{{- range $index, $type := .Type }}
-		{{- if $index }}.{{else}}
-	{{end -}}
-		{{- $type -}}
-	{{- end }}: {{ .Value }}
+{{- range .Names}}
+	{{ .Type | oidify }}: {{ .Value }}
 {{- end -}}
 {{end -}}
 
@@ -153,6 +127,7 @@ func displayCert(cert simpleCertificate) []byte {
 		"hexify":             hexify,
 		"keyUsage":           keyUsage,
 		"extKeyUsage":        extKeyUsage,
+		"oidify":             oidify,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	t, err := t.Parse(layout)
@@ -245,4 +220,22 @@ func certEnd(end time.Time) string {
 
 func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
+}
+
+func oidify(oid asn1.ObjectIdentifier) string {
+	raw := oid.String()
+	names := map[string]string{
+		"2.5.4.3":              "CommonName",
+		"2.5.4.6":              "Country",
+		"2.5.4.7":              "Locality",
+		"2.5.4.8":              "Province",
+		"2.5.4.10":             "Organization",
+		"2.5.4.11":             "OrganizationalUnit",
+		"1.2.840.113549.1.9.1": "emailAddress",
+	}
+	name, ok := names[raw]
+	if ok {
+		return name
+	}
+	return raw
 }
