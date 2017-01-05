@@ -33,17 +33,17 @@ Dump an example certificate (example-leaf.crt)
   Not After : 2023-04-15 22:14:11 +0000 UTC
   Signature : SHA256-RSA
   Subject Info:
-  \tCommonName: example-leaf (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizationalUnit: example (esc)
   \tCountry: US (esc)
   \tProvince: CA (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCommonName: example-leaf (esc)
   Issuer Info:
-  \tCommonName: example-leaf (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizationalUnit: example (esc)
   \tCountry: US (esc)
   \tProvince: CA (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCommonName: example-leaf (esc)
   Extended Key Usage:
   \tClient Auth (esc)
   \tServer Auth (esc)

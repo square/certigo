@@ -26,17 +26,17 @@ Dump an example certificate (example-leaf.crt)
   Not After : 2023-04-15 22:14:12 +0000 UTC
   Signature : SHA256-RSA (self-signed)
   Subject Info:
-  \tCommonName: example-small-key (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizationalUnit: example (esc)
   \tCountry: US (esc)
   \tProvince: CA (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCommonName: example-small-key (esc)
   Issuer Info:
-  \tCommonName: example-small-key (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizationalUnit: example (esc)
   \tCountry: US (esc)
   \tProvince: CA (esc)
+  \tOrganization: certigo (esc)
+  \tOrganizationalUnit: example (esc)
+  \tCommonName: example-small-key (esc)
   Warnings:
   \tCertificate is not in X509v3 format (version is 2) (esc)
   \tSize of RSA key should be at least 2048 bits (esc)
