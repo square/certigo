@@ -180,21 +180,18 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 func (p simplePKIXName) MarshalJSON() ([]byte, error) {
 	out := map[string]interface{}{}
 
-	if p.Name.CommonName != "" {
-		out["common_name"] = p.Name.CommonName
+	for _, rdn := range p.Name.Names {
+		oid := describeOid(rdn.Type)
+		if prev, ok := out[oid.Slug]; oid.Multiple && ok {
+			l := prev.([]interface{})
+			out[oid.Slug] = append(l, rdn.Value)
+		} else if oid.Multiple {
+			out[oid.Slug] = []interface{}{rdn.Value}
+		} else {
+			out[oid.Slug] = rdn.Value
+		}
 	}
-	if len(p.Name.Organization) > 0 {
-		out["organization"] = p.Name.Organization
-	}
-	if len(p.Name.OrganizationalUnit) > 0 {
-		out["organizational_unit"] = p.Name.OrganizationalUnit
-	}
-	if len(p.Name.Country) > 0 {
-		out["country"] = p.Name.Country
-	}
-	if len(p.Name.Locality) > 0 {
-		out["locality"] = p.Name.Locality
-	}
+
 	if len(p.KeyID) > 0 {
 		out["key_id"] = hexify(p.KeyID)
 	}

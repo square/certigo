@@ -223,24 +223,5 @@ func redify(text string) string {
 }
 
 func oidify(oid asn1.ObjectIdentifier) string {
-	raw := oid.String()
-	names := map[string]string{
-		"2.5.4.3":                  "CommonName",
-		"2.5.4.5":                  "EV Incorporation Registration Number",
-		"2.5.4.6":                  "Country",
-		"2.5.4.7":                  "Locality",
-		"2.5.4.8":                  "Province",
-		"2.5.4.10":                 "Organization",
-		"2.5.4.11":                 "Organizational Unit",
-		"2.5.4.15":                 "Business Category",
-		"1.2.840.113549.1.9.1":     "emailAddress",
-		"1.3.6.1.4.1.311.60.2.1.1": "EV Incorporation Locality",
-		"1.3.6.1.4.1.311.60.2.1.2": "EV Incorporation Province",
-		"1.3.6.1.4.1.311.60.2.1.3": "EV Incorporation Country",
-	}
-	name, ok := names[raw]
-	if ok {
-		return name
-	}
-	return raw
+	return describeOid(oid).Name
 }
