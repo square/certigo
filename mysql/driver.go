@@ -17,8 +17,10 @@
 package mysql
 
 import (
-	"database/sql"
+	"crypto/tls"
 	"database/sql/driver"
+	"errors"
+	"fmt"
 	"net"
 )
 
@@ -134,6 +136,125 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	return mc, nil
 }
 
+// DumpTLS returns a TLS context from a connection to the server. This was was
+// added for use by Certigo in order to make it possible to dump TLS certificates
+// from a MySQL server for debugging.
+func DumpTLS(dsn string) (*tls.ConnectionState, error) {
+	var err error
+
+	// New mysqlConn
+	mc := &mysqlConn{
+		maxAllowedPacket: maxPacketSize,
+		maxWriteSize:     maxPacketSize - 1,
+	}
+	mc.cfg, err = ParseDSN(dsn)
+	if err != nil {
+		return nil, err
+	}
+	mc.parseTime = mc.cfg.ParseTime
+	mc.strict = mc.cfg.Strict
+
+	if mc.cfg.tls == nil {
+		return nil, errors.New("certigo/mysql error: TLS must be enabled to dump TLS data")
+	}
+
+	// Connect to Server
+	if dial, ok := dials[mc.cfg.Net]; ok {
+		mc.netConn, err = dial(mc.cfg.Addr)
+	} else {
+		nd := net.Dialer{Timeout: mc.cfg.Timeout}
+		mc.netConn, err = nd.Dial(mc.cfg.Net, mc.cfg.Addr)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	mc.buf = newBuffer(mc.netConn)
+
+	// Set I/O timeouts
+	mc.buf.timeout = mc.cfg.ReadTimeout
+	mc.writeTimeout = mc.cfg.WriteTimeout
+
+	// Reading Handshake Initialization Packet
+	_, err = mc.readInitPacket()
+	if err != nil {
+		mc.cleanup()
+		return nil, err
+	}
+
+	// Send Client Authentication Packet
+	// Adjust client flags based on server support
+	clientFlags := clientProtocol41 |
+		clientSecureConn |
+		clientLongPassword |
+		clientTransactions |
+		clientLocalFiles |
+		clientPluginAuth |
+		clientMultiResults |
+		clientSSL |
+		mc.flags&clientLongFlag
+
+	if mc.cfg.ClientFoundRows {
+		clientFlags |= clientFoundRows
+	}
+
+	if mc.cfg.MultiStatements {
+		clientFlags |= clientMultiStatements
+	}
+
+	pktLen := 4 + 4 + 1 + 23
+
+	// Calculate packet length and get buffer with that size
+	data := mc.buf.takeSmallBuffer(pktLen + 4)
+	if data == nil {
+		// can not take the buffer. Something must be wrong with the connection
+		return nil, driver.ErrBadConn
+	}
+
+	// ClientFlags [32 bit]
+	data[4] = byte(clientFlags)
+	data[5] = byte(clientFlags >> 8)
+	data[6] = byte(clientFlags >> 16)
+	data[7] = byte(clientFlags >> 24)
+
+	// MaxPacketSize [32 bit] (none)
+	data[8] = 0x00
+	data[9] = 0x00
+	data[10] = 0x00
+	data[11] = 0x00
+
+	// Charset [1 byte]
+	var found bool
+	data[12], found = collations[mc.cfg.Collation]
+	if !found {
+		// Note possibility for false negatives:
+		// could be triggered  although the collation is valid if the
+		// collations map does not contain entries the server supports.
+		return nil, errors.New("certigo/mysql error: unknown collation")
+	}
+
+	// SSL Connection Request Packet
+	// http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::SSLRequest
+
+	// Send TLS / SSL request packet
+	if err := mc.writePacket(data[:pktLen+4]); err != nil {
+		return nil, fmt.Errorf("certigo/mysql error: %s", err)
+	}
+
+	// Switch to TLS
+	tlsConn := tls.Client(mc.netConn, mc.cfg.tls)
+	if err := tlsConn.Handshake(); err != nil {
+		return nil, fmt.Errorf("certigo/mysql error: %s", err)
+	}
+
+	state := tlsConn.ConnectionState()
+	mc.netConn = tlsConn
+	mc.buf.nc = tlsConn
+	mc.cleanup()
+
+	return &state, nil
+}
+
 func handleAuthResult(mc *mysqlConn, oldCipher []byte) error {
 	// Read Result Packet
 	cipher, err := mc.readResultOK()
@@ -176,8 +297,4 @@ func handleAuthResult(mc *mysqlConn, oldCipher []byte) error {
 		_, err = mc.readResultOK()
 	}
 	return err
-}
-
-func init() {
-	sql.Register("mysql", &MySQLDriver{})
 }
