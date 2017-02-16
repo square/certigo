@@ -230,7 +230,7 @@ func DumpTLS(dsn string) (*tls.ConnectionState, error) {
 		// Note possibility for false negatives:
 		// could be triggered  although the collation is valid if the
 		// collations map does not contain entries the server supports.
-		return nil, errors.New("certigo/mysql error: unknown collation")
+		return nil, errors.New("mysql: unknown collation")
 	}
 
 	// SSL Connection Request Packet
@@ -238,13 +238,13 @@ func DumpTLS(dsn string) (*tls.ConnectionState, error) {
 
 	// Send TLS / SSL request packet
 	if err := mc.writePacket(data[:pktLen+4]); err != nil {
-		return nil, fmt.Errorf("certigo/mysql error: %s", err)
+		return nil, fmt.Errorf("mysql: %s", err)
 	}
 
 	// Switch to TLS
 	tlsConn := tls.Client(mc.netConn, mc.cfg.tls)
 	if err := tlsConn.Handshake(); err != nil {
-		return nil, fmt.Errorf("certigo/mysql error: %s", err)
+		return nil, fmt.Errorf("mysql: %s", err)
 	}
 
 	state := tlsConn.ConnectionState()
