@@ -5,9 +5,17 @@
 [![build](https://travis-ci.org/square/certigo.svg?branch=master)](https://travis-ci.org/square/certigo)
 [![report](https://goreportcard.com/badge/github.com/square/certigo)](https://goreportcard.com/report/github.com/square/certigo)
 
-Certigo is a utility to examine and validate certificates in a variety of formats.
+Certigo is a utility to examine and validate certificates to help with debugging SSL/TLS issues.
 
-Currently supported formats are X.509 (DER/PEM), JCEKS/JKS, PKCS7 and PKCS12. Need support for an exotic certificate storage format that's not yet supported? Open an issue on Github and maybe we can add it. We enjoy the challenge!
+### Features
+
+**Supports all common file formats**: Certigo can read and dump certificates in various formats. It can automatically detect and read from X.509 (DER/PEM), JCEKS/JKS, PKCS7 and PKCS12 files. Certificates can be dumped to a human-readable format, a set of PEM blocks, or a JSON object for use in scripting. 
+
+**Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hases, or keys that are too small. 
+
+**Supports MySQL and PostgreSQL**: Trying to debug SSL/TLS connections on a database? Certigo supports establishing connections via StartTLS protocols for MySQL and PostgreSQL, making it possible debug connection issues or scan for expired certificates more easily.
+
+**Scripting support**: All commands in certigo have support for optional JSON output, which can be used in shell scripts to analyze or filter output. Combine certigo with [jq](https://stedolan.github.io/jq) to find all certificates in a bundle that are signed with SHA1-RSA, or filter for CA certificates, or whatever you need!
 
 ### Install
 
