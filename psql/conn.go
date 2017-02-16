@@ -379,6 +379,7 @@ func DumpTLS(name string) (_ *tls.ConnectionState, err error) {
 	defer errRecoverNoErrBadConn(&err)
 
 	o := make(values)
+	d := defaultDialer{}
 
 	// A number of defaults are applied here, in this order:
 	//
@@ -463,8 +464,13 @@ func DumpTLS(name string) (_ *tls.ConnectionState, err error) {
 	defer cn.c.Close()
 
 	if tlsConn, ok := cn.c.(*tls.Conn); ok {
+		err := tlsConn.Handshake()
+		if err != nil {
+			return nil, err
+		}
+
 		state := tlsConn.ConnectionState()
-		return &state
+		return &state, nil
 	}
 
 	return nil, errors.New("psql: TLS must be enabled to dump TLS data")
