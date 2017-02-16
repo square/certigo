@@ -62,7 +62,7 @@ var (
 )
 
 func main() {
-	app.Version("1.4.0")
+	app.Version("1.6.0")
 
 	result := simpleResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
