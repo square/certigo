@@ -28,6 +28,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/square/certigo/lib"
+	"github.com/square/certigo/mysql"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -41,14 +42,15 @@ var (
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (if required).").String()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Bool()
 
-	connect       = app.Command("connect", "Connect to a server and print its certificate(s).")
-	connectTo     = connect.Arg("server:port", "Hostname or IP to connect to.").String()
-	connectName   = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
-	connectCaPath = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-	connectPem    = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
-	connectJSON   = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
-	connectCert   = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
-	connectKey    = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
+	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
+	connectTo       = connect.Arg("server:port", "Hostname or IP to connect to.").String()
+	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
+	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
+	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
+	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
+	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'mysql' for now).").PlaceHolder("PROTOCOL").Enum("mysql")
 
 	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -93,13 +95,8 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		conn, err := tls.Dial("tcp", *connectTo, tlsConfigForConnect())
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
-			os.Exit(1)
-		}
-		defer conn.Close()
-		for _, cert := range conn.ConnectionState().PeerCertificates {
+		connState := getConnectionState()
+		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
 			} else {
@@ -114,7 +111,7 @@ func main() {
 			} else {
 				hostname = strings.Split(*connectTo, ":")[0]
 			}
-			verifyResult := verifyChain(conn.ConnectionState().PeerCertificates, hostname, *connectCaPath)
+			verifyResult := verifyChain(connState.PeerCertificates, hostname, *connectCaPath)
 			result.VerifyResult = &verifyResult
 		}
 
@@ -148,6 +145,33 @@ func main() {
 			os.Exit(1)
 		}
 	}
+}
+
+func getConnectionState() *tls.ConnectionState {
+	switch *connectStartTLS {
+	case "":
+		conn, err := tls.Dial("tcp", *connectTo, tlsConfigForConnect())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
+			os.Exit(1)
+		}
+		defer conn.Close()
+		state := conn.ConnectionState()
+		return &state
+	case "mysql":
+		mysql.RegisterTLSConfig("certigo", tlsConfigForConnect())
+		state, err := mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo", *connectTo))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
+			os.Exit(1)
+		}
+
+		return state
+	}
+
+	fmt.Fprintf(os.Stderr, "error connecting: unknown StartTLS protocol '%s'\n", *connectStartTLS)
+	os.Exit(1)
+	return nil
 }
 
 func inputFile(fileName string) *os.File {
