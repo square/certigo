@@ -19,6 +19,7 @@ package starttls
 import (
 	"crypto/tls"
 	"fmt"
+	"net/smtp"
 
 	"github.com/square/certigo/starttls/mysql"
 	"github.com/square/certigo/starttls/psql"
@@ -55,13 +56,20 @@ func tlsConfigForConnect(connectName, connectCert, connectKey string) (*tls.Conf
 func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, connectKey string) (*tls.ConnectionState, error) {
 	var state *tls.ConnectionState
 	var err error
+	var tlsConfig *tls.Config
 
 	switch connectStartTLS {
-	case "":
-		tlsConfig, err := tlsConfigForConnect(connectName, connectCert, connectKey)
+	case "postgres", "psql":
+		// No tlsConfig needed for postgres, but all others do.
+	default:
+		tlsConfig, err = tlsConfigForConnect(connectName, connectCert, connectKey)
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	switch connectStartTLS {
+	case "":
 		conn, err := tls.Dial("tcp", connectTo, tlsConfig)
 		if err != nil {
 			return nil, fmt.Errorf("error connecting: %v\n", err)
@@ -70,10 +78,6 @@ func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, co
 		s := conn.ConnectionState()
 		state = &s
 	case "mysql":
-		tlsConfig, err := tlsConfigForConnect(connectName, connectCert, connectKey)
-		if err != nil {
-			return nil, err
-		}
 		mysql.RegisterTLSConfig("certigo", tlsConfig)
 		state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo", connectTo))
 	case "postgres", "psql":
@@ -86,6 +90,22 @@ func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, co
 			url += fmt.Sprintf("&sslkey=%s", connectCert)
 		}
 		state, err = pq.DumpTLS(url)
+	case "smtp":
+		client, err := smtp.Dial(connectTo)
+		if err != nil {
+			return nil, err
+		}
+		err = client.StartTLS(tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		smtpState, ok := client.TLSConnectionState()
+		if ok {
+			state = &smtpState
+		} else {
+			// This state is unexpected (we would have gotten an error from StartTLS)
+			err = fmt.Errorf("SMTP Connection isn't TLS")
+		}
 	default:
 		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", connectStartTLS)
 	}
