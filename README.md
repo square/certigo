@@ -66,14 +66,155 @@ Commands:
 
 ### Examples
 
-Display information about a certificate (from a file, or from stdin):
+Display information about a certificate (also supports `--pem` and `--json` output):
 
-<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_1.svg" width="100%" height="100%">
+```
+$ certigo dump squareup-2016.crt
+** CERTIFICATE 1 **
+Serial: 260680855742043049380997676879525498489
+Not Before: 2016-07-15 20:15:52 +0000 UTC
+Not After : 2017-07-31 20:45:50 +0000 UTC
+Signature : SHA256-RSA
+Subject Info:
+	Country: US
+	Province: California
+	Locality: San Francisco
+	EV Incorporation Country: US
+	EV Incorporation Province: Delaware
+	Organization: Square, Inc.
+	Business Category: Private Organization
+	EV Incorporation Registration Number: 4699855
+	CommonName: www.squareup.com
+Issuer Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: See www.entrust.net/legal-terms
+	Organizational Unit: (c) 2014 Entrust, Inc. - for authorized use only
+	CommonName: Entrust Certification Authority - L1M
+Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
+Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Basic Constraints: CA:false
+Key Usage:
+	Digital Signature
+	Key Encipherment
+Extended Key Usage:
+	Server Auth
+	Client Auth
+Alternate DNS Names:
+	www.squareup.com
+	squareup.com
+	account.squareup.com
+	mkt.com
+	www.mkt.com
+	market.squareup.com
+	gosq.com
+	www.gosq.com
+	gosq.co
+	www.gosq.co
+```
 
-Export certificates/keys from a keystore into PEM blocks:
+Display & validate certificates from a remote server (also supports `--start-tls`):
 
-<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_2.svg" width="100%" height="100%">
+```
+$ certigo connect squareup.com:443
+** CERTIFICATE 1 **
+Serial: 260680855742043049380997676879525498489
+Not Before: 2016-07-15 20:15:52 +0000 UTC
+Not After : 2017-07-31 20:45:50 +0000 UTC
+Signature : SHA256-RSA
+Subject Info:
+	Country: US
+	Province: California
+	Locality: San Francisco
+	EV Incorporation Country: US
+	EV Incorporation Province: Delaware
+	Organization: Square, Inc.
+	Business Category: Private Organization
+	EV Incorporation Registration Number: 4699855
+	CommonName: www.squareup.com
+Issuer Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: See www.entrust.net/legal-terms
+	Organizational Unit: (c) 2014 Entrust, Inc. - for authorized use only
+	CommonName: Entrust Certification Authority - L1M
+Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
+Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Basic Constraints: CA:false
+Key Usage:
+	Digital Signature
+	Key Encipherment
+Extended Key Usage:
+	Server Auth
+	Client Auth
+Alternate DNS Names:
+	www.squareup.com
+	squareup.com
+	account.squareup.com
+	mkt.com
+	www.mkt.com
+	market.squareup.com
+	gosq.com
+	www.gosq.com
+	gosq.co
+	www.gosq.co
 
-Display information about a certificate from a remote server:
+** CERTIFICATE 2 **
+Serial: 30215777750102225331854468774
+Not Before: 2014-12-15 15:25:03 +0000 UTC
+Not After : 2030-10-15 15:55:03 +0000 UTC
+Signature : SHA256-RSA
+Subject Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: See www.entrust.net/legal-terms
+	Organizational Unit: (c) 2014 Entrust, Inc. - for authorized use only
+	CommonName: Entrust Certification Authority - L1M
+Issuer Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: See www.entrust.net/legal-terms
+	Organizational Unit: (c) 2009 Entrust, Inc. - for authorized use only
+	CommonName: Entrust Root Certification Authority - G2
+Subject Key ID   : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Authority Key ID : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+Basic Constraints: CA:true, pathlen:0
+Key Usage:
+	Cert Sign
+	CRL Sign
+Extended Key Usage:
+	Client Auth
+	Server Auth
 
-<img src="https://cdn.rawgit.com/square/certigo/0a355c64b7200e9fda65b68f6fb81730b3b7d341/examples/example_3.svg" width="100%" height="100%">
+** CERTIFICATE 3 **
+Serial: 1372799044
+Not Before: 2014-09-22 17:14:57 +0000 UTC
+Not After : 2024-09-23 01:31:53 +0000 UTC
+Signature : SHA256-RSA
+Subject Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: See www.entrust.net/legal-terms
+	Organizational Unit: (c) 2009 Entrust, Inc. - for authorized use only
+	CommonName: Entrust Root Certification Authority - G2
+Issuer Info:
+	Country: US
+	Organization: Entrust, Inc.
+	Organizational Unit: www.entrust.net/CPS is incorporated by reference
+	Organizational Unit: (c) 2006 Entrust, Inc.
+	CommonName: Entrust Root Certification Authority
+Subject Key ID   : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+Authority Key ID : 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
+Basic Constraints: CA:true, pathlen:1
+Key Usage:
+	Cert Sign
+	CRL Sign
+
+[0] www.squareup.com
+	=> Entrust Certification Authority - L1M
+	=> Entrust Root Certification Authority - G2 [self-signed]
+[1] www.squareup.com
+	=> Entrust Certification Authority - L1M
+	=> Entrust Root Certification Authority - G2
+	=> Entrust Root Certification Authority [self-signed] [SHA1-RSA]
+```
