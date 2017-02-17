@@ -95,7 +95,11 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		connState := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectCert, *connectKey)
+		connState, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectCert, *connectKey)
+		if err != nil {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
