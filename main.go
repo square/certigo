@@ -50,7 +50,7 @@ var (
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'mysql' and 'postgres').").PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp")
+	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'mysql', 'postgres' and 'smtp').").PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp")
 
 	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
