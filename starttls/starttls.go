@@ -100,12 +100,10 @@ func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, co
 			return nil, err
 		}
 		smtpState, ok := client.TLSConnectionState()
-		if ok {
-			state = &smtpState
-		} else {
-			// This state is unexpected (we would have gotten an error from StartTLS)
-			err = fmt.Errorf("SMTP Connection isn't TLS")
+		if !ok {
+			panic("SMTP Connection isn't TLS after we successfully called StartTLS")
 		}
+		state = &smtpState
 	default:
 		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", connectStartTLS)
 	}
