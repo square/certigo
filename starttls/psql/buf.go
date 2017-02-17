@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/square/certigo/psql/oid"
+	"github.com/square/certigo/starttls/psql/oid"
 )
 
 type readBuf []byte

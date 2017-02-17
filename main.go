@@ -28,8 +28,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/square/certigo/lib"
-	"github.com/square/certigo/mysql"
-	"github.com/square/certigo/psql"
+	"github.com/square/certigo/starttls"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -96,7 +95,7 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		connState := getConnectionState()
+		connState := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectCert, *connectKey)
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
@@ -146,46 +145,6 @@ func main() {
 			os.Exit(1)
 		}
 	}
-}
-
-func getConnectionState() *tls.ConnectionState {
-	var state *tls.ConnectionState
-	var err error
-
-	switch *connectStartTLS {
-	case "":
-		conn, err := tls.Dial("tcp", *connectTo, tlsConfigForConnect())
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
-			os.Exit(1)
-		}
-		defer conn.Close()
-		s := conn.ConnectionState()
-		state = &s
-	case "mysql":
-		mysql.RegisterTLSConfig("certigo", tlsConfigForConnect())
-		state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo", *connectTo))
-	case "postgres", "psql":
-		// Setting sslmode to "require" skips verification.
-		url := fmt.Sprintf("postgres://certigo@%s/?sslmode=require", *connectTo)
-		if *connectCert != "" {
-			url += fmt.Sprintf("&sslcert=%s", *connectCert)
-		}
-		if *connectKey != "" {
-			url += fmt.Sprintf("&sslkey=%s", *connectCert)
-		}
-		state, err = pq.DumpTLS(url)
-	default:
-		fmt.Fprintf(os.Stderr, "error connecting: unknown StartTLS protocol '%s'\n", *connectStartTLS)
-		os.Exit(1)
-	}
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error connecting: %v\n", err)
-		os.Exit(1)
-	}
-
-	return state
 }
 
 func inputFile(fileName string) *os.File {
