@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/smtp"
 
+	"github.com/square/certigo/starttls/ldap"
 	"github.com/square/certigo/starttls/mysql"
 	"github.com/square/certigo/starttls/psql"
 )
@@ -77,6 +78,21 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 		defer conn.Close()
 		s := conn.ConnectionState()
 		state = &s
+	case "ldap":
+		l, err := ldap.Dial("tcp", connectTo)
+		if err != nil {
+			return nil, err
+		}
+		defer l.Close()
+
+		err = l.StartTLS(tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		state, err = l.TLSConnectionState()
+		if err != nil {
+			panic(fmt.Sprintf("LDAP Connection isn't TLS after we successfully called StartTLS (%s)", err.Error()))
+		}
 	case "mysql":
 		mysql.RegisterTLSConfig("certigo", tlsConfig)
 		state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo", connectTo))
