@@ -50,7 +50,7 @@ var (
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'mysql' and 'postgres').").PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql")
+	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'mysql', 'postgres' and 'smtp').").PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp")
 
 	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -95,7 +95,11 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		connState := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectCert, *connectKey)
+		connState, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectCert, *connectKey)
+		if err != nil {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
