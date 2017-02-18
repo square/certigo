@@ -17,7 +17,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -179,31 +178,6 @@ func inputFiles(fileNames []string) []*os.File {
 		files = append(files, os.Stdin)
 	}
 	return files
-}
-
-func tlsConfigForConnect() *tls.Config {
-	conf := &tls.Config{
-		// We verify later manually so we can print results
-		InsecureSkipVerify: true,
-		ServerName:         *connectName,
-	}
-
-	if *connectCert != "" {
-		keyFile := *connectCert
-		if *connectKey != "" {
-			keyFile = *connectKey
-		}
-
-		cert, err := tls.LoadX509KeyPair(*connectCert, keyFile)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "unable to read client certificate/key: %s\n", err)
-			os.Exit(1)
-		}
-
-		conf.Certificates = []tls.Certificate{cert}
-	}
-
-	return conf
 }
 
 func readPassword(alias string) string {
