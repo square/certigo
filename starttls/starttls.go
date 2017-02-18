@@ -25,20 +25,20 @@ import (
 	"github.com/square/certigo/starttls/psql"
 )
 
-func tlsConfigForConnect(connectName, connectCert, connectKey string) (*tls.Config, error) {
+func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config, error) {
 	conf := &tls.Config{
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
 		ServerName:         connectName,
 	}
 
-	if connectCert != "" {
-		keyFile := connectCert
-		if connectKey != "" {
-			keyFile = connectKey
+	if clientCert != "" {
+		keyFile := clientCert
+		if clientKey != "" {
+			keyFile = clientKey
 		}
 
-		cert, err := tls.LoadX509KeyPair(connectCert, keyFile)
+		cert, err := tls.LoadX509KeyPair(clientCert, keyFile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to read client certificate/key: %s\n", err)
 		}
@@ -50,25 +50,25 @@ func tlsConfigForConnect(connectName, connectCert, connectKey string) (*tls.Conf
 }
 
 // GetConnectionState connects to a TLS server, returning the connection state.
-// Currently, connectStartTLS can be one of "mysql", "postgres" or "psql", or the empty string, which does a normal TLS
+// Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the empty string, which does a normal TLS
 // connection.  connectTo specifies the address to connect to. connectName sets SNI.  connectCert and connectKey are
 // client certs
-func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, connectKey string) (*tls.ConnectionState, error) {
+func GetConnectionState(startTLSType, connectName, connectTo, clientCert, clientKey string) (*tls.ConnectionState, error) {
 	var state *tls.ConnectionState
 	var err error
 	var tlsConfig *tls.Config
 
-	switch connectStartTLS {
+	switch startTLSType {
 	case "postgres", "psql":
 		// No tlsConfig needed for postgres, but all others do.
 	default:
-		tlsConfig, err = tlsConfigForConnect(connectName, connectCert, connectKey)
+		tlsConfig, err = tlsConfigForConnect(connectName, clientCert, clientKey)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	switch connectStartTLS {
+	switch startTLSType {
 	case "":
 		conn, err := tls.Dial("tcp", connectTo, tlsConfig)
 		if err != nil {
@@ -83,11 +83,11 @@ func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, co
 	case "postgres", "psql":
 		// Setting sslmode to "require" skips verification.
 		url := fmt.Sprintf("postgres://certigo@%s/?sslmode=require", connectTo)
-		if connectCert != "" {
-			url += fmt.Sprintf("&sslcert=%s", connectCert)
+		if clientCert != "" {
+			url += fmt.Sprintf("&sslcert=%s", clientCert)
 		}
-		if connectKey != "" {
-			url += fmt.Sprintf("&sslkey=%s", connectCert)
+		if clientKey != "" {
+			url += fmt.Sprintf("&sslkey=%s", clientCert)
 		}
 		state, err = pq.DumpTLS(url)
 	case "smtp":
@@ -105,7 +105,7 @@ func GetConnectionState(connectStartTLS, connectName, connectTo, connectCert, co
 		}
 		state = &smtpState
 	default:
-		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", connectStartTLS)
+		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", startTLSType)
 	}
 
 	if err != nil {
