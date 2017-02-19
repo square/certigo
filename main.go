@@ -101,6 +101,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			os.Exit(1)
 		}
+		result.TLSConnectionState = connState
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
@@ -124,6 +125,7 @@ func main() {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
 		} else if !*connectPem {
+			fmt.Fprintf(stdout, "%s\n", lib.EncodeTLSToText(result.TLSConnectionState))
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
