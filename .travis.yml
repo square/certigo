@@ -6,7 +6,7 @@ go:
   - 1.7.5
   - 1.8
 
-before_install:
+install:
   - go get github.com/Masterminds/glide
   - pip install cram --user
 
