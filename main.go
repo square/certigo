@@ -26,6 +26,7 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/mattn/go-colorable"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
 	"golang.org/x/crypto/ssh/terminal"
@@ -62,6 +63,7 @@ var (
 func main() {
 	app.Version("1.6.0")
 
+	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
@@ -87,8 +89,8 @@ func main() {
 				fmt.Println(string(blob))
 			} else {
 				for i, cert := range result.Certificates {
-					fmt.Printf("** CERTIFICATE %d **\n", i+1)
-					fmt.Printf("%s\n\n", lib.EncodeX509ToText(cert))
+					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
 				}
 			}
 		}
@@ -123,10 +125,10 @@ func main() {
 			fmt.Println(string(blob))
 		} else if !*connectPem {
 			for i, cert := range result.Certificates {
-				fmt.Printf("** CERTIFICATE %d **\n", i+1)
-				fmt.Printf("%s\n\n", lib.EncodeX509ToText(cert))
+				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
 			}
-			printVerifyResult(*result.VerifyResult)
+			printVerifyResult(stdout, *result.VerifyResult)
 		}
 	case verify.FullCommand():
 		file := inputFile(*verifyFile)
@@ -142,7 +144,7 @@ func main() {
 			blob, _ := json.Marshal(verifyResult)
 			fmt.Println(string(blob))
 		} else {
-			printVerifyResult(verifyResult)
+			printVerifyResult(stdout, verifyResult)
 		}
 		if verifyResult.Error != "" {
 			os.Exit(1)
