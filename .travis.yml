@@ -2,9 +2,6 @@
 
 language: go
 
-env:
-  - GO15VENDOREXPERIMENT=1
-
 go:
   - 1.7.5
   - 1.8
