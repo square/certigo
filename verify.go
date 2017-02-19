@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -170,19 +171,19 @@ func algString(algo x509.SignatureAlgorithm) string {
 	return strconv.Itoa(int(algo))
 }
 
-func printVerifyResult(result simpleVerification) {
+func printVerifyResult(out io.Writer, result simpleVerification) {
 	if result.Error != "" {
-		red.Printf("Failed to verify certificate chain:\n")
-		fmt.Printf("\t%s\n", result.Error)
+		fmt.Fprintf(out, red.SprintfFunc()("Failed to verify certificate chain:\n"))
+		fmt.Fprintf(out, "\t%s\n", result.Error)
 		return
 	}
 	for i, chain := range result.Chains {
-		fmt.Printf("[%d] %s\n", i, fmtCert(chain[0]))
+		fmt.Fprintf(out, "[%d] %s\n", i, fmtCert(chain[0]))
 		for j, cert := range chain {
 			if j == 0 {
 				continue
 			}
-			fmt.Printf("\t=> %s\n", fmtCert(cert))
+			fmt.Fprintf(out, "\t=> %s\n", fmtCert(cert))
 		}
 	}
 }
