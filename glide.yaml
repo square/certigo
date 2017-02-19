@@ -6,3 +6,4 @@ import:
   - pkcs12
   - ssh/terminal
 - package: gopkg.in/alecthomas/kingpin.v2
+- package: gopkg.in/asn1-ber.v1
