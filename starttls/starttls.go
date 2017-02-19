@@ -31,6 +31,7 @@ func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
 		ServerName:         connectName,
+		MinVersion:         tls.VersionSSL30,
 	}
 
 	if clientCert != "" {
