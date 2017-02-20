@@ -177,6 +177,7 @@ func printVerifyResult(out io.Writer, result simpleVerification) {
 		fmt.Fprintf(out, "\t%s\n", result.Error)
 		return
 	}
+	fmt.Fprintf(out, green.SprintfFunc()("Found %d valid certificate chain(s):\n", len(result.Chains)))
 	for i, chain := range result.Chains {
 		fmt.Fprintf(out, "[%d] %s\n", i, fmtCert(chain[0]))
 		for j, cert := range chain {
