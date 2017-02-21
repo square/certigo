@@ -54,14 +54,33 @@ Commands:
   help [<command>...]
     Show help.
 
+
   dump [<flags>] [<file>...]
     Display information about a certificate from a file/stdin.
+
+    --format=FORMAT      Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).
+    --pem                Write output as PEM blocks instead of human-readable format.
+    --password=PASSWORD  Password for PKCS12/JCEKS key stores (if required).
+    --json               Write output as machine-readable JSON format.
 
   connect [<flags>] [<server:port>]
     Connect to a server and print its certificate(s).
 
+    --name=NAME           Override the server name used for Server Name Indication (SNI).
+    --ca=CA               Path to CA bundle (system default if unspecified).
+    --pem                 Write output as PEM blocks instead of human-readable format.
+    --json                Write output as machine-readable JSON format.
+    --cert=CERT           Client certificate chain for connecting to server (PEM).
+    --key=KEY             Private key for client certificate, if not in same file (PEM).
+    --start-tls=PROTOCOL  Enable StartTLS protocol (supports 'ldap', 'mysql', 'postgres' and 'smtp').
+
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.
+
+    --name=NAME      Server name to verify certificate against.
+    --ca=CA          Path to CA bundle (system default if unspecified).
+    --format=FORMAT  Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).
+    --json           Write output as machine-readable JSON format.
 ```
 
 ### Examples
