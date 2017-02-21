@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"text/template"
 
 	"github.com/fatih/color"
@@ -29,8 +30,8 @@ func tlscolor(d description) string {
 
 // EncodeTLSToText returns a human readable string, suitable for certigo console output.
 func EncodeTLSToText(tcs *tls.ConnectionState) string {
-	version := tlsVersions[tcs.Version]
-	cipher := cipherSuites[tcs.CipherSuite]
+	version := lookup(tlsVersions, tcs.Version)
+	cipher := lookup(cipherSuites, tcs.CipherSuite)
 	description := TLSDescription{
 		Version: tlscolor(version),
 		Cipher:  tlscolor(cipher),
@@ -54,12 +55,22 @@ func EncodeTLSToText(tcs *tls.ConnectionState) string {
 
 // EncodeTLSToObject returns a JSON-marshallable description of a TLS connection
 func EncodeTLSToObject(t *tls.ConnectionState) interface{} {
-	version := tlsVersions[t.Version]
-	cipher := cipherSuites[t.CipherSuite]
+	version := lookup(tlsVersions, t.Version)
+	cipher := lookup(cipherSuites, t.CipherSuite)
 	return &TLSDescription{
 		version.Slug,
 		cipher.Slug,
 	}
+}
+
+// Just a map lookup with a default
+func lookup(descriptions map[uint16]description, what uint16) description {
+	v, ok := descriptions[what]
+	if !ok {
+		unknown := fmt.Sprintf("UNKNOWN_%x", what)
+		return description{unknown, unknown, 0}
+	}
+	return v
 }
 
 type description struct {
