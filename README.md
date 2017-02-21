@@ -13,7 +13,7 @@ Certigo is a utility to examine and validate certificates to help with debugging
 
 **Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small. 
 
-**Supports MySQL and PostgreSQL**: Trying to debug SSL/TLS connections on a database? Certigo supports establishing connections via StartTLS protocols for MySQL and PostgreSQL, making it possible debug connection issues or scan for expired certificates more easily.
+**Supports STARTTLS Protocols**: Trying to debug SSL/TLS connections on a database or mail server? Certigo supports establishing connections via StartTLS protocols for MySQL, PostgreSQL, SMTP, and LDAP, making it possible debug connection issues or scan for expired certificates more easily.
 
 **Scripting support**: All commands in certigo have support for optional JSON output, which can be used in shell scripts to analyze or filter output. Combine certigo with [jq](https://stedolan.github.io/jq) to find all certificates in a bundle that are signed with SHA1-RSA, or filter for CA certificates, or whatever you need!
 
@@ -27,7 +27,7 @@ On macOS you can also use homebrew to install:
 
     brew install certigo
 
-Note that certigo requires Go 1.5 or later to build.
+Note that certigo requires Go 1.8 or later to build.
 
 ### Develop
 
@@ -136,6 +136,9 @@ Display & validate certificates from a remote server (also supports `--start-tls
 
 ```
 $ certigo connect squareup.com:443
+** TLS Connection **
+Version: TLS 1.2
+Cipher Suite: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 ** CERTIFICATE 1 **
 Serial: 260680855742043049380997676879525498489
 Not Before: 2016-07-15 20:15:52 +0000 UTC

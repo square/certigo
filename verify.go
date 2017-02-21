@@ -26,6 +26,8 @@ import (
 	"os"
 	"strconv"
 
+	"crypto/tls"
+
 	"github.com/fatih/color"
 	"github.com/square/certigo/lib"
 )
@@ -72,8 +74,9 @@ type simpleVerification struct {
 }
 
 type simpleResult struct {
-	Certificates []*x509.Certificate `json:"certificates"`
-	VerifyResult *simpleVerification `json:"verify_result,omitempty"`
+	Certificates       []*x509.Certificate `json:"certificates"`
+	VerifyResult       *simpleVerification `json:"verify_result,omitempty"`
+	TLSConnectionState *tls.ConnectionState
 }
 
 func (s simpleResult) MarshalJSON() ([]byte, error) {
@@ -86,6 +89,9 @@ func (s simpleResult) MarshalJSON() ([]byte, error) {
 	out["certificates"] = certs
 	if s.VerifyResult != nil {
 		out["verify_result"] = s.VerifyResult
+	}
+	if s.TLSConnectionState != nil {
+		out["tls_connection"] = lib.EncodeTLSToObject(s.TLSConnectionState)
 	}
 	return json.Marshal(out)
 }
