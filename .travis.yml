@@ -29,6 +29,7 @@ deploy:
    - certigo-darwin-amd64
    - certigo-windows-amd64.exe
   skip_cleanup: true
+  draft: true
   on:
     repo: square/certigo
     tags: true
