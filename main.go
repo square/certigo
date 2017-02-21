@@ -62,7 +62,7 @@ var (
 )
 
 func main() {
-	app.Version("1.6.0")
+	app.Version("1.7.0")
 
 	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}
