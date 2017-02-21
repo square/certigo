@@ -37,27 +37,28 @@ var (
 
 	dump         = app.Command("dump", "Display information about a certificate from a file/stdin.")
 	dumpFiles    = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
-	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
-	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
-	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (if required).").String()
-	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").Short('f').String()
+	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
+	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
+	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo       = connect.Arg("server:port", "Hostname or IP to connect to.").String()
-	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").String()
+	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
 	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Bool()
-	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Bool()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'ldap', 'mysql', 'postgres' and 'smtp').").PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap")
+	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'ldap', 'mysql', 'postgres' and 'smtp').").Short('t').PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap")
+	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
+	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 
-	verify       = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
-	verifyFile   = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
-	verifyName   = verify.Flag("name", "Server name to verify certificate against.").Required().String()
-	verifyCaPath = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-	verifyType   = verify.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").String()
-	verifyJSON   = verify.Flag("json", "Write output as machine-readable JSON format.").Bool()
+	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
+	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
+	verifyType     = verify.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").Short('f').String()
+	verifyPassword = verify.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
+	verifyName     = verify.Flag("name", "Server name to verify certificate against.").Short('n').Required().String()
+	verifyCaPath   = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 )
 
 func main() {
@@ -187,6 +188,9 @@ func inputFiles(fileNames []string) []*os.File {
 func readPassword(alias string) string {
 	if *dumpPassword != "" {
 		return *dumpPassword
+	}
+	if *verifyPassword != "" {
+		return *verifyPassword
 	}
 
 	var tty *os.File
