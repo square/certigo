@@ -137,6 +137,7 @@ $ certigo connect squareup.com:443
 ** TLS Connection **
 Version: TLS 1.2
 Cipher Suite: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+
 ** CERTIFICATE 1 **
 Serial: 260680855742043049380997676879525498489
 Not Before: 2016-07-15 20:15:52 +0000 UTC
@@ -230,6 +231,7 @@ Key Usage:
 	Cert Sign
 	CRL Sign
 
+Found 2 valid certificate chain(s):
 [0] www.squareup.com
 	=> Entrust Certification Authority - L1M
 	=> Entrust Root Certification Authority - G2 [self-signed]
