@@ -48,7 +48,7 @@ var (
 	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol (supports 'ldap', 'mysql', 'postgres' and 'smtp').").Short('t').PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap")
+	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').").Short('t').PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap", "ftp")
 	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 
