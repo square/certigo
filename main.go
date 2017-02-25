@@ -126,7 +126,7 @@ func main() {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
 		} else if !*connectPem {
-			fmt.Fprintf(stdout, "%s\n", lib.EncodeTLSToText(result.TLSConnectionState))
+			fmt.Fprintf(stdout, "%s\n\n", lib.EncodeTLSToText(result.TLSConnectionState))
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
