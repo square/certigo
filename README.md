@@ -13,7 +13,7 @@ Certigo is a utility to examine and validate certificates to help with debugging
 
 **Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small. 
 
-**Supports STARTTLS Protocols**: Trying to debug SSL/TLS connections on a database or mail server? Certigo supports establishing connections via StartTLS protocols for MySQL, PostgreSQL, SMTP, and LDAP, making it possible debug connection issues or scan for expired certificates more easily.
+**Supports STARTTLS Protocols**: Trying to debug SSL/TLS connections on a database or mail server? Certigo supports establishing connections via StartTLS protocols for MySQL, PostgreSQL, SMTP, LDAP, and FTP, making it possible debug connection issues or scan for expired certificates more easily.
 
 **Scripting support**: All commands in certigo have support for optional JSON output, which can be used in shell scripts to analyze or filter output. Combine certigo with [jq](https://stedolan.github.io/jq) to find all certificates in a bundle that are signed with SHA1-RSA, or filter for CA certificates, or whatever you need!
 
@@ -31,15 +31,13 @@ Note that certigo requires Go 1.8 or later to build.
 
 ### Develop
 
-We use [glide][1] for managing vendored dependencies.
+We use [glide][1] for managing vendored dependencies. If you would like to contribute, see the [CONTRIBUTING.md](CONTRIBUTING.md) file for extra information.  
 
 [1]: https://glide.sh
 
 ### Usage
 
-Certigo can read certificates/keystores in various formats and dump them to stdout.
-
-Certigo will display information in a human-readable way, and print warnings for common mistakes (such as small key sizes or weak signatures/hash functions). Certigo can also convert any input to a series of PEM blocks, which is useful if you want to e.g. dump the contents of unusual container formats into something more useful.
+Certigo has commands to dump certificates and keystores from a file, to connect and fetch certificates from a remote server, and to verify the validity of certificates in a file. All commands can produce JSON output with the `--json` flag which can be used for scripting. See below for a full list of options. 
 
 ```
 usage: certigo [<flags>] <command> [<args> ...]
@@ -69,7 +67,7 @@ Commands:
         --ca=CA               Path to CA bundle (system default if unspecified).
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
-    -t, --start-tls=PROTOCOL  Enable StartTLS protocol (supports 'ldap', 'mysql', 'postgres' and 'smtp').
+    -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
 
@@ -239,4 +237,25 @@ Key Usage:
 	=> Entrust Certification Authority - L1M
 	=> Entrust Root Certification Authority - G2
 	=> Entrust Root Certification Authority [self-signed] [SHA1-RSA]
+```
+
+Advanced examples on how to combine JSON output with [jq](https://stedolan.github.io/jq/) filtering:
+
+```
+# Find certificates that have linter warnings
+certigo dump --json $INPUT | jq '.certificates[] | select(.warnings != [])'
+
+# Find certificates that are signed with SHA1-RSA
+certigo dump --json $INPUT | jq '.certificates[] | select(.signature_algorithm == "SHA1-RSA")'
+
+# List all Common Names of certificates that are expired
+certigo dump --json $INPUT | jq -r '.certificates[] | select(.not_after < now) | .subject.common_name'
+
+# Look for MySQL servers with invalid certificates
+for SERVER in LIST; do
+  certigo connect -t mysql -j $SERVER:3306 | jq -e '.verify_result.error != null' >/dev/null
+  if [ $? -ne 0 ]; then
+    echo "Invalid certificates on $SERVER"
+  fi
+done
 ```
