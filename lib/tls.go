@@ -35,7 +35,7 @@ func EncodeTLSToText(tcs *tls.ConnectionState) string {
 	cipher := lookup(cipherSuites, tcs.CipherSuite)
 	description := TLSDescription{
 		Version: tlscolor(version),
-		Cipher:  tlscolor(explain_cipher(cipher)),
+		Cipher:  tlscolor(explainCipher(cipher)),
 	}
 	t := template.New("TLS template")
 	t, err := t.Parse(tlsLayout)
@@ -94,12 +94,9 @@ var tlsVersions = map[uint16]description{
 }
 
 // Fill in a human readable name, extracted from the slug
-func explain_cipher(d description) description {
-	kex_cipher := strings.Split(d.Slug, "_WITH_")
-	// The authenticator is the last element, split on _ and reform
-	encrypt_auth := strings.Split(kex_cipher[1], "_")
-	encrypt := strings.Join(encrypt_auth[:len(encrypt_auth)-1], "_")
-	d.Name = fmt.Sprintf("%s key exchange, %s encryption, %s authentication", kex_cipher[0][len("TLS_"):], encrypt, encrypt_auth[len(encrypt_auth)-1])
+func explainCipher(d description) description {
+	kexAndCipher := strings.Split(d.Slug, "_WITH_")
+	d.Name = fmt.Sprintf("%s key exchange, %s cipher", kexAndCipher[0][len("TLS_"):], kexAndCipher[1])
 	return d
 }
 
