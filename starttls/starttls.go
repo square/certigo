@@ -121,6 +121,8 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 			panic("SMTP Connection isn't TLS after we successfully called StartTLS")
 		}
 		state = &smtpState
+	case "ftp":
+		state, err = dumpAuthTLSFromFTP(connectTo, tlsConfig)
 	default:
 		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", startTLSType)
 	}
