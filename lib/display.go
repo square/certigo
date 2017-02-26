@@ -26,6 +26,8 @@ import (
 	"text/template"
 	"time"
 
+	"crypto/x509/pkix"
+
 	"github.com/fatih/color"
 )
 
@@ -65,22 +67,12 @@ Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
 var layout = `
-{{- define "PkixName" -}}
-	{{- range $index, $element := .Names}}
-	        {{- if $index}}, {{end}}
-	 	{{- $short := $element.Type | oidShort }}
-		{{- if $short -}}
-			{{ $short }}={{ .Value }}
-		{{- end}}
-	{{- end -}}
-{{end -}}
-
 {{- if .Alias}}{{.Alias}}
 {{end -}}
 Not Before: {{.NotBefore | certStart}}
 Not After : {{.NotAfter | certEnd}}
-Subject: {{template "PkixName" .Subject.Name}}
-Issuer: {{template "PkixName" .Issuer.Name}}
+Subject: {{.Subject.Name | printName }}
+Issuer: {{.Issuer.Name | printName }}
 {{- if .NameConstraints}}
 Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}
@@ -160,6 +152,7 @@ func displayCert(cert simpleCertificate, verbose bool) []byte {
 		"extKeyUsage":        extKeyUsage,
 		"oidName":            oidName,
 		"oidShort":           oidShort,
+		"printName":          printName,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	var err error
@@ -257,4 +250,20 @@ func certEnd(end time.Time) string {
 
 func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
+}
+
+func printName(name pkix.Name) (out string) {
+	printed := false
+	for _, name := range name.Names {
+		short := oidShort(name.Type)
+		if short != "" {
+			if printed {
+				out += ", "
+			}
+			out += fmt.Sprintf("%s=%v", short, name.Value)
+			printed = true
+		}
+	}
+
+	return
 }
