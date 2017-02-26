@@ -69,8 +69,7 @@ Warnings:{{range .Warnings}}
 var layout = `
 {{- if .Alias}}{{.Alias}}
 {{end -}}
-Not Before: {{.NotBefore | certStart}}
-Not After : {{.NotAfter | certEnd}}
+Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
 Subject: {{.Subject.Name | printName }}
 Issuer: {{.Issuer.Name | printName }}
 {{- if .NameConstraints}}

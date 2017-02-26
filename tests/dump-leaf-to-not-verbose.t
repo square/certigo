@@ -28,8 +28,7 @@ Dump an example certificate (example-leaf.crt)
 
   $ certigo dump example-leaf.crt
   ** CERTIFICATE 1 **
-  Not Before: 2016-06-10 22:14:11 +0000 UTC
-  Not After : 2023-04-15 22:14:11 +0000 UTC
+  Valid: 2016-06-10 22:14:11 +0000 UTC to 2023-04-15 22:14:11 +0000 UTC
   Subject: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
   Issuer: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
   Alternate DNS Names:
