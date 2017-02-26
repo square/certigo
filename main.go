@@ -33,7 +33,8 @@ import (
 )
 
 var (
-	app = kingpin.New("certigo", "A command line certificate examination utility.")
+	app     = kingpin.New("certigo", "A command line certificate examination utility.")
+	verbose = app.Flag("verbose", "Print verbose").Short('v').Bool()
 
 	dump         = app.Command("dump", "Display information about a certificate from a file/stdin.")
 	dumpFiles    = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
@@ -91,7 +92,7 @@ func main() {
 			} else {
 				for i, cert := range result.Certificates {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
+					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, *verbose))
 				}
 			}
 		}
@@ -129,7 +130,7 @@ func main() {
 			fmt.Fprintf(stdout, "%s\n\n", lib.EncodeTLSToText(result.TLSConnectionState))
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert))
+				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, *verbose))
 			}
 			printVerifyResult(stdout, *result.VerifyResult)
 		}

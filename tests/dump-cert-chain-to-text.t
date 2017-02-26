@@ -107,7 +107,7 @@ Set up test data.
 
 Dump a live cert chain (squareup-chain.crt)
 
-  $ certigo dump squareup-chain.crt
+  $ certigo --verbose dump squareup-chain.crt
   ** CERTIFICATE 1 **
   Serial: 260680855742043049380997676879525498489
   Not Before: 2016-07-15 20:15:52 +0000 UTC

@@ -51,7 +51,7 @@ Set up test data.
 
 Dump PEM blocks from a JCEKS keystore.
 
-  $ certigo dump --pem --password password example.jceks
+  $ certigo --verbose dump --pem --password password example.jceks
   -----BEGIN RSA PRIVATE KEY-----
   MIIEpQIBAAKCAQEAyjhKEojYzEPP81BXEFvPS1sPlHk1yhsDQ0qRo8ovIwSmdZVj
   25zJq4yOg2fUXnrxx86gXSmbfvTRTxRM+3YwzEQciLiYUb84XxQX5WiHUnjZNvja

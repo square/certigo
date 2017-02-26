@@ -58,7 +58,7 @@ Set up test data.
 
 Dump PEM blocks from a PKCS12 keystore.
 
-  $ certigo dump --pem --password password example.p12
+  $ certigo --verbose dump --pem --password password example.p12
   -----BEGIN CERTIFICATE-----
   MIIDLDCCAhQCCQCa74bQsAj2/jANBgkqhkiG9w0BAQsFADBYMQswCQYDVQQGEwJV
   UzELMAkGA1UECBMCQ0ExEDAOBgNVBAoTB2NlcnRpZ28xEDAOBgNVBAsTB2V4YW1w

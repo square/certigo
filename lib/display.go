@@ -26,15 +26,13 @@ import (
 	"text/template"
 	"time"
 
-	"encoding/asn1"
-
 	"github.com/fatih/color"
 )
 
-var layout = `
+var verboseLayout = `
 {{- define "PkixName" -}}
 {{- range .Names}}
-	{{ .Type | oidify }}: {{ .Value }}
+	{{ .Type | oidName }}: {{ .Value }}
 {{- end -}}
 {{end -}}
 
@@ -63,6 +61,39 @@ Alternate IP Addresses:{{range .AltIPAddresses}}
 	{{.}}{{end}}{{end}}{{if .EmailAddresses}}
 Email Addresses:{{range .EmailAddresses}}
 	{{.}}{{end}}{{end}}{{if .Warnings}}
+Warnings:{{range .Warnings}}
+	{{. | redify}}{{end}}{{end}}`
+
+var layout = `
+{{- define "PkixName" -}}
+	{{- range $index, $element := .Names}}
+	        {{- if $index}}, {{end}}
+	 	{{- $short := $element.Type | oidShort }}
+		{{- if $short -}}
+			{{ $short }}={{ .Value }}
+		{{- end}}
+	{{- end -}}
+{{end -}}
+
+{{- if .Alias}}{{.Alias}}
+{{end -}}
+Not Before: {{.NotBefore | certStart}}
+Not After : {{.NotAfter | certEnd}}
+Subject: {{template "PkixName" .Subject.Name}}
+Issuer: {{template "PkixName" .Issuer.Name}}
+{{- if .NameConstraints}}
+Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
+	{{.}}{{end}}{{end}}
+{{- if .AltDNSNames}}
+Alternate DNS Names:{{range .AltDNSNames}}
+	{{.}}{{end}}{{end}}
+{{- if .AltIPAddresses}}
+Alternate IP Addresses:{{range .AltIPAddresses}}
+	{{.}}{{end}}{{end}}
+{{- if .EmailAddresses}}
+Email Addresses:{{range .EmailAddresses}}
+	{{.}}{{end}}{{end}}
+{{- if .Warnings}}
 Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
@@ -110,15 +141,15 @@ func EncodeX509ToObject(cert *x509.Certificate) interface{} {
 }
 
 // EncodeX509ToText encodes an X.509 certificate into human-readable text.
-func EncodeX509ToText(cert *x509.Certificate) []byte {
-	return displayCert(createSimpleCertificate("", cert))
+func EncodeX509ToText(cert *x509.Certificate, verbose bool) []byte {
+	return displayCert(createSimpleCertificate("", cert), verbose)
 }
 
 // displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert simpleCertificate) []byte {
+func displayCert(cert simpleCertificate, verbose bool) []byte {
 	funcMap := template.FuncMap{
 		"certStart":          certStart,
 		"certEnd":            certEnd,
@@ -127,10 +158,16 @@ func displayCert(cert simpleCertificate) []byte {
 		"hexify":             hexify,
 		"keyUsage":           keyUsage,
 		"extKeyUsage":        extKeyUsage,
-		"oidify":             oidify,
+		"oidName":            oidName,
+		"oidShort":           oidShort,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
-	t, err := t.Parse(layout)
+	var err error
+	if verbose {
+		t, err = t.Parse(verboseLayout)
+	} else {
+		t, err = t.Parse(layout)
+	}
 	if err != nil {
 		// Should never happen
 		panic(err)
@@ -220,8 +257,4 @@ func certEnd(end time.Time) string {
 
 func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
-}
-
-func oidify(oid asn1.ObjectIdentifier) string {
-	return describeOid(oid).Name
 }
