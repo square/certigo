@@ -207,6 +207,11 @@ func highlightAlgorithm(sigAlg simpleSigAlg) string {
 	return color.SprintFunc()(algString(sig))
 }
 
+// timeString formats a time in UTC with minute precision, in the given color.
+func timeString(t time.Time, c *color.Color) string {
+	return c.SprintfFunc()(t.Format("2006-01-02 15:04Z"))
+}
+
 // certStart takes a given start time for the validity of
 // a certificate and returns that time colored properly
 // based on how close it is to expiry. If it's more than
@@ -219,11 +224,11 @@ func certStart(start time.Time) string {
 	day, _ := time.ParseDuration("24h")
 	threshold := start.Add(day)
 	if now.After(threshold) {
-		return green.SprintfFunc()(start.String())
+		return timeString(start, green)
 	} else if now.After(start) {
-		return yellow.SprintfFunc()(start.String())
+		return timeString(start, yellow)
 	} else {
-		return red.SprintfFunc()(start.String())
+		return timeString(start, red)
 	}
 }
 
@@ -239,11 +244,11 @@ func certEnd(end time.Time) string {
 	month, _ := time.ParseDuration("720h")
 	threshold := now.Add(month)
 	if threshold.Before(end) {
-		return green.SprintfFunc()(end.String())
+		return timeString(end, green)
 	} else if now.Before(end) {
-		return yellow.SprintfFunc()(end.String())
+		return timeString(end, yellow)
 	} else {
-		return red.SprintfFunc()(end.String())
+		return timeString(end, red)
 	}
 }
 
