@@ -209,7 +209,7 @@ func highlightAlgorithm(sigAlg simpleSigAlg) string {
 
 // timeString formats a time in UTC with minute precision, in the given color.
 func timeString(t time.Time, c *color.Color) string {
-	return c.SprintfFunc()(t.Format("2006-01-02 15:04Z"))
+	return c.SprintfFunc()(t.Format("2006-01-02 15:04 MST"))
 }
 
 // certStart takes a given start time for the validity of
