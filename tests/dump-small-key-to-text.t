@@ -19,12 +19,11 @@ Set up test data.
 
 Dump an example certificate (example-leaf.crt)
 
-  $ certigo dump example-small-key.crt
+  $ certigo --verbose dump example-small-key.crt
   ** CERTIFICATE 1 **
   Serial: 14381893493177441266
-  Not Before: 2016-06-10 22:14:12 +0000 UTC
-  Not After : 2023-04-15 22:14:12 +0000 UTC
-  Signature : SHA256-RSA (self-signed)
+  Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
+  Signature: SHA256-RSA (self-signed)
   Subject Info:
   \tCountry: US (esc)
   \tProvince: CA (esc)

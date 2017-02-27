@@ -26,30 +26,29 @@ import (
 	"text/template"
 	"time"
 
-	"encoding/asn1"
+	"crypto/x509/pkix"
 
 	"github.com/fatih/color"
 )
 
-var layout = `
+var verboseLayout = `
 {{- define "PkixName" -}}
 {{- range .Names}}
-	{{ .Type | oidify }}: {{ .Value }}
+	{{ .Type | oidName }}: {{ .Value }}
 {{- end -}}
 {{end -}}
 
 {{- if .Alias}}{{.Alias}}
 {{end}}Serial: {{.SerialNumber}}
-Not Before: {{.NotBefore | certStart}}
-Not After : {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
+Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
+Signature: {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
 Subject Info:
 	{{- template "PkixName" .Subject.Name}}
 Issuer Info:
 	{{- template "PkixName" .Issuer.Name}}
 {{- if .Subject.KeyID}}
-Subject Key ID   : {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
-Authority Key ID : {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
+Subject Key ID: {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
+Authority Key ID: {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
 Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
 Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}{{if .KeyUsage}}
@@ -63,6 +62,28 @@ Alternate IP Addresses:{{range .AltIPAddresses}}
 	{{.}}{{end}}{{end}}{{if .EmailAddresses}}
 Email Addresses:{{range .EmailAddresses}}
 	{{.}}{{end}}{{end}}{{if .Warnings}}
+Warnings:{{range .Warnings}}
+	{{. | redify}}{{end}}{{end}}`
+
+var layout = `
+{{- if .Alias}}{{.Alias}}
+{{end -}}
+Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
+Subject: {{.Subject.Name | printName }}
+Issuer: {{.Issuer.Name | printName }}
+{{- if .NameConstraints}}
+Name Constraints{{if .PermittedDNSDomains.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
+	{{.}}{{end}}{{end}}
+{{- if .AltDNSNames}}
+Alternate DNS Names:{{range .AltDNSNames}}
+	{{.}}{{end}}{{end}}
+{{- if .AltIPAddresses}}
+Alternate IP Addresses:{{range .AltIPAddresses}}
+	{{.}}{{end}}{{end}}
+{{- if .EmailAddresses}}
+Email Addresses:{{range .EmailAddresses}}
+	{{.}}{{end}}{{end}}
+{{- if .Warnings}}
 Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
@@ -110,15 +131,15 @@ func EncodeX509ToObject(cert *x509.Certificate) interface{} {
 }
 
 // EncodeX509ToText encodes an X.509 certificate into human-readable text.
-func EncodeX509ToText(cert *x509.Certificate) []byte {
-	return displayCert(createSimpleCertificate("", cert))
+func EncodeX509ToText(cert *x509.Certificate, verbose bool) []byte {
+	return displayCert(createSimpleCertificate("", cert), verbose)
 }
 
 // displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert simpleCertificate) []byte {
+func displayCert(cert simpleCertificate, verbose bool) []byte {
 	funcMap := template.FuncMap{
 		"certStart":          certStart,
 		"certEnd":            certEnd,
@@ -127,10 +148,17 @@ func displayCert(cert simpleCertificate) []byte {
 		"hexify":             hexify,
 		"keyUsage":           keyUsage,
 		"extKeyUsage":        extKeyUsage,
-		"oidify":             oidify,
+		"oidName":            oidName,
+		"oidShort":           oidShort,
+		"printName":          printName,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
-	t, err := t.Parse(layout)
+	var err error
+	if verbose {
+		t, err = t.Parse(verboseLayout)
+	} else {
+		t, err = t.Parse(layout)
+	}
 	if err != nil {
 		// Should never happen
 		panic(err)
@@ -178,6 +206,11 @@ func highlightAlgorithm(sigAlg simpleSigAlg) string {
 	return color.SprintFunc()(algString(sig))
 }
 
+// timeString formats a time in UTC with minute precision, in the given color.
+func timeString(t time.Time, c *color.Color) string {
+	return c.SprintfFunc()(t.Format("2006-01-02 15:04 MST"))
+}
+
 // certStart takes a given start time for the validity of
 // a certificate and returns that time colored properly
 // based on how close it is to expiry. If it's more than
@@ -190,11 +223,11 @@ func certStart(start time.Time) string {
 	day, _ := time.ParseDuration("24h")
 	threshold := start.Add(day)
 	if now.After(threshold) {
-		return green.SprintfFunc()(start.String())
+		return timeString(start, green)
 	} else if now.After(start) {
-		return yellow.SprintfFunc()(start.String())
+		return timeString(start, yellow)
 	} else {
-		return red.SprintfFunc()(start.String())
+		return timeString(start, red)
 	}
 }
 
@@ -210,11 +243,11 @@ func certEnd(end time.Time) string {
 	month, _ := time.ParseDuration("720h")
 	threshold := now.Add(month)
 	if threshold.Before(end) {
-		return green.SprintfFunc()(end.String())
+		return timeString(end, green)
 	} else if now.Before(end) {
-		return yellow.SprintfFunc()(end.String())
+		return timeString(end, yellow)
 	} else {
-		return red.SprintfFunc()(end.String())
+		return timeString(end, red)
 	}
 }
 
@@ -222,6 +255,18 @@ func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
 }
 
-func oidify(oid asn1.ObjectIdentifier) string {
-	return describeOid(oid).Name
+func printName(name pkix.Name) (out string) {
+	printed := false
+	for _, name := range name.Names {
+		short := oidShort(name.Type)
+		if short != "" {
+			if printed {
+				out += ", "
+			}
+			out += fmt.Sprintf("%s=%v", short, name.Value)
+			printed = true
+		}
+	}
+
+	return
 }

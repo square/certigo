@@ -107,12 +107,11 @@ Set up test data.
 
 Dump a live cert chain (squareup-chain.crt)
 
-  $ certigo dump squareup-chain.crt
+  $ certigo --verbose dump squareup-chain.crt
   ** CERTIFICATE 1 **
   Serial: 260680855742043049380997676879525498489
-  Not Before: 2016-07-15 20:15:52 +0000 UTC
-  Not After : 2017-07-31 20:45:50 +0000 UTC
-  Signature : SHA256-RSA
+  Valid: 2016-07-15 20:15 UTC to 2017-07-31 20:45 UTC
+  Signature: SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
   \tProvince: California (esc)
@@ -129,8 +128,8 @@ Dump a live cert chain (squareup-chain.crt)
   \tOrganizational Unit: See www.entrust.net/legal-terms (esc)
   \tOrganizational Unit: (c) 2014 Entrust, Inc. - for authorized use only (esc)
   \tCommonName: Entrust Certification Authority - L1M (esc)
-  Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
-  Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+  Subject Key ID: D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
+  Authority Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Basic Constraints: CA:false
   Key Usage:
   \tDigital Signature (esc)
@@ -152,9 +151,8 @@ Dump a live cert chain (squareup-chain.crt)
   
   ** CERTIFICATE 2 **
   Serial: 30215777750102225331854468774
-  Not Before: 2014-12-15 15:25:03 +0000 UTC
-  Not After : 2030-10-15 15:55:03 +0000 UTC
-  Signature : SHA256-RSA
+  Valid: 2014-12-15 15:25 UTC to 2030-10-15 15:55 UTC
+  Signature: SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
   \tOrganization: Entrust, Inc. (esc)
@@ -167,8 +165,8 @@ Dump a live cert chain (squareup-chain.crt)
   \tOrganizational Unit: See www.entrust.net/legal-terms (esc)
   \tOrganizational Unit: (c) 2009 Entrust, Inc. - for authorized use only (esc)
   \tCommonName: Entrust Root Certification Authority - G2 (esc)
-  Subject Key ID   : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
-  Authority Key ID : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+  Subject Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+  Authority Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
   Basic Constraints: CA:true, pathlen:0
   Key Usage:
   \tCert Sign (esc)
@@ -179,9 +177,8 @@ Dump a live cert chain (squareup-chain.crt)
   
   ** CERTIFICATE 3 **
   Serial: 1372799044
-  Not Before: 2014-09-22 17:14:57 +0000 UTC
-  Not After : 2024-09-23 01:31:53 +0000 UTC
-  Signature : SHA256-RSA
+  Valid: 2014-09-22 17:14 UTC to 2024-09-23 01:31 UTC
+  Signature: SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
   \tOrganization: Entrust, Inc. (esc)
@@ -194,8 +191,8 @@ Dump a live cert chain (squareup-chain.crt)
   \tOrganizational Unit: www.entrust.net/CPS is incorporated by reference (esc)
   \tOrganizational Unit: (c) 2006 Entrust, Inc. (esc)
   \tCommonName: Entrust Root Certification Authority (esc)
-  Subject Key ID   : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
-  Authority Key ID : 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
+  Subject Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+  Authority Key ID: 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
   Basic Constraints: CA:true, pathlen:1
   Key Usage:
   \tCert Sign (esc)

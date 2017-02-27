@@ -26,26 +26,11 @@ Set up test data.
 
 Dump an example certificate (example-leaf.crt)
 
-  $ certigo --verbose dump example-leaf.crt
+  $ certigo dump example-leaf.crt
   ** CERTIFICATE 1 **
-  Serial: 15384458167827828543
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
-  Signature: SHA256-RSA
-  Subject Info:
-  \tCountry: US (esc)
-  \tProvince: CA (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizational Unit: example (esc)
-  \tCommonName: example-leaf (esc)
-  Issuer Info:
-  \tCountry: US (esc)
-  \tProvince: CA (esc)
-  \tOrganization: certigo (esc)
-  \tOrganizational Unit: example (esc)
-  \tCommonName: example-leaf (esc)
-  Extended Key Usage:
-  \tClient Auth (esc)
-  \tServer Auth (esc)
+  Subject: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
+  Issuer: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
   Alternate DNS Names:
   \tlocalhost (esc)
   Alternate IP Addresses:
