@@ -110,8 +110,7 @@ Dump a live cert chain (squareup-chain.crt)
   $ certigo --verbose dump squareup-chain.crt
   ** CERTIFICATE 1 **
   Serial: 260680855742043049380997676879525498489
-  Not Before: 2016-07-15 20:15:52 +0000 UTC
-  Not After : 2017-07-31 20:45:50 +0000 UTC
+  Valid: 2016-07-15 20:15 UTC to 2017-07-31 20:45 UTC
   Signature : SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
@@ -152,8 +151,7 @@ Dump a live cert chain (squareup-chain.crt)
   
   ** CERTIFICATE 2 **
   Serial: 30215777750102225331854468774
-  Not Before: 2014-12-15 15:25:03 +0000 UTC
-  Not After : 2030-10-15 15:55:03 +0000 UTC
+  Valid: 2014-12-15 15:25 UTC to 2030-10-15 15:55 UTC
   Signature : SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
@@ -179,8 +177,7 @@ Dump a live cert chain (squareup-chain.crt)
   
   ** CERTIFICATE 3 **
   Serial: 1372799044
-  Not Before: 2014-09-22 17:14:57 +0000 UTC
-  Not After : 2024-09-23 01:31:53 +0000 UTC
+  Valid: 2014-09-22 17:14 UTC to 2024-09-23 01:31 UTC
   Signature : SHA256-RSA
   Subject Info:
   \tCountry: US (esc)

@@ -40,8 +40,7 @@ var verboseLayout = `
 
 {{- if .Alias}}{{.Alias}}
 {{end}}Serial: {{.SerialNumber}}
-Not Before: {{.NotBefore | certStart}}
-Not After : {{.NotAfter | certEnd}}
+Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
 Signature : {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
 Subject Info:
 	{{- template "PkixName" .Subject.Name}}

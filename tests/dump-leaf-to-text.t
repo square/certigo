@@ -29,8 +29,7 @@ Dump an example certificate (example-leaf.crt)
   $ certigo --verbose dump example-leaf.crt
   ** CERTIFICATE 1 **
   Serial: 15384458167827828543
-  Not Before: 2016-06-10 22:14:11 +0000 UTC
-  Not After : 2023-04-15 22:14:11 +0000 UTC
+  Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
   Signature : SHA256-RSA
   Subject Info:
   \tCountry: US (esc)
