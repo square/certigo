@@ -41,14 +41,14 @@ var verboseLayout = `
 {{- if .Alias}}{{.Alias}}
 {{end}}Serial: {{.SerialNumber}}
 Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
-Signature : {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
+Signature: {{.SignatureAlgorithm | highlightAlgorithm}}{{if .IsSelfSigned}} (self-signed){{end}}
 Subject Info:
 	{{- template "PkixName" .Subject.Name}}
 Issuer Info:
 	{{- template "PkixName" .Issuer.Name}}
 {{- if .Subject.KeyID}}
-Subject Key ID   : {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
-Authority Key ID : {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
+Subject Key ID: {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
+Authority Key ID: {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
 Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
 Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}{{if .KeyUsage}}
@@ -72,7 +72,7 @@ Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
 Subject: {{.Subject.Name | printName }}
 Issuer: {{.Issuer.Name | printName }}
 {{- if .NameConstraints}}
-Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
+Name Constraints{{if .PermittedDNSDomains.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}
 {{- if .AltDNSNames}}
 Alternate DNS Names:{{range .AltDNSNames}}

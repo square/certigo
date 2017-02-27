@@ -23,7 +23,7 @@ Dump an example certificate (example-leaf.crt)
   ** CERTIFICATE 1 **
   Serial: 14381893493177441266
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
-  Signature : SHA256-RSA (self-signed)
+  Signature: SHA256-RSA (self-signed)
   Subject Info:
   \tCountry: US (esc)
   \tProvince: CA (esc)
