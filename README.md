@@ -135,7 +135,7 @@ Alternate DNS Names:
 Display & validate certificates from a remote server (also supports `--start-tls`):
 
 ```
-$ certigo connect squareup.com:443
+$ certigo connect --verbose squareup.com:443
 ** TLS Connection **
 Version: TLS 1.2
 Cipher Suite: ECDHE_RSA key exchange, AES_128_GCM_SHA256 cipher
