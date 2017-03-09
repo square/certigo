@@ -25,8 +25,8 @@ import (
 	"strings"
 )
 
-func dumpAuthTLSFromFTP(address string, config *tls.Config) (*tls.ConnectionState, error) {
-	c, err := net.Dial("tcp", address)
+func dumpAuthTLSFromFTP(dialer *net.Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
+	c, err := dialer.Dial("tcp", address)
 	if err != nil {
 		return nil, err
 	}
