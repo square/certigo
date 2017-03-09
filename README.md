@@ -45,12 +45,14 @@ usage: certigo [<flags>] <command> [<args> ...]
 A command line certificate examination utility.
 
 Flags:
-  --help     Show context-sensitive help (also try --help-long and --help-man).
-  --version  Show application version.
+      --help     Show context-sensitive help (also try --help-long and --help-man).
+  -v, --verbose  Print verbose
+      --version  Show application version.
 
 Commands:
   help [<command>...]
     Show help.
+
 
   dump [<flags>] [<file>...]
     Display information about a certificate from a file/stdin.
@@ -68,6 +70,7 @@ Commands:
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
     -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
+        --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
 
@@ -86,12 +89,11 @@ Commands:
 Display information about a certificate (also supports `--pem` and `--json` output):
 
 ```
-$ certigo dump squareup-2016.crt
+$ certigo dump --verbose squareup-2016.crt
 ** CERTIFICATE 1 **
 Serial: 260680855742043049380997676879525498489
-Not Before: 2016-07-15 20:15:52 +0000 UTC
-Not After : 2017-07-31 20:45:50 +0000 UTC
-Signature : SHA256-RSA
+Valid: 2016-07-15 20:15 UTC to 2017-07-31 20:45 UTC
+Signature: SHA256-RSA
 Subject Info:
 	Country: US
 	Province: California
@@ -108,8 +110,8 @@ Issuer Info:
 	Organizational Unit: See www.entrust.net/legal-terms
 	Organizational Unit: (c) 2014 Entrust, Inc. - for authorized use only
 	CommonName: Entrust Certification Authority - L1M
-Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
-Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Subject Key ID: D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
+Authority Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
 Basic Constraints: CA:false
 Key Usage:
 	Digital Signature
@@ -136,13 +138,12 @@ Display & validate certificates from a remote server (also supports `--start-tls
 $ certigo connect squareup.com:443
 ** TLS Connection **
 Version: TLS 1.2
-Cipher Suite: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+Cipher Suite: ECDHE_RSA key exchange, AES_128_GCM_SHA256 cipher
 
 ** CERTIFICATE 1 **
 Serial: 260680855742043049380997676879525498489
-Not Before: 2016-07-15 20:15:52 +0000 UTC
-Not After : 2017-07-31 20:45:50 +0000 UTC
-Signature : SHA256-RSA
+Valid: 2016-07-15 20:15 UTC to 2017-07-31 20:45 UTC
+Signature: SHA256-RSA
 Subject Info:
 	Country: US
 	Province: California
@@ -159,8 +160,8 @@ Issuer Info:
 	Organizational Unit: See www.entrust.net/legal-terms
 	Organizational Unit: (c) 2014 Entrust, Inc. - for authorized use only
 	CommonName: Entrust Certification Authority - L1M
-Subject Key ID   : D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
-Authority Key ID : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Subject Key ID: D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
+Authority Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
 Basic Constraints: CA:false
 Key Usage:
 	Digital Signature
@@ -182,9 +183,8 @@ Alternate DNS Names:
 
 ** CERTIFICATE 2 **
 Serial: 30215777750102225331854468774
-Not Before: 2014-12-15 15:25:03 +0000 UTC
-Not After : 2030-10-15 15:55:03 +0000 UTC
-Signature : SHA256-RSA
+Valid: 2014-12-15 15:25 UTC to 2030-10-15 15:55 UTC
+Signature: SHA256-RSA
 Subject Info:
 	Country: US
 	Organization: Entrust, Inc.
@@ -197,8 +197,8 @@ Issuer Info:
 	Organizational Unit: See www.entrust.net/legal-terms
 	Organizational Unit: (c) 2009 Entrust, Inc. - for authorized use only
 	CommonName: Entrust Root Certification Authority - G2
-Subject Key ID   : C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
-Authority Key ID : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+Subject Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
+Authority Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
 Basic Constraints: CA:true, pathlen:0
 Key Usage:
 	Cert Sign
@@ -209,9 +209,8 @@ Extended Key Usage:
 
 ** CERTIFICATE 3 **
 Serial: 1372799044
-Not Before: 2014-09-22 17:14:57 +0000 UTC
-Not After : 2024-09-23 01:31:53 +0000 UTC
-Signature : SHA256-RSA
+Valid: 2014-09-22 17:14 UTC to 2024-09-23 01:31 UTC
+Signature: SHA256-RSA
 Subject Info:
 	Country: US
 	Organization: Entrust, Inc.
@@ -224,8 +223,8 @@ Issuer Info:
 	Organizational Unit: www.entrust.net/CPS is incorporated by reference
 	Organizational Unit: (c) 2006 Entrust, Inc.
 	CommonName: Entrust Root Certification Authority
-Subject Key ID   : 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
-Authority Key ID : 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
+Subject Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
+Authority Key ID: 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
 Basic Constraints: CA:true, pathlen:1
 Key Usage:
 	Cert Sign
@@ -254,10 +253,13 @@ certigo dump --json $INPUT | jq '.certificates[] | select(.signature_algorithm =
 certigo dump --json $INPUT | jq -r '.certificates[] | select(.not_after < now) | .subject.common_name'
 
 # Look for MySQL servers with invalid certificates
-for SERVER in LIST; do
+for SERVER in $(cat servers); do
   certigo connect -t mysql -j $SERVER:3306 | jq -e '.verify_result.error != null' >/dev/null
   if [ $? -ne 0 ]; then
     echo "Invalid certificates on $SERVER"
   fi
 done
+
+# Find (redundant) self-signed certificates in intermediate chain on remote host
+certigo connect $SERVER:$PORT | jq -e '.certificates[1:][] | select(.is_self_signed) | .subject.common_name'
 ```
