@@ -18,13 +18,21 @@ package starttls
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"net"
 	"net/smtp"
+	"time"
 
 	"github.com/square/certigo/starttls/ldap"
 	"github.com/square/certigo/starttls/mysql"
 	"github.com/square/certigo/starttls/psql"
 )
+
+type connectResult struct {
+	state *tls.ConnectionState
+	err   error
+}
 
 func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config, error) {
 	conf := &tls.Config{
@@ -52,13 +60,27 @@ func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config
 }
 
 // GetConnectionState connects to a TLS server, returning the connection state.
-// Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the empty string, which does a normal TLS
-// connection.  connectTo specifies the address to connect to. connectName sets SNI.  connectCert and connectKey are
+// Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the
+// empty string, which does a normal TLS connection. connectTo specifies the
+// address to connect to. connectName sets SNI.  connectCert and connectKey are
 // client certs
-func GetConnectionState(startTLSType, connectName, connectTo, clientCert, clientKey string) (*tls.ConnectionState, error) {
+func GetConnectionState(startTLSType, connectName, connectTo, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, error) {
 	var state *tls.ConnectionState
 	var err error
 	var tlsConfig *tls.Config
+
+	// Network dialer to use (if possible)
+	dialer := net.Dialer{
+		Timeout:  timeout,
+		Deadline: time.Now().Add(timeout),
+	}
+
+	// Never take longer than timeout
+	res := make(chan connectResult, 1)
+	go func() {
+		<-time.After(timeout)
+		res <- connectResult{nil, errors.New("timed out")}
+	}()
 
 	switch startTLSType {
 	case "postgres", "psql":
@@ -70,66 +92,91 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 		}
 	}
 
-	switch startTLSType {
-	case "":
-		conn, err := tls.Dial("tcp", connectTo, tlsConfig)
-		if err != nil {
-			return nil, fmt.Errorf("error connecting: %v\n", err)
-		}
-		defer conn.Close()
-		s := conn.ConnectionState()
-		state = &s
-	case "ldap":
-		l, err := ldap.Dial("tcp", connectTo)
-		if err != nil {
-			return nil, err
-		}
-		defer l.Close()
+	go func() {
+		switch startTLSType {
+		case "":
+			conn, err := tls.DialWithDialer(&dialer, "tcp", connectTo, tlsConfig)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			defer conn.Close()
+			state := conn.ConnectionState()
+			res <- connectResult{&state, nil}
+		case "ldap":
+			l, err := ldap.Dial("tcp", connectTo, timeout)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			defer l.Close()
 
-		err = l.StartTLS(tlsConfig)
-		if err != nil {
-			return nil, err
+			err = l.StartTLS(tlsConfig)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			state, err = l.TLSConnectionState()
+			if err != nil {
+				res <- connectResult{nil, fmt.Errorf("LDAP connection isn't TLS after StartTLS: %s", err.Error())}
+				return
+			}
+			res <- connectResult{state, nil}
+		case "mysql":
+			mysql.RegisterTLSConfig("certigo", tlsConfig)
+			state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo&timeout=%s", connectTo, timeout.String()))
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			res <- connectResult{state, nil}
+		case "postgres", "psql":
+			// Setting sslmode to "require" skips verification.
+			url := fmt.Sprintf("postgres://certigo@%s/?sslmode=require&connect_timeout=%d", connectTo, timeout/time.Second)
+			if clientCert != "" {
+				url += fmt.Sprintf("&sslcert=%s", clientCert)
+			}
+			if clientKey != "" {
+				url += fmt.Sprintf("&sslkey=%s", clientCert)
+			}
+			state, err = pq.DumpTLS(url)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			res <- connectResult{state, nil}
+		case "smtp":
+			// Go's net/smtp doesn't support timeouts, so if we hit a timeout we might
+			// leak a Go routine (at least until we hit a lower-level TCP timeout or such).
+			// This is not an issue for Certigo since it's just a short-lived CLI utility.
+			client, err := smtp.Dial(connectTo)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			err = client.StartTLS(tlsConfig)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			state, ok := client.TLSConnectionState()
+			if !ok {
+				res <- connectResult{nil, errors.New("SMTP connection isn't TLS after StartTLS")}
+			}
+			res <- connectResult{&state, nil}
+		case "ftp":
+			state, err = dumpAuthTLSFromFTP(&dialer, connectTo, tlsConfig)
+			res <- connectResult{state, err}
+		default:
+			res <- connectResult{nil, fmt.Errorf("unknown StartTLS protocol: %s", startTLSType)}
 		}
-		state, err = l.TLSConnectionState()
-		if err != nil {
-			panic(fmt.Sprintf("LDAP Connection isn't TLS after we successfully called StartTLS (%s)", err.Error()))
-		}
-	case "mysql":
-		mysql.RegisterTLSConfig("certigo", tlsConfig)
-		state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo", connectTo))
-	case "postgres", "psql":
-		// Setting sslmode to "require" skips verification.
-		url := fmt.Sprintf("postgres://certigo@%s/?sslmode=require", connectTo)
-		if clientCert != "" {
-			url += fmt.Sprintf("&sslcert=%s", clientCert)
-		}
-		if clientKey != "" {
-			url += fmt.Sprintf("&sslkey=%s", clientCert)
-		}
-		state, err = pq.DumpTLS(url)
-	case "smtp":
-		client, err := smtp.Dial(connectTo)
-		if err != nil {
-			return nil, err
-		}
-		err = client.StartTLS(tlsConfig)
-		if err != nil {
-			return nil, err
-		}
-		smtpState, ok := client.TLSConnectionState()
-		if !ok {
-			panic("SMTP Connection isn't TLS after we successfully called StartTLS")
-		}
-		state = &smtpState
-	case "ftp":
-		state, err = dumpAuthTLSFromFTP(connectTo, tlsConfig)
-	default:
-		return nil, fmt.Errorf("error connecting: unknown StartTLS protocol '%s'\n", startTLSType)
+	}()
+
+	result := <-res
+
+	if result.err != nil {
+		return nil, fmt.Errorf("error connecting: %v\n", result.err)
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("error connecting: %v\n", err)
-	}
-
-	return state, nil
+	return result.state, nil
 }
