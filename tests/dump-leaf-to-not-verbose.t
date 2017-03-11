@@ -29,11 +29,10 @@ Dump an example certificate (example-leaf.crt)
   $ certigo dump example-leaf.crt
   ** CERTIFICATE 1 **
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
-  Subject: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
-  Issuer: C=US, ST=CA, O=certigo, OU=example, CN=example-leaf
+  Subject: CN=example-leaf
+  Issuer: CN=example-leaf
   Alternate DNS Names:
   \tlocalhost (esc)
   Alternate IP Addresses:
-  \t127.0.0.1 (esc)
-  \t::1 (esc)
+  \t127.0.0.1, ::1 (esc)
   
