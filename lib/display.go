@@ -69,8 +69,8 @@ var layout = `
 {{- if .Alias}}{{.Alias}}
 {{end -}}
 Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
-Subject: {{.Subject.Name | printName }}
-Issuer: {{.Issuer.Name | printName }}
+Subject: {{.Subject.Name | printShortName }}
+Issuer: {{.Issuer.Name | printShortName }}
 {{- if .NameConstraints}}
 Name Constraints{{if .PermittedDNSDomains.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}
@@ -150,7 +150,7 @@ func displayCert(cert simpleCertificate, verbose bool) []byte {
 		"extKeyUsage":        extKeyUsage,
 		"oidName":            oidName,
 		"oidShort":           oidShort,
-		"printName":          printName,
+		"printShortName":     printShortName,
 	}
 	t := template.New("Cert template").Funcs(funcMap)
 	var err error
@@ -255,7 +255,13 @@ func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
 }
 
-func printName(name pkix.Name) (out string) {
+func printShortName(name pkix.Name) (out string) {
+	// Try to print CN for short name if present.
+	if name.CommonName != "" {
+		return fmt.Sprintf("CN=%s", name.CommonName)
+	}
+
+	// If both CN is missing, just print O, OU, etc.
 	printed := false
 	for _, name := range name.Names {
 		short := oidShort(name.Type)
