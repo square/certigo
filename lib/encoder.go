@@ -116,6 +116,9 @@ type simpleCertificate struct {
 	EmailAddresses     []string            `json:"email_addresses,omitempty"`
 	Warnings           []string            `json:"warnings,omitempty"`
 	PEM                string              `json:"pem,omitempty"`
+
+	// Internal fields for text display. Set - to skip serialize.
+	Width int `json:"-"`
 }
 
 type simplePKIXName struct {
