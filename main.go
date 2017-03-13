@@ -63,8 +63,13 @@ var (
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 )
 
+const minWidth = 60
+const maxWidth = 80
+
 func main() {
 	app.Version("1.7.0")
+
+	terminalWidth := determineTerminalWidth()
 
 	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}
@@ -93,7 +98,7 @@ func main() {
 			} else {
 				for i, cert := range result.Certificates {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, *verbose))
+					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
 		}
@@ -131,7 +136,7 @@ func main() {
 			fmt.Fprintf(stdout, "%s\n\n", lib.EncodeTLSToText(result.TLSConnectionState))
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, *verbose))
+				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
 			printVerifyResult(stdout, *result.VerifyResult)
 		}
@@ -185,6 +190,26 @@ func inputFiles(fileNames []string) []*os.File {
 		files = append(files, os.Stdin)
 	}
 	return files
+}
+
+func determineTerminalWidth() (width int) {
+	fd := int(os.Stdout.Fd())
+	if terminal.IsTerminal(fd) {
+		var err error
+		width, _, err = terminal.GetSize(fd)
+		if err != nil {
+			width = minWidth
+		}
+	} else {
+		width = minWidth
+	}
+
+	if width > maxWidth {
+		width = maxWidth
+	} else if width < minWidth {
+		width = minWidth
+	}
+	return
 }
 
 func readPassword(alias string) string {

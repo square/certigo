@@ -138,16 +138,10 @@ Dump a live cert chain (squareup-chain.crt)
   \tServer Auth (esc)
   \tClient Auth (esc)
   Alternate DNS Names:
-  \twww.squareup.com (esc)
-  \tsquareup.com (esc)
-  \taccount.squareup.com (esc)
-  \tmkt.com (esc)
-  \twww.mkt.com (esc)
-  \tmarket.squareup.com (esc)
-  \tgosq.com (esc)
-  \twww.gosq.com (esc)
-  \tgosq.co (esc)
-  \twww.gosq.co (esc)
+  \twww.squareup.com, squareup.com, (esc)
+  \taccount.squareup.com, mkt.com, www.mkt.com, (esc)
+  \tmarket.squareup.com, gosq.com, www.gosq.com, (esc)
+  \tgosq.co, www.gosq.co (esc)
   
   ** CERTIFICATE 2 **
   Serial: 30215777750102225331854468774

@@ -49,6 +49,5 @@ Dump an example certificate (example-leaf.crt)
   Alternate DNS Names:
   \tlocalhost (esc)
   Alternate IP Addresses:
-  \t127.0.0.1 (esc)
-  \t::1 (esc)
+  \t127.0.0.1, ::1 (esc)
   

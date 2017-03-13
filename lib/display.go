@@ -28,6 +28,7 @@ import (
 
 	"crypto/x509/pkix"
 
+	"github.com/Masterminds/sprig"
 	"github.com/fatih/color"
 )
 
@@ -55,13 +56,17 @@ Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range 
 Key Usage:{{range .KeyUsage | keyUsage}}
 	{{.}}{{end}}{{end}}{{if .ExtKeyUsage}}
 Extended Key Usage:{{range .ExtKeyUsage}}
-	{{. | extKeyUsage}}{{end}}{{end}}{{if .AltDNSNames}}
-Alternate DNS Names:{{range .AltDNSNames}}
-	{{.}}{{end}}{{end}}{{if .AltIPAddresses}}
-Alternate IP Addresses:{{range .AltIPAddresses}}
-	{{.}}{{end}}{{end}}{{if .EmailAddresses}}
-Email Addresses:{{range .EmailAddresses}}
-	{{.}}{{end}}{{end}}{{if .Warnings}}
+	{{. | extKeyUsage}}{{end}}{{end}}
+{{- if .AltDNSNames}}
+Alternate DNS Names:
+	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
+{{- if .AltIPAddresses}}
+Alternate IP Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}{{end}}
+{{- if .EmailAddresses}}
+Email Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
+{{- if .Warnings}}
 Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
@@ -69,20 +74,20 @@ var layout = `
 {{- if .Alias}}{{.Alias}}
 {{end -}}
 Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
-Subject: {{.Subject.Name | printName }}
-Issuer: {{.Issuer.Name | printName }}
+Subject: {{.Subject.Name | printShortName }}
+Issuer: {{.Issuer.Name | printShortName }}
 {{- if .NameConstraints}}
 Name Constraints{{if .PermittedDNSDomains.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}
 {{- if .AltDNSNames}}
-Alternate DNS Names:{{range .AltDNSNames}}
-	{{.}}{{end}}{{end}}
+Alternate DNS Names:
+	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
 {{- if .AltIPAddresses}}
-Alternate IP Addresses:{{range .AltIPAddresses}}
-	{{.}}{{end}}{{end}}
+Alternate IP Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}{{end}}
 {{- if .EmailAddresses}}
-Email Addresses:{{range .EmailAddresses}}
-	{{.}}{{end}}{{end}}
+Email Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
 {{- if .Warnings}}
 Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
@@ -131,8 +136,11 @@ func EncodeX509ToObject(cert *x509.Certificate) interface{} {
 }
 
 // EncodeX509ToText encodes an X.509 certificate into human-readable text.
-func EncodeX509ToText(cert *x509.Certificate, verbose bool) []byte {
-	return displayCert(createSimpleCertificate("", cert), verbose)
+func EncodeX509ToText(cert *x509.Certificate, terminalWidth int, verbose bool) []byte {
+	c := createSimpleCertificate("", cert)
+	c.Width = terminalWidth - 8 /* Need some margin for tab */
+
+	return displayCert(c, verbose)
 }
 
 // displayCert takes in a parsed certificate object
@@ -140,7 +148,10 @@ func EncodeX509ToText(cert *x509.Certificate, verbose bool) []byte {
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
 func displayCert(cert simpleCertificate, verbose bool) []byte {
-	funcMap := template.FuncMap{
+	// Use template functions from sprig, but add some extras
+	funcMap := sprig.TxtFuncMap()
+
+	extras := template.FuncMap{
 		"certStart":          certStart,
 		"certEnd":            certEnd,
 		"redify":             redify,
@@ -150,8 +161,12 @@ func displayCert(cert simpleCertificate, verbose bool) []byte {
 		"extKeyUsage":        extKeyUsage,
 		"oidName":            oidName,
 		"oidShort":           oidShort,
-		"printName":          printName,
+		"printShortName":     printShortName,
 	}
+	for k, v := range extras {
+		funcMap[k] = v
+	}
+
 	t := template.New("Cert template").Funcs(funcMap)
 	var err error
 	if verbose {
@@ -255,7 +270,13 @@ func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
 }
 
-func printName(name pkix.Name) (out string) {
+func printShortName(name pkix.Name) (out string) {
+	// Try to print CN for short name if present.
+	if name.CommonName != "" {
+		return fmt.Sprintf("CN=%s", name.CommonName)
+	}
+
+	// If both CN is missing, just print O, OU, etc.
 	printed := false
 	for _, name := range name.Names {
 		short := oidShort(name.Type)

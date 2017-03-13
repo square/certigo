@@ -1,0 +1,47 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Masterminds/sprig",
+			"repository": "https://github.com/Masterminds/sprig",
+			"vcs": "git",
+			"revision": "427e90187e0902bc04b64167610f2da7ba26e0e1",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/aokoli/goutils",
+			"repository": "https://github.com/aokoli/goutils",
+			"vcs": "git",
+			"revision": "9c37978a95bd5c709a15883b6242714ea6709e64",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/satori/go.uuid",
+			"repository": "https://github.com/satori/go.uuid",
+			"vcs": "git",
+			"revision": "b061729afc07e77a8aa4fad0a2fd840958f1942a",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/pbkdf2",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"branch": "master",
+			"path": "pbkdf2",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/scrypt",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"branch": "master",
+			"path": "/scrypt",
+			"notests": true
+		}
+	]
+}
