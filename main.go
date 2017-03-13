@@ -63,26 +63,13 @@ var (
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 )
 
-const defaultWidth = 60
+const minWidth = 60
 const maxWidth = 80
 
 func main() {
 	app.Version("1.7.0")
 
-	var terminalWidth int
-	fd := int(os.Stdout.Fd())
-	if terminal.IsTerminal(fd) {
-		var err error
-		terminalWidth, _, err = terminal.GetSize(fd)
-		if err != nil {
-			terminalWidth = defaultWidth
-		}
-	} else {
-		terminalWidth = defaultWidth
-	}
-	if terminalWidth > maxWidth {
-		terminalWidth = maxWidth
-	}
+	terminalWidth := determineTerminalWidth()
 
 	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}
@@ -203,6 +190,26 @@ func inputFiles(fileNames []string) []*os.File {
 		files = append(files, os.Stdin)
 	}
 	return files
+}
+
+func determineTerminalWidth() (width int) {
+	fd := int(os.Stdout.Fd())
+	if terminal.IsTerminal(fd) {
+		var err error
+		width, _, err = terminal.GetSize(fd)
+		if err != nil {
+			width = minWidth
+		}
+	} else {
+		width = minWidth
+	}
+
+	if width > maxWidth {
+		width = maxWidth
+	} else if width < minWidth {
+		width = minWidth
+	}
+	return
 }
 
 func readPassword(alias string) string {
