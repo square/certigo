@@ -120,15 +120,8 @@ Extended Key Usage:
 	Server Auth
 	Client Auth
 Alternate DNS Names:
-	www.squareup.com
-	squareup.com
-	account.squareup.com
-	mkt.com
-	www.mkt.com
-	market.squareup.com
-	gosq.com
-	www.gosq.com
-	gosq.co
+	www.squareup.com, squareup.com, account.squareup.com, mkt.com,
+	www.mkt.com, market.squareup.com, gosq.com, www.gosq.com, gosq.co,
 	www.gosq.co
 ```
 
@@ -170,15 +163,8 @@ Extended Key Usage:
 	Server Auth
 	Client Auth
 Alternate DNS Names:
-	www.squareup.com
-	squareup.com
-	account.squareup.com
-	mkt.com
-	www.mkt.com
-	market.squareup.com
-	gosq.com
-	www.gosq.com
-	gosq.co
+	www.squareup.com, squareup.com, account.squareup.com, mkt.com,
+	www.mkt.com, market.squareup.com, gosq.com, www.gosq.com, gosq.co,
 	www.gosq.co
 
 ** CERTIFICATE 2 **
