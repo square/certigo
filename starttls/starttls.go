@@ -154,6 +154,11 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 				res <- connectResult{nil, err}
 				return
 			}
+			err = client.Hello("certigo")
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
 			err = client.StartTLS(tlsConfig)
 			if err != nil {
 				res <- connectResult{nil, err}
