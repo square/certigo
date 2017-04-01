@@ -50,7 +50,7 @@ var (
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
 	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').").Short('t').PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap", "ftp")
-	connectAs       = connect.Flag("asuser", "With starttls, connect as this db user (or smtp ehlo)").Default("certigo").String()
+	connectIdentity = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
 	connectTimeout  = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
 	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
@@ -105,7 +105,11 @@ func main() {
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
-		connState, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectAs, *connectCert, *connectKey, *connectTimeout)
+		if connectStartTLS == nil && connectIdentity != nil {
+			fmt.Fprintln(os.Stderr, "--identity can only be used with --start-tls")
+			os.Exit(1)
+		}
+		connState, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectIdentity, *connectCert, *connectKey, *connectTimeout)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", strings.TrimSuffix(err.Error(), "\n"))
 			os.Exit(1)
