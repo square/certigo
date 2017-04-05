@@ -62,9 +62,9 @@ func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config
 // GetConnectionState connects to a TLS server, returning the connection state.
 // Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the
 // empty string, which does a normal TLS connection. connectTo specifies the
-// address to connect to. connectName sets SNI.  connectCert and connectKey are
-// client certs
-func GetConnectionState(startTLSType, connectName, connectTo, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, error) {
+// address to connect to. connectName sets SNI.  connectAs sets db username, smtp ehlo
+// connectCert and connectKey are client certs
+func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, error) {
 	var state *tls.ConnectionState
 	var err error
 	var tlsConfig *tls.Config
@@ -124,7 +124,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 			res <- connectResult{state, nil}
 		case "mysql":
 			mysql.RegisterTLSConfig("certigo", tlsConfig)
-			state, err = mysql.DumpTLS(fmt.Sprintf("certigo@tcp(%s)/?tls=certigo&timeout=%s", connectTo, timeout.String()))
+			state, err = mysql.DumpTLS(fmt.Sprintf("%s@tcp(%s)/?tls=certigo&timeout=%s", identity, connectTo, timeout.String()))
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
@@ -132,7 +132,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 			res <- connectResult{state, nil}
 		case "postgres", "psql":
 			// Setting sslmode to "require" skips verification.
-			url := fmt.Sprintf("postgres://certigo@%s/?sslmode=require&connect_timeout=%d", connectTo, timeout/time.Second)
+			url := fmt.Sprintf("postgres://%s@%s/?sslmode=require&connect_timeout=%d", identity, connectTo, timeout/time.Second)
 			if clientCert != "" {
 				url += fmt.Sprintf("&sslcert=%s", clientCert)
 			}
@@ -150,6 +150,11 @@ func GetConnectionState(startTLSType, connectName, connectTo, clientCert, client
 			// leak a Go routine (at least until we hit a lower-level TCP timeout or such).
 			// This is not an issue for Certigo since it's just a short-lived CLI utility.
 			client, err := smtp.Dial(connectTo)
+			if err != nil {
+				res <- connectResult{nil, err}
+				return
+			}
+			err = client.Hello(identity)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
