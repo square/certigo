@@ -109,12 +109,13 @@ func main() {
 			fmt.Fprintln(os.Stderr, "--identity can only be used with --start-tls")
 			os.Exit(1)
 		}
-		connState, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectIdentity, *connectCert, *connectKey, *connectTimeout)
+		connState, cri, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectIdentity, *connectCert, *connectKey, *connectTimeout)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", strings.TrimSuffix(err.Error(), "\n"))
 			os.Exit(1)
 		}
 		result.TLSConnectionState = connState
+		result.CertificateRequestInfo = cri
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
@@ -138,7 +139,10 @@ func main() {
 			blob, _ := json.Marshal(result)
 			fmt.Println(string(blob))
 		} else if !*connectPem {
-			fmt.Fprintf(stdout, "%s\n\n", lib.EncodeTLSToText(result.TLSConnectionState))
+			fmt.Fprintf(
+				stdout, "%s\n\n",
+				lib.EncodeTLSInfoToText(result.TLSConnectionState, result.CertificateRequestInfo))
+
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))

@@ -74,9 +74,10 @@ type simpleVerification struct {
 }
 
 type simpleResult struct {
-	Certificates       []*x509.Certificate `json:"certificates"`
-	VerifyResult       *simpleVerification `json:"verify_result,omitempty"`
-	TLSConnectionState *tls.ConnectionState
+	Certificates           []*x509.Certificate `json:"certificates"`
+	VerifyResult           *simpleVerification `json:"verify_result,omitempty"`
+	TLSConnectionState     *tls.ConnectionState
+	CertificateRequestInfo *tls.CertificateRequestInfo
 }
 
 func (s simpleResult) MarshalJSON() ([]byte, error) {
@@ -92,6 +93,13 @@ func (s simpleResult) MarshalJSON() ([]byte, error) {
 	}
 	if s.TLSConnectionState != nil {
 		out["tls_connection"] = lib.EncodeTLSToObject(s.TLSConnectionState)
+	}
+	if s.CertificateRequestInfo != nil {
+		encoded, err := lib.EncodeCRIToObject(s.CertificateRequestInfo)
+		if err != nil {
+			return nil, err
+		}
+		out["certificate_request_info"] = encoded
 	}
 	return json.Marshal(out)
 }
@@ -143,12 +151,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 				PEM:                string(pem.EncodeToMemory(lib.EncodeX509ToPEM(cert, nil))),
 			}
 
-			if cert.Subject.CommonName != "" {
-				aCert.Name = cert.Subject.CommonName
-			} else {
-				aCert.Name = fmt.Sprintf("Serial #%s", cert.SerialNumber.String())
-			}
-
+			aCert.Name = lib.PrintShortName(cert.Subject)
 			aChain = append(aChain, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)

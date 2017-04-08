@@ -161,7 +161,7 @@ func displayCert(cert simpleCertificate, verbose bool) []byte {
 		"extKeyUsage":        extKeyUsage,
 		"oidName":            oidName,
 		"oidShort":           oidShort,
-		"printShortName":     printShortName,
+		"printShortName":     PrintShortName,
 	}
 	for k, v := range extras {
 		funcMap[k] = v
@@ -270,7 +270,11 @@ func redify(text string) string {
 	return red.SprintfFunc()("%s", text)
 }
 
-func printShortName(name pkix.Name) (out string) {
+func greenify(text string) string {
+	return green.SprintfFunc()("%s", text)
+}
+
+func PrintShortName(name pkix.Name) (out string) {
 	// Try to print CN for short name if present.
 	if name.CommonName != "" {
 		return fmt.Sprintf("CN=%s", name.CommonName)
