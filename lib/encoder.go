@@ -21,6 +21,7 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/hex"
@@ -43,6 +44,57 @@ var keyUsages = []x509.KeyUsage{
 	x509.KeyUsageCRLSign,
 	x509.KeyUsageEncipherOnly,
 	x509.KeyUsageDecipherOnly,
+}
+
+var signatureSchemeStrings = map[tls.SignatureScheme]string{
+	// Upper 8 bits are "hash" and lower 8 bits are "signature"
+	// Some values below, see RFC 5246, Section A.4.1, and also
+	// https://tools.ietf.org/html/draft-ietf-tls-tls13-18#section-4.2.3
+	// --
+	// Signatures:
+	// 0x0 anonymous
+	// 0x1 RSA
+	// 0x2 DSA
+	// 0x3 ECDSA
+	// --
+	// Hashes:
+	// 0x0 none
+	// 0x1 MD-5
+	// 0x2 SHA-1
+	// 0x3 SHA-224
+	// 0x4 SHA-256
+	// 0x5 SHA-384
+	// 0x6 SHA-512
+	// --
+	tls.PKCS1WithSHA1:          "RSA-PKCS1WithSHA1",
+	tls.PKCS1WithSHA256:        "RSA-PKCS1WithSHA256",
+	tls.PKCS1WithSHA384:        "RSA-PKCS1WithSHA384",
+	tls.PKCS1WithSHA512:        "RSA-PKCS1WithSHA512",
+	tls.PSSWithSHA256:          "RSA-PSSWithSHA256",
+	tls.PSSWithSHA384:          "RSA-PSSWithSHA384",
+	tls.PSSWithSHA512:          "RSA-PSSWithSHA512",
+	tls.ECDSAWithP256AndSHA256: "ECDSAWithP256AndSHA256",
+	tls.ECDSAWithP384AndSHA384: "ECDSAWithP384AndSHA384",
+	tls.ECDSAWithP521AndSHA512: "ECDSAWithP521AndSHA512",
+
+	// Not from stdlib
+	// Defined in TLS 1.3 draft
+	0x807: "ED25519",
+	0x808: "ED448",
+
+	// Not in stdlib: server sent {sha1,ecdsa}.
+	// This is sent (at least) by Go 1.8.1 servers in TLS 1.2 handshakes.
+	0x203: "ECDSAWithSHA1",
+
+	// Unused (?) but theorically possible combos (per RFC 5246)
+	0x101: "RSA-PKCS1WithMD5",
+	0x301: "RSA-PKCS1WithSHA224",
+	0x102: "DSAWithMD5",
+	0x202: "DSAWithSHA1",
+	0x302: "DSAWithSHA224",
+	0x402: "DSAWithSHA256",
+	0x502: "DSAWithSHA384",
+	0x602: "DSAWithSHA512",
 }
 
 var keyUsageStrings = map[x509.KeyUsage]string{

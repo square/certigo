@@ -34,7 +34,7 @@ type connectResult struct {
 	err   error
 }
 
-func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config, error) {
+func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config, **tls.CertificateRequestInfo, error) {
 	conf := &tls.Config{
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
@@ -42,31 +42,48 @@ func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config
 		MinVersion:         tls.VersionSSL30,
 	}
 
+	var err error
+	var cert tls.Certificate
+
 	if clientCert != "" {
 		keyFile := clientCert
 		if clientKey != "" {
 			keyFile = clientKey
 		}
 
-		cert, err := tls.LoadX509KeyPair(clientCert, keyFile)
+		cert, err = tls.LoadX509KeyPair(clientCert, keyFile)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read client certificate/key: %s\n", err)
+			return nil, nil, fmt.Errorf("unable to read client certificate/key: %s\n", err)
 		}
 
+		// Required even if we set fallback, because of bug in Go 1.8.0 (fixed in 1.8.1)
 		conf.Certificates = []tls.Certificate{cert}
 	}
 
-	return conf, nil
+	cri := setGetClientCertificateCallback(conf, &cert)
+	return conf, cri, nil
+}
+
+func setGetClientCertificateCallback(conf *tls.Config, cert *tls.Certificate) **tls.CertificateRequestInfo {
+	var captured *tls.CertificateRequestInfo
+
+	conf.GetClientCertificate = func(cri *tls.CertificateRequestInfo) (*tls.Certificate, error) {
+		captured = cri
+		return cert, nil
+	}
+
+	return &captured
 }
 
 // GetConnectionState connects to a TLS server, returning the connection state.
 // Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the
 // empty string, which does a normal TLS connection. connectTo specifies the
-// address to connect to. connectName sets SNI.  connectAs sets db username, smtp ehlo
-// connectCert and connectKey are client certs
-func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, error) {
-	var state *tls.ConnectionState
+// address to connect to. connectName sets SNI. identity sets DB username,
+// SMTP EHLO. connectCert and connectKey are client cert/key.
+func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, *tls.CertificateRequestInfo, error) {
 	var err error
+	var state *tls.ConnectionState
+	var cri **tls.CertificateRequestInfo
 	var tlsConfig *tls.Config
 
 	// Network dialer to use (if possible)
@@ -86,9 +103,9 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 	case "postgres", "psql":
 		// No tlsConfig needed for postgres, but all others do.
 	default:
-		tlsConfig, err = tlsConfigForConnect(connectName, clientCert, clientKey)
+		tlsConfig, cri, err = tlsConfigForConnect(connectName, clientCert, clientKey)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -180,8 +197,16 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 	result := <-res
 
 	if result.err != nil {
-		return nil, fmt.Errorf("error connecting: %v\n", result.err)
+		return nil, nil, fmt.Errorf("error connecting: %v\n", result.err)
 	}
 
-	return result.state, nil
+	if result.state.Version < tls.VersionTLS12 && *cri != nil {
+		// Sending supported signature schemes was added in TLS 1.2,
+		// but Go lies to us in the GetClientCertificate callback and
+		// gives us fake "supported schemes" even for older versions.
+		// We clear the result here, otherwise it's a bit misleading.
+		(*cri).SignatureSchemes = nil
+	}
+
+	return result.state, *cri, nil
 }
