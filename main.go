@@ -83,14 +83,19 @@ func main() {
 			}
 		}()
 
+		var err error
 		if *dumpPem {
-			lib.ReadAsPEMFromFiles(files, *dumpType, readPassword, func(block *pem.Block) {
+			err = lib.ReadAsPEMFromFiles(files, *dumpType, readPassword, func(block *pem.Block) {
 				block.Headers = nil
 				pem.Encode(os.Stdout, block)
 			})
 		} else {
-			lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate) {
-				result.Certificates = append(result.Certificates, cert)
+			err = lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate, err error) {
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+				} else {
+					result.Certificates = append(result.Certificates, cert)
+				}
 			})
 
 			if *dumpJSON {
@@ -103,10 +108,16 @@ func main() {
 				}
 			}
 		}
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+			os.Exit(1)
+		} else if len(result.Certificates) == 0 && !*dumpPem {
+			fmt.Fprintf(os.Stderr, "warning: no certificates found in input\n")
+		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
 		if connectStartTLS == nil && connectIdentity != nil {
-			fmt.Fprintln(os.Stderr, "--identity can only be used with --start-tls")
+			fmt.Fprintln(os.Stderr, "error: --identity can only be used with --start-tls")
 			os.Exit(1)
 		}
 		connState, cri, err := starttls.GetConnectionState(*connectStartTLS, *connectName, *connectTo, *connectIdentity, *connectCert, *connectKey, *connectTimeout)
@@ -154,8 +165,12 @@ func main() {
 		defer file.Close()
 
 		chain := []*x509.Certificate{}
-		lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert *x509.Certificate) {
-			chain = append(chain, cert)
+		lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert *x509.Certificate, err error) {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+			} else {
+				chain = append(chain, cert)
+			}
 		})
 
 		verifyResult := verifyChain(chain, *verifyName, *verifyCaPath)
