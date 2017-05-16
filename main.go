@@ -68,7 +68,7 @@ const minWidth = 60
 const maxWidth = 80
 
 func main() {
-	app.Version("1.8.0")
+	app.Version("1.9.1")
 
 	terminalWidth := determineTerminalWidth()
 
