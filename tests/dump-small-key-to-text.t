@@ -38,5 +38,6 @@ Dump an example certificate (example-leaf.crt)
   \tCommonName: example-small-key (esc)
   Warnings:
   \tCertificate is not in X509v3 format (version is 2) (esc)
+  \tCertificate doesn't have any valid DNS names/IP addresses set (esc)
   \tSize of RSA key should be at least 2048 bits (esc)
   
