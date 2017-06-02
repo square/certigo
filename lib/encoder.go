@@ -344,6 +344,10 @@ func certWarnings(cert *x509.Certificate) (warnings []string) {
 		warnings = append(warnings, fmt.Sprintf("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
 	}
 
+	if (len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0) && !cert.IsCA {
+		warnings = append(warnings, fmt.Sprintf("Certificate doesn't have any valid DNS names/IP addresses set"))
+	}
+
 	if len(cert.UnhandledCriticalExtensions) > 0 {
 		warnings = append(warnings, "Certificate has unhandled critical extensions")
 	}
