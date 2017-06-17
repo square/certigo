@@ -61,6 +61,8 @@ var signatureSchemeStrings = map[tls.SignatureScheme]string{
 	// cf. draft-ietf-tls-tls13-18, Section 4.2.3
 	// cf. RFC 5758, Section 2
 	//
+	// See also ssl/ssl_locl.h in OpenSSL (grep for TLSEXT_SIGALG).
+	//
 	// Common values:
 	// --
 	// Signatures:
@@ -112,6 +114,11 @@ var signatureSchemeStrings = map[tls.SignatureScheme]string{
 	0x402: "DSA with SHA256",
 	0x502: "DSA with SHA384",
 	0x602: "DSA with SHA512",
+
+	// Funky stuff supported by OpenSSL
+	0xeeee: "GOST 34.10-2012 (256)",
+	0xefef: "GOST 34.10-2012 (512)",
+	0xeded: "GOST 34.10-2001",
 }
 
 var keyUsageStrings = map[x509.KeyUsage]string{
