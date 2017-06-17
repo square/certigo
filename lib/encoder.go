@@ -47,9 +47,21 @@ var keyUsages = []x509.KeyUsage{
 }
 
 var signatureSchemeStrings = map[tls.SignatureScheme]string{
-	// Upper 8 bits are "hash" and lower 8 bits are "signature"
-	// Some values below, see RFC 5246, Section A.4.1, and also
-	// https://tools.ietf.org/html/draft-ietf-tls-tls13-18#section-4.2.3
+	// As per RFC 5246 (TLS v1.2), the handshake contains a set of
+	// SignatureAndHashAlgorithm values which is a tuple of a hash
+	// and a signature algorithm each. Go takes these values and
+	// maps them into a tls.SignatureScheme value, where the upper
+	// 8 bits are hash and lower 8 bits are the signature.
+	//
+	// TLS v1.3 changes this to use the signature_algorithms extension,
+	// see draft-ietf-tls-tls13-18 section 4.2.3. These are 16-bit
+	// values that explicitly specify a signature algorithm.
+	//
+	// cf. RFC 5246, Section A.4.1
+	// cf. draft-ietf-tls-tls13-18, Section 4.2.3
+	// cf. RFC 5758, Section 2
+	//
+	// Common values:
 	// --
 	// Signatures:
 	// 0x0 anonymous
@@ -66,35 +78,40 @@ var signatureSchemeStrings = map[tls.SignatureScheme]string{
 	// 0x5 SHA-384
 	// 0x6 SHA-512
 	// --
-	tls.PKCS1WithSHA1:          "RSA-PKCS1WithSHA1",
-	tls.PKCS1WithSHA256:        "RSA-PKCS1WithSHA256",
-	tls.PKCS1WithSHA384:        "RSA-PKCS1WithSHA384",
-	tls.PKCS1WithSHA512:        "RSA-PKCS1WithSHA512",
-	tls.PSSWithSHA256:          "RSA-PSSWithSHA256",
-	tls.PSSWithSHA384:          "RSA-PSSWithSHA384",
-	tls.PSSWithSHA512:          "RSA-PSSWithSHA512",
-	tls.ECDSAWithP256AndSHA256: "ECDSAWithP256AndSHA256",
-	tls.ECDSAWithP384AndSHA384: "ECDSAWithP384AndSHA384",
-	tls.ECDSAWithP521AndSHA512: "ECDSAWithP521AndSHA512",
+	// TLS v1.3:
+	// 0x0807 ED25519
+	// 0x0808 ED448
+	// 0xFE00-0xFFFF Private use
+	// --
+	tls.PKCS1WithSHA1:          "RSA-PKCS1 with SHA1",
+	tls.PKCS1WithSHA256:        "RSA-PKCS1 with SHA256",
+	tls.PKCS1WithSHA384:        "RSA-PKCS1 with SHA384",
+	tls.PKCS1WithSHA512:        "RSA-PKCS1 with SHA512",
+	tls.PSSWithSHA256:          "RSA-PSS with SHA256",
+	tls.PSSWithSHA384:          "RSA-PSS with SHA384",
+	tls.PSSWithSHA512:          "RSA-PSS with SHA512",
+	tls.ECDSAWithP256AndSHA256: "ECDSA with P256 and SHA256",
+	tls.ECDSAWithP384AndSHA384: "ECDSA with P384 and SHA384",
+	tls.ECDSAWithP521AndSHA512: "ECDSA with P521 and SHA512",
 
 	// Not from stdlib
 	// Defined in TLS 1.3 draft
 	0x807: "ED25519",
 	0x808: "ED448",
 
-	// Not in stdlib: server sent {sha1,ecdsa}.
-	// This is sent (at least) by Go 1.8.1 servers in TLS 1.2 handshakes.
-	0x203: "ECDSAWithSHA1",
+	// Not in stdlib: server sent {sha1,ecdsa} or {sha224,ecdsa}.
+	0x203: "ECDSA with SHA1",
+	0x303: "ECDSA with SHA224",
 
 	// Unused (?) but theorically possible combos (per RFC 5246)
-	0x101: "RSA-PKCS1WithMD5",
-	0x301: "RSA-PKCS1WithSHA224",
-	0x102: "DSAWithMD5",
-	0x202: "DSAWithSHA1",
-	0x302: "DSAWithSHA224",
-	0x402: "DSAWithSHA256",
-	0x502: "DSAWithSHA384",
-	0x602: "DSAWithSHA512",
+	0x101: "RSA-PKCS1 with MD5",
+	0x301: "RSA-PKCS1 with SHA224",
+	0x102: "DSA with MD5",
+	0x202: "DSA with SHA1",
+	0x302: "DSA with SHA224",
+	0x402: "DSA with SHA256",
+	0x502: "DSA with SHA384",
+	0x602: "DSA with SHA512",
 }
 
 var keyUsageStrings = map[x509.KeyUsage]string{

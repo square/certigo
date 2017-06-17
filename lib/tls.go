@@ -120,7 +120,7 @@ func EncodeCRIToObject(cri *tls.CertificateRequestInfo) (interface{}, error) {
 	for _, scheme := range cri.SignatureSchemes {
 		desc, ok := signatureSchemeStrings[scheme]
 		if !ok {
-			desc = fmt.Sprintf("0x%x", scheme)
+			desc = fmt.Sprintf("Unknown(0x%x)", scheme)
 		}
 		out.SignatureSchemes = append(out.SignatureSchemes, desc)
 	}
