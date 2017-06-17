@@ -248,4 +248,7 @@ done
 
 # Find (redundant) self-signed certificates in intermediate chain on remote host
 certigo connect $SERVER:$PORT | jq -e '.certificates[1:][] | select(.is_self_signed) | .subject.common_name'
+
+# Test if server is requesting that clients send certificates for authentication
+certigo connect $SERVER:$PORT | jq -e '.certificate_request_info != null'
 ```
