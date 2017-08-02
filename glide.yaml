@@ -1,9 +1,14 @@
 package: github.com/square/certigo
 import:
 - package: github.com/fatih/color
+  version: ^1.5.0
 - package: golang.org/x/crypto
   subpackages:
   - pkcs12
   - ssh/terminal
 - package: gopkg.in/alecthomas/kingpin.v2
+  version: ^2.2.5
 - package: gopkg.in/asn1-ber.v1
+  version: ^1.2.0
+- package: github.com/Masterminds/sprig
+  version: ^2.12.0

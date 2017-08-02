@@ -218,10 +218,13 @@ func TestDefaultEnvars(t *testing.T) {
 	f0.Bool()
 	f1 := a.Flag("some-other-flag", "").NoEnvar()
 	f1.Bool()
+	f2 := a.Flag("a-1-flag", "")
+	f2.Bool()
 	_, err := a.Parse([]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, "SOME_APP_SOME_FLAG", f0.envar)
 	assert.Equal(t, "", f1.envar)
+	assert.Equal(t, "SOME_APP_A_1_FLAG", f2.envar)
 }
 
 func TestBashCompletionOptionsWithEmptyApp(t *testing.T) {
@@ -244,13 +247,22 @@ func TestBashCompletionOptions(t *testing.T) {
 	two.Flag("flag-2", "").String()
 	two.Flag("flag-3", "").HintOptions("opt4", "opt5", "opt6").String()
 
+	three := a.Command("three", "")
+	three.Flag("flag-4", "").String()
+	three.Arg("arg-1", "").String()
+	three.Arg("arg-2", "").HintOptions("arg-2-opt-1", "arg-2-opt-2").String()
+	three.Arg("arg-3", "").String()
+	three.Arg("arg-4", "").HintAction(func() []string {
+		return []string{"arg-4-opt-1", "arg-4-opt-2"}
+	}).String()
+
 	cases := []struct {
 		Args            string
 		ExpectedOptions []string
 	}{
 		{
 			Args:            "--completion-bash",
-			ExpectedOptions: []string{"help", "one", "two"},
+			ExpectedOptions: []string{"help", "one", "three", "two"},
 		},
 		{
 			Args:            "--completion-bash --",
@@ -263,7 +275,7 @@ func TestBashCompletionOptions(t *testing.T) {
 		{
 			// No options available for flag-0, return to cmd completion
 			Args:            "--completion-bash --flag-0",
-			ExpectedOptions: []string{"help", "one", "two"},
+			ExpectedOptions: []string{"help", "one", "three", "two"},
 		},
 		{
 			Args:            "--completion-bash --flag-0 --",
@@ -279,7 +291,7 @@ func TestBashCompletionOptions(t *testing.T) {
 		},
 		{
 			Args:            "--completion-bash --flag-1 opt1",
-			ExpectedOptions: []string{"help", "one", "two"},
+			ExpectedOptions: []string{"help", "one", "three", "two"},
 		},
 		{
 			Args:            "--completion-bash --flag-1 opt1 --",
@@ -333,6 +345,49 @@ func TestBashCompletionOptions(t *testing.T) {
 		{
 			Args:            "--completion-bash two --flag-3 opt4 --",
 			ExpectedOptions: []string{"--help", "--flag-2", "--flag-3", "--flag-0", "--flag-1"},
+		},
+
+		// Args complete
+		{
+			// After a command with an arg with no options, nothing should be
+			// shown
+			Args:            "--completion-bash three ",
+			ExpectedOptions: []string(nil),
+		},
+		{
+			// After a command with an arg, explicitly starting a flag should
+			// complete flags
+			Args:            "--completion-bash three --",
+			ExpectedOptions: []string{"--flag-0", "--flag-1", "--flag-4", "--help"},
+		},
+		{
+			// After a command with an arg that does have completions, they
+			// should be shown
+			Args:            "--completion-bash three arg1 ",
+			ExpectedOptions: []string{"arg-2-opt-1", "arg-2-opt-2"},
+		},
+		{
+			// After a command with an arg that does have completions, but a
+			// flag is started, flag options should be completed
+			Args:            "--completion-bash three arg1 --",
+			ExpectedOptions: []string{"--flag-0", "--flag-1", "--flag-4", "--help"},
+		},
+		{
+			// After a command with an arg that has no completions, and isn't first,
+			// nothing should be shown
+			Args:            "--completion-bash three arg1 arg2 ",
+			ExpectedOptions: []string(nil),
+		},
+		{
+			// After a command with a different arg that also has completions,
+			// those different options should be shown
+			Args:            "--completion-bash three arg1 arg2 arg3 ",
+			ExpectedOptions: []string{"arg-4-opt-1", "arg-4-opt-2"},
+		},
+		{
+			// After a command with all args listed, nothing should complete
+			Args:            "--completion-bash three arg1 arg2 arg3 arg4",
+			ExpectedOptions: []string(nil),
 		},
 	}
 
