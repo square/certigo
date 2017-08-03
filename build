@@ -13,3 +13,7 @@ ln -s ${PWD} $GOPATH/src/${REPO_PATH}
 eval $(go env)
 
 go build -o bin/certigo ${REPO_PATH}
+
+# Generate man page
+mkdir -p man
+bin/certigo --help-man > man/certigo.1
