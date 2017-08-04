@@ -1,5 +1,5 @@
-hash: 918830aee13a56a49c3b56fa2ec6357a4e3ef17e7d017d886a2e9f6305705a98
-updated: 2016-06-09T15:50:04.07365191-07:00
+hash: f13313281515b6941a7f67c8dc051c6cd76314f3708fe93d1f701278856cfc1a
+updated: 2017-08-02T15:41:22.000418583-07:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -7,24 +7,41 @@ imports:
   - parse
 - name: github.com/alecthomas/units
   version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
+- name: github.com/aokoli/goutils
+  version: 3391d3790d23d03408670993e957e8f408993c34
 - name: github.com/fatih/color
-  version: 533cd7fd8a85905f67a1753afb4deddc85ea174f
+  version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
+- name: github.com/huandu/xstrings
+  version: 3959339b333561bf62a38b424fd41517c2c90f40
+- name: github.com/imdario/mergo
+  version: 3e95a51e0639b4cf372f2ccf74c86749d747fbdc
+- name: github.com/Masterminds/semver
+  version: 59c29afe1a994eacb71c833025ca7acf874bb1da
+- name: github.com/Masterminds/sprig
+  version: 9526be0327b26ad31aa70296a7b10704883976d5
 - name: github.com/mattn/go-colorable
-  version: 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
   repo: https://github.com/mattn/go-colorable
 - name: github.com/mattn/go-isatty
-  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
   repo: https://github.com/mattn/go-isatty
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: golang.org/x/crypto
   version: 5bcd134fee4dd1475da17714aac19c0aa0142e2f
   subpackages:
+  - pbkdf2
   - pkcs12
-  - ssh/terminal
   - pkcs12/internal/rc2
+  - scrypt
+  - ssh/terminal
 - name: golang.org/x/sys
-  version: 076b546753157f758b316e59bcb51e6807c04057
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
+  repo: https://go.googlesource.com/sys
   subpackages:
   - unix
 - name: gopkg.in/alecthomas/kingpin.v2
-  version: 8cccfa8eb2e3183254457fb1749b2667fbc364c7
-devImports: []
+  version: 1087e65c9441605df944fb12c33f0fe7072d18ca
+- name: gopkg.in/asn1-ber.v1
+  version: 379148ca0225df7a432012b8df0355c2a2063ac0
+testImports: []

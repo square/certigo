@@ -33,10 +33,10 @@ import (
 )
 
 var (
-	app     = kingpin.New("certigo", "A command line certificate examination utility.")
+	app     = kingpin.New("certigo", "A command-line utility to examine and validate certificates to help with debugging SSL/TLS issues.")
 	verbose = app.Flag("verbose", "Print verbose").Short('v').Bool()
 
-	dump         = app.Command("dump", "Display information about a certificate from a file/stdin.")
+	dump         = app.Command("dump", "Display information about a certificate from a file or stdin.")
 	dumpFiles    = dump.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFiles()
 	dumpType     = dump.Flag("format", "Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).").Short('f').String()
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
