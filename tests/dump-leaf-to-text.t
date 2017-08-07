@@ -46,8 +46,8 @@ Dump an example certificate (example-leaf.crt)
   Extended Key Usage:
   \tClient Auth (esc)
   \tServer Auth (esc)
-  Alternate DNS Names:
+  DNS Names:
   \tlocalhost (esc)
-  Alternate IP Addresses:
+  IP Addresses:
   \t127.0.0.1, ::1 (esc)
   
