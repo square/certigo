@@ -31,8 +31,8 @@ Dump an example certificate (example-leaf.crt)
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
   Subject: CN=example-leaf
   Issuer: CN=example-leaf
-  Alternate DNS Names:
+  DNS Names:
   \tlocalhost (esc)
-  Alternate IP Addresses:
+  IP Addresses:
   \t127.0.0.1, ::1 (esc)
   

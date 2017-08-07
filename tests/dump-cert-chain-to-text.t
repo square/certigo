@@ -137,7 +137,7 @@ Dump a live cert chain (squareup-chain.crt)
   Extended Key Usage:
   \tServer Auth (esc)
   \tClient Auth (esc)
-  Alternate DNS Names:
+  DNS Names:
   \twww.squareup.com, squareup.com, (esc)
   \taccount.squareup.com, mkt.com, www.mkt.com, (esc)
   \tmarket.squareup.com, gosq.com, www.gosq.com, (esc)

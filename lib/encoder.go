@@ -32,6 +32,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/spiffe/go-spiffe"
 )
 
 var keyUsages = []x509.KeyUsage{
@@ -189,6 +191,7 @@ type simpleCertificate struct {
 	ExtKeyUsage        []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
 	AltDNSNames        []string            `json:"dns_names,omitempty"`
 	AltIPAddresses     []net.IP            `json:"ip_addresses,omitempty"`
+	URINames           []string            `json:"uri_names,omitempty"`
 	EmailAddresses     []string            `json:"email_addresses,omitempty"`
 	Warnings           []string            `json:"warnings,omitempty"`
 	PEM                string              `json:"pem,omitempty"`
@@ -229,6 +232,11 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		EmailAddresses: cert.EmailAddresses,
 		Warnings:       certWarnings(cert),
 		PEM:            string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
+	}
+
+	uriNames, err := spiffe.GetURINamesFromCertificate(cert)
+	if err != nil {
+		out.URINames = uriNames
 	}
 
 	if cert.BasicConstraintsValid {

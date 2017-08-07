@@ -1,5 +1,5 @@
-hash: f13313281515b6941a7f67c8dc051c6cd76314f3708fe93d1f701278856cfc1a
-updated: 2017-08-02T15:41:22.000418583-07:00
+hash: f7ccb11674e8a2d85c7cdc160a5dd7a3160b1280f9443879235148659939ffb5
+updated: 2017-08-07T15:26:47.237893811-07:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -27,6 +27,8 @@ imports:
   repo: https://github.com/mattn/go-isatty
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: github.com/spiffe/go-spiffe
+  version: 2a3d812e4ae000302a242cb42490ff395e9508de
 - name: golang.org/x/crypto
   version: 5bcd134fee4dd1475da17714aac19c0aa0142e2f
   subpackages:

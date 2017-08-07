@@ -58,11 +58,14 @@ Key Usage:{{range .KeyUsage | keyUsage}}
 Extended Key Usage:{{range .ExtKeyUsage}}
 	{{. | extKeyUsage}}{{end}}{{end}}
 {{- if .AltDNSNames}}
-Alternate DNS Names:
+DNS Names:
 	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
 {{- if .AltIPAddresses}}
-Alternate IP Addresses:
+IP Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}{{end}}
+{{- if .URINames}}
+URI Names:
+	{{wrapWith .Width "\n\t" (join ", " .URINames)}}{{end}}
 {{- if .EmailAddresses}}
 Email Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
@@ -80,11 +83,14 @@ Issuer: {{.Issuer.Name | printShortName }}
 Name Constraints{{if .PermittedDNSDomains.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
 	{{.}}{{end}}{{end}}
 {{- if .AltDNSNames}}
-Alternate DNS Names:
+DNS Names:
 	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
 {{- if .AltIPAddresses}}
-Alternate IP Addresses:
+IP Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}{{end}}
+{{- if .URINames}}
+URI Names:
+	{{wrapWith .Width "\n\t" (join ", " .URINames)}}{{end}}
 {{- if .EmailAddresses}}
 Email Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
