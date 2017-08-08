@@ -230,14 +230,15 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		AltDNSNames:    cert.DNSNames,
 		AltIPAddresses: cert.IPAddresses,
 		EmailAddresses: cert.EmailAddresses,
-		Warnings:       certWarnings(cert),
 		PEM:            string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 	}
 
 	uriNames, err := spiffe.GetURINamesFromCertificate(cert)
-	if err != nil {
+	if err == nil {
 		out.URINames = uriNames
 	}
+
+	out.Warnings = certWarnings(cert, uriNames)
 
 	if cert.BasicConstraintsValid {
 		out.BasicConstraints = &basicConstraints{
@@ -355,7 +356,7 @@ func decodeKey(publicKey interface{}) (string, int) {
 }
 
 // certWarnings prints a list of warnings to show common mistakes in certs.
-func certWarnings(cert *x509.Certificate) (warnings []string) {
+func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string) {
 	if cert.SerialNumber.Sign() != 1 {
 		warnings = append(warnings, "Serial number in cert appears to be zero/negative")
 	}
@@ -364,11 +365,11 @@ func certWarnings(cert *x509.Certificate) (warnings []string) {
 		warnings = append(warnings, "Serial number too long; should be 20 bytes or less")
 	}
 
-	if (cert.KeyUsage&x509.KeyUsageCertSign != 0) && !cert.IsCA {
+	if cert.KeyUsage&x509.KeyUsageCertSign != 0 && !cert.IsCA {
 		warnings = append(warnings, "Key usage 'cert sign' is set, but is not a CA cert")
 	}
 
-	if (cert.KeyUsage&x509.KeyUsageCertSign == 0) && cert.IsCA {
+	if cert.KeyUsage&x509.KeyUsageCertSign == 0 && cert.IsCA {
 		warnings = append(warnings, "Certificate is a CA cert, but key usage 'cert sign' missing")
 	}
 
@@ -376,8 +377,8 @@ func certWarnings(cert *x509.Certificate) (warnings []string) {
 		warnings = append(warnings, fmt.Sprintf("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
 	}
 
-	if (len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0) && !cert.IsCA {
-		warnings = append(warnings, fmt.Sprintf("Certificate doesn't have any valid DNS names/IP addresses set"))
+	if len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0 && len(uriNames) == 0 && !cert.IsCA {
+		warnings = append(warnings, fmt.Sprintf("Certificate doesn't have any valid DNS/URI names or IP addresses set"))
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {
