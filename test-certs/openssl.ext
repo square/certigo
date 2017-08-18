@@ -7,3 +7,7 @@ subjectAltName = IP:127.0.0.1,IP:::1,DNS:localhost
 [root_bad]
 keyUsage=critical, cRLSign
 basicConstraints=critical, CA:TRUE, pathlen:0
+[root_with_constraints]
+keyUsage=critical, keyCertSign
+basicConstraints=critical, CA:TRUE, pathlen:0
+nameConstraints=permitted;DNS:.example.com,permitted;IP:192.168.0.0/255.255.0.0,permitted;email:.example.com,excluded;DNS:.example.org,excluded;IP:10.10.0.0/255.255.0.0,excluded;email:.example.org
