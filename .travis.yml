@@ -3,7 +3,7 @@
 language: go
 
 go:
-  - 1.8
+  - 1.9
 
 install:
   - go get github.com/Masterminds/glide
@@ -33,4 +33,4 @@ deploy:
   on:
     repo: square/certigo
     tags: true
-    go: 1.8
+    go: 1.9
