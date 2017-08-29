@@ -173,6 +173,7 @@ type basicConstraints struct {
 type nameConstraints struct {
 	Critical            bool     `json:"critical,omitempty"`
 	PermittedDNSDomains []string `json:"permitted_dns_domains,omitempty"`
+	ExcludedDNSDomains  []string `json:"excluded_dns_domains,omitempty"`
 }
 
 // simpleCertificate is a JSON-representable certificate metadata holder.
@@ -249,10 +250,11 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		}
 	}
 
-	if len(cert.PermittedDNSDomains) > 0 {
+	if len(cert.PermittedDNSDomains) > 0 || len(cert.ExcludedDNSDomains) > 0 {
 		out.NameConstraints = &nameConstraints{
 			Critical:            cert.PermittedDNSDomainsCritical,
 			PermittedDNSDomains: cert.PermittedDNSDomains,
+			ExcludedDNSDomains:  cert.ExcludedDNSDomains,
 		}
 	}
 

@@ -48,30 +48,57 @@ Subject Info:
 Issuer Info:
 	{{- template "PkixName" .Issuer.Name}}
 {{- if .Subject.KeyID}}
-Subject Key ID: {{.Subject.KeyID | hexify}}{{end}}{{if .Issuer.KeyID}}
-Authority Key ID: {{.Issuer.KeyID | hexify}}{{end}}{{if .BasicConstraints}}
-Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}{{if .NameConstraints}}
-Name Constraints {{if .PermittedDNSDomains.Critical}}(critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
-	{{.}}{{end}}{{end}}{{if .KeyUsage}}
-Key Usage:{{range .KeyUsage | keyUsage}}
-	{{.}}{{end}}{{end}}{{if .ExtKeyUsage}}
-Extended Key Usage:{{range .ExtKeyUsage}}
-	{{. | extKeyUsage}}{{end}}{{end}}
+Subject Key ID: {{.Subject.KeyID | hexify}}
+{{- end}}
+{{- if .Issuer.KeyID}}
+Authority Key ID: {{.Issuer.KeyID | hexify}}
+{{- end}}
+{{- if .BasicConstraints}}
+Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}
+{{- if .NameConstraints}}
+DNS Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}: 
+{{- if .NameConstraints.PermittedDNSDomains}}
+Permitted:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedDNSDomains)}}
+{{- end}}
+{{- if .NameConstraints.ExcludedDNSDomains}}
+Excluded:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedDNSDomains)}}
+{{- end}}
+{{- end}}
+{{- if .KeyUsage}}
+Key Usage:
+{{- range .KeyUsage | keyUsage}}
+	{{.}}
+{{- end}}
+{{- end}}
+{{- if .ExtKeyUsage}}
+Extended Key Usage:
+{{- range .ExtKeyUsage}}
+	{{. | extKeyUsage}}{{end}}
+{{- end}}
 {{- if .AltDNSNames}}
 DNS Names:
-	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
+	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}
+{{- end}}
 {{- if .AltIPAddresses}}
 IP Addresses:
-	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}{{end}}
+	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}
+{{- end}}
 {{- if .URINames}}
 URI Names:
-	{{wrapWith .Width "\n\t" (join ", " .URINames)}}{{end}}
+	{{wrapWith .Width "\n\t" (join ", " .URINames)}}
+{{- end}}
 {{- if .EmailAddresses}}
 Email Addresses:
-	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
+	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}
+{{- end}}
 {{- if .Warnings}}
-Warnings:{{range .Warnings}}
-	{{. | redify}}{{end}}{{end}}`
+Warnings:
+{{- range .Warnings}}
+	{{. | redify}}
+{{- end}}
+{{- end}}`
 
 var layout = `
 {{- if .Alias}}{{.Alias}}
@@ -280,6 +307,7 @@ func greenify(text string) string {
 	return green.SprintfFunc()("%s", text)
 }
 
+// PrintShortName turns a pkix.Name into a string of RDN tuples.
 func PrintShortName(name pkix.Name) (out string) {
 	// Try to print CN for short name if present.
 	if name.CommonName != "" {
