@@ -178,24 +178,26 @@ type nameConstraints struct {
 
 // simpleCertificate is a JSON-representable certificate metadata holder.
 type simpleCertificate struct {
-	Alias              string              `json:"alias,omitempty"`
-	SerialNumber       string              `json:"serial"`
-	NotBefore          time.Time           `json:"not_before"`
-	NotAfter           time.Time           `json:"not_after"`
-	SignatureAlgorithm simpleSigAlg        `json:"signature_algorithm"`
-	IsSelfSigned       bool                `json:"is_self_signed"`
-	Subject            simplePKIXName      `json:"subject"`
-	Issuer             simplePKIXName      `json:"issuer"`
-	BasicConstraints   *basicConstraints   `json:"basic_constraints,omitempty"`
-	NameConstraints    *nameConstraints    `json:"name_constraints,omitempty"`
-	KeyUsage           simpleKeyUsage      `json:"key_usage,omitempty"`
-	ExtKeyUsage        []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
-	AltDNSNames        []string            `json:"dns_names,omitempty"`
-	AltIPAddresses     []net.IP            `json:"ip_addresses,omitempty"`
-	URINames           []string            `json:"uri_names,omitempty"`
-	EmailAddresses     []string            `json:"email_addresses,omitempty"`
-	Warnings           []string            `json:"warnings,omitempty"`
-	PEM                string              `json:"pem,omitempty"`
+	Alias                 string              `json:"alias,omitempty"`
+	SerialNumber          string              `json:"serial"`
+	NotBefore             time.Time           `json:"not_before"`
+	NotAfter              time.Time           `json:"not_after"`
+	SignatureAlgorithm    simpleSigAlg        `json:"signature_algorithm"`
+	IsSelfSigned          bool                `json:"is_self_signed"`
+	Subject               simplePKIXName      `json:"subject"`
+	Issuer                simplePKIXName      `json:"issuer"`
+	BasicConstraints      *basicConstraints   `json:"basic_constraints,omitempty"`
+	NameConstraints       *nameConstraints    `json:"name_constraints,omitempty"`
+	OCSPServer            []string            `json:"ocsp_server,omitempty"`
+	IssuingCertificateURL []string            `json:"issuing_certificate,omitempty"`
+	KeyUsage              simpleKeyUsage      `json:"key_usage,omitempty"`
+	ExtKeyUsage           []simpleExtKeyUsage `json:"extended_key_usage,omitempty"`
+	AltDNSNames           []string            `json:"dns_names,omitempty"`
+	AltIPAddresses        []net.IP            `json:"ip_addresses,omitempty"`
+	URINames              []string            `json:"uri_names,omitempty"`
+	EmailAddresses        []string            `json:"email_addresses,omitempty"`
+	Warnings              []string            `json:"warnings,omitempty"`
+	PEM                   string              `json:"pem,omitempty"`
 
 	// Internal fields for text display. Set - to skip serialize.
 	Width int `json:"-"`
@@ -227,11 +229,13 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 			Name:  cert.Issuer,
 			KeyID: cert.AuthorityKeyId,
 		},
-		KeyUsage:       simpleKeyUsage(cert.KeyUsage),
-		AltDNSNames:    cert.DNSNames,
-		AltIPAddresses: cert.IPAddresses,
-		EmailAddresses: cert.EmailAddresses,
-		PEM:            string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
+		KeyUsage:              simpleKeyUsage(cert.KeyUsage),
+		OCSPServer:            cert.OCSPServer,
+		IssuingCertificateURL: cert.IssuingCertificateURL,
+		AltDNSNames:           cert.DNSNames,
+		AltIPAddresses:        cert.IPAddresses,
+		EmailAddresses:        cert.EmailAddresses,
+		PEM:                   string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 	}
 
 	uriNames, err := spiffe.GetURINamesFromCertificate(cert)

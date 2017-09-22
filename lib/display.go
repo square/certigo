@@ -66,6 +66,14 @@ Excluded:
 	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedDNSDomains)}}
 {{- end}}
 {{- end}}
+{{- if .OCSPServer}}
+OCSP Server(s):
+	{{wrapWith .Width "\n\t" (join ", " .OCSPServer)}}
+{{- end}}
+{{- if .IssuingCertificateURL}}
+Issuing Certificate URL(s):
+	{{wrapWith .Width "\n\t" (join ", " .IssuingCertificateURL)}}
+{{- end}}
 {{- if .KeyUsage}}
 Key Usage:
 {{- range .KeyUsage | keyUsage}}

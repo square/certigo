@@ -131,6 +131,10 @@ Dump a live cert chain (squareup-chain.crt)
   Subject Key ID: D4:17:14:6F:0B:C5:20:A1:D6:FE:21:7E:DC:9E:F8:57:9C:ED:AE:6A
   Authority Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Basic Constraints: CA:false
+  OCSP Server(s):
+  \thttp://ocsp.entrust.net (esc)
+  Issuing Certificate URL(s):
+  \thttp://aia.entrust.net/l1m-chain256.cer (esc)
   Key Usage:
   \tDigital Signature (esc)
   \tKey Encipherment (esc)
@@ -162,6 +166,8 @@ Dump a live cert chain (squareup-chain.crt)
   Subject Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
   Authority Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
   Basic Constraints: CA:true, pathlen:0
+  OCSP Server(s):
+  \thttp://ocsp.entrust.net (esc)
   Key Usage:
   \tCert Sign (esc)
   \tCRL Sign (esc)
@@ -188,6 +194,8 @@ Dump a live cert chain (squareup-chain.crt)
   Subject Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
   Authority Key ID: 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
   Basic Constraints: CA:true, pathlen:1
+  OCSP Server(s):
+  \thttp://ocsp.entrust.net (esc)
   Key Usage:
   \tCert Sign (esc)
   \tCRL Sign (esc)
