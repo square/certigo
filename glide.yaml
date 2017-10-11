@@ -13,3 +13,4 @@ import:
 - package: github.com/Masterminds/sprig
   version: ^2.12.0
 - package: github.com/spiffe/go-spiffe
+- package: github.com/mwitkow/go-http-dialer

@@ -22,11 +22,14 @@ import (
 	"fmt"
 	"net"
 	"net/smtp"
+	"net/url"
 	"time"
 
 	"github.com/square/certigo/starttls/ldap"
 	"github.com/square/certigo/starttls/mysql"
 	"github.com/square/certigo/starttls/psql"
+
+	"github.com/mwitkow/go-http-dialer"
 )
 
 type connectResult struct {
@@ -53,7 +56,7 @@ func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config
 
 		cert, err = tls.LoadX509KeyPair(clientCert, keyFile)
 		if err != nil {
-			return nil, nil, fmt.Errorf("unable to read client certificate/key: %s\n", err)
+			return nil, nil, fmt.Errorf("unable to read client certificate/key: %s", err)
 		}
 
 		// Required even if we set fallback, because of bug in Go 1.8.0 (fixed in 1.8.1)
@@ -80,14 +83,13 @@ func setGetClientCertificateCallback(conf *tls.Config, cert *tls.Certificate) **
 // empty string, which does a normal TLS connection. connectTo specifies the
 // address to connect to. connectName sets SNI. identity sets DB username,
 // SMTP EHLO. connectCert and connectKey are client cert/key.
-func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, timeout time.Duration) (*tls.ConnectionState, *tls.CertificateRequestInfo, error) {
+func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, connectProxy *url.URL, timeout time.Duration) (*tls.ConnectionState, *tls.CertificateRequestInfo, error) {
 	var err error
 	var state *tls.ConnectionState
 	var cri **tls.CertificateRequestInfo
 	var tlsConfig *tls.Config
 
-	// Network dialer to use (if possible)
-	dialer := net.Dialer{
+	var dialer Dialer = &net.Dialer{
 		Timeout:  timeout,
 		Deadline: time.Now().Add(timeout),
 	}
@@ -109,10 +111,17 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		}
 	}
 
+	if connectProxy != nil {
+		dialer = http_dialer.New(
+			connectProxy,
+			http_dialer.WithDialer(dialer.(*net.Dialer)),
+			http_dialer.WithTls(tlsConfig))
+	}
+
 	go func() {
 		switch startTLSType {
 		case "":
-			conn, err := tls.DialWithDialer(&dialer, "tcp", connectTo, tlsConfig)
+			conn, err := dialWithDialer(dialer, timeout, "tcp", connectTo, tlsConfig)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
@@ -187,7 +196,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			}
 			res <- connectResult{&state, nil}
 		case "ftp":
-			state, err = dumpAuthTLSFromFTP(&dialer, connectTo, tlsConfig)
+			state, err = dumpAuthTLSFromFTP(dialer, connectTo, tlsConfig)
 			res <- connectResult{state, err}
 		default:
 			res <- connectResult{nil, fmt.Errorf("unknown StartTLS protocol: %s", startTLSType)}
@@ -197,7 +206,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 	result := <-res
 
 	if result.err != nil {
-		return nil, nil, fmt.Errorf("error connecting: %v\n", result.err)
+		return nil, nil, fmt.Errorf("error connecting: %v", result.err)
 	}
 
 	if result.state.Version < tls.VersionTLS12 && *cri != nil {

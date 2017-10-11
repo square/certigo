@@ -25,6 +25,8 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 57fdcb988a5c543893cc61bce354a6e24ab70022
   repo: https://github.com/mattn/go-isatty
+- name: github.com/mwitkow/go-http-dialer
+  version: 378f744fb2b81a6b96e3f40cde4f3bcab5a9cff0
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/spiffe/go-spiffe
