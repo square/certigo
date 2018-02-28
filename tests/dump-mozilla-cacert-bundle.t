@@ -3736,3 +3736,9 @@ Dump trust store and make sure there are no errors.
 
   $ certigo dump cacert.pem >/dev/null; echo $?
   0
+  $ certigo dump --verbose cacert.pem >/dev/null; echo $?
+  0
+  $ certigo dump --json cacert.pem >/dev/null; echo $?
+  0
+  $ certigo dump --pem cacert.pem >/dev/null; echo $?
+  0
