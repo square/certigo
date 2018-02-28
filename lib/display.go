@@ -136,8 +136,10 @@ var layout = `
 {{- if .Alias}}{{.Alias}}
 {{end -}}
 Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
-Subject: {{.Subject.Name | printShortName }}
-Issuer: {{.Issuer.Name | printShortName }}
+Subject:
+	{{wrapWith .Width "\n\t" (.Subject.Name | printShortName)}}
+Issuer:
+	{{wrapWith .Width "\n\t" (.Issuer.Name | printShortName)}}
 {{- if .AltDNSNames}}
 DNS Names:
 	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
@@ -224,6 +226,7 @@ func displayCert(cert simpleCertificate, verbose bool) []byte {
 		"oidName":            oidName,
 		"oidShort":           oidShort,
 		"printShortName":     PrintShortName,
+		"printCommonName":    PrintCommonName,
 	}
 	for k, v := range extras {
 		funcMap[k] = v
@@ -336,14 +339,16 @@ func greenify(text string) string {
 	return green.SprintfFunc()("%s", text)
 }
 
-// PrintShortName turns a pkix.Name into a string of RDN tuples.
-func PrintShortName(name pkix.Name) (out string) {
-	// Try to print CN for short name if present.
+// PrintCommonName prints the CN from a pkix.Name, or falls back to PrintShortName if CN is missing.
+func PrintCommonName(name pkix.Name) (out string) {
 	if name.CommonName != "" {
 		return fmt.Sprintf("CN=%s", name.CommonName)
 	}
+	return PrintShortName(name)
+}
 
-	// If both CN is missing, just print O, OU, etc.
+// PrintShortName turns a pkix.Name into a string of RDN tuples.
+func PrintShortName(name pkix.Name) (out string) {
 	printed := false
 	for _, name := range name.Names {
 		short := oidShort(name.Type)

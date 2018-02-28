@@ -29,8 +29,10 @@ Dump an example certificate (example-leaf.crt)
   $ certigo dump example-leaf.crt
   ** CERTIFICATE 1 **
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
-  Subject: CN=example-leaf
-  Issuer: CN=example-leaf
+  Subject:
+  \tC=US, ST=CA, O=certigo, OU=example, CN=example-leaf (esc)
+  Issuer:
+  \tC=US, ST=CA, O=certigo, OU=example, CN=example-leaf (esc)
   DNS Names:
   \tlocalhost (esc)
   IP Addresses:
