@@ -16,15 +16,15 @@ func describeOid(oid asn1.ObjectIdentifier) OidDescription {
 	// Multiple should be true for any types that are []string in x509.pkix.Name. When in doubt, set it to true.
 	names := map[string]OidDescription{
 		"2.5.4.3":                   {"CommonName", "CN", "common_name", false},
-		"2.5.4.5":                   {"EV Incorporation Registration Number", "SERIALNUMBER", "ev_registration_number", false},
+		"2.5.4.5":                   {"EV Incorporation Registration Number", "", "ev_registration_number", false},
 		"2.5.4.6":                   {"Country", "C", "country", true},
 		"2.5.4.7":                   {"Locality", "L", "locality", true},
 		"2.5.4.8":                   {"Province", "ST", "province", true},
-		"2.5.4.9":                   {"Street", "STREET", "street", true},
+		"2.5.4.9":                   {"Street", "", "street", true},
 		"2.5.4.10":                  {"Organization", "O", "organization", true},
 		"2.5.4.11":                  {"Organizational Unit", "OU", "organizational_unit", true},
 		"2.5.4.15":                  {"Business Category", "", "business_category", true},
-		"2.5.4.17":                  {"Postal Code", "POSTALCODE", "postalcode", true},
+		"2.5.4.17":                  {"Postal Code", "", "postalcode", true},
 		"1.2.840.113549.1.9.1":      {"Email Address", "", "email_address", true},
 		"1.3.6.1.4.1.311.60.2.1.1":  {"EV Incorporation Locality", "", "ev_locality", true},
 		"1.3.6.1.4.1.311.60.2.1.2":  {"EV Incorporation Province", "", "ev_province", true},

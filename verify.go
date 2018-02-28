@@ -151,7 +151,7 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 				PEM:                string(pem.EncodeToMemory(lib.EncodeX509ToPEM(cert, nil))),
 			}
 
-			aCert.Name = lib.PrintShortName(cert.Subject)
+			aCert.Name = lib.PrintCommonName(cert.Subject)
 			aChain = append(aChain, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)
