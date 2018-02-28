@@ -56,14 +56,38 @@ Authority Key ID: {{.Issuer.KeyID | hexify}}
 {{- if .BasicConstraints}}
 Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}
 {{- if .NameConstraints}}
-DNS Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}: 
+Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}: 
 {{- if .NameConstraints.PermittedDNSDomains}}
-Permitted:
+Permitted DNS domains:
 	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedDNSDomains)}}
+{{- end -}}
+{{- if .NameConstraints.PermittedEmailAddresses}}
+Permitted email addresses:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedEmailAddresses)}}
+{{- end -}}
+{{- if .NameConstraints.PermittedIPRanges}}
+Permitted IP ranges:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedIPRanges)}}
+{{- end -}}
+{{- if .NameConstraints.PermittedURIDomains}}
+Permitted URI domains:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedURIDomains)}}
 {{- end}}
 {{- if .NameConstraints.ExcludedDNSDomains}}
-Excluded:
+Excluded DNS domains:
 	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedDNSDomains)}}
+{{- end}}
+{{- if .NameConstraints.ExcludedEmailAddresses}}
+Excluded email addresses:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedEmailAddresses)}}
+{{- end}}
+{{- if .NameConstraints.ExcludedIPRanges}}
+Excluded IP ranges:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedIPRanges)}}
+{{- end}}
+{{- if .NameConstraints.ExcludedURIDomains}}
+Excluded URI domains:
+	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.ExcludedURIDomains)}}
 {{- end}}
 {{- end}}
 {{- if .OCSPServer}}
@@ -114,9 +138,6 @@ var layout = `
 Valid: {{.NotBefore | certStart}} to {{.NotAfter | certEnd}}
 Subject: {{.Subject.Name | printShortName }}
 Issuer: {{.Issuer.Name | printShortName }}
-{{- if .NameConstraints}}
-Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}: {{range .NameConstraints.PermittedDNSDomains}}
-	{{.}}{{end}}{{end}}
 {{- if .AltDNSNames}}
 DNS Names:
 	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
