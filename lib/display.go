@@ -338,12 +338,6 @@ func greenify(text string) string {
 
 // PrintShortName turns a pkix.Name into a string of RDN tuples.
 func PrintShortName(name pkix.Name) (out string) {
-	// Try to print CN for short name if present.
-	if name.CommonName != "" {
-		return fmt.Sprintf("CN=%s", name.CommonName)
-	}
-
-	// If both CN is missing, just print O, OU, etc.
 	printed := false
 	for _, name := range name.Names {
 		short := oidShort(name.Type)
