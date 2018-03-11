@@ -44,7 +44,7 @@ var (
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
-	connectTo       = connect.Arg("server:port", "Hostname or IP to connect to.").String()
+	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").String()
 	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
 	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
