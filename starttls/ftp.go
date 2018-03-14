@@ -19,10 +19,9 @@ package starttls
 import (
 	"bufio"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net"
-	"strings"
+	"strconv"
 )
 
 func dumpAuthTLSFromFTP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
@@ -36,8 +35,8 @@ func dumpAuthTLSFromFTP(dialer Dialer, address string, config *tls.Config) (*tls
 	if err != nil {
 		return nil, err
 	}
-	if status != "220" {
-		return nil, fmt.Errorf("FTP server responded with status %s, was expecting 220", status)
+	if status != 220 {
+		return nil, fmt.Errorf("FTP server responded with status %d, was expecting 220", status)
 	}
 
 	fmt.Fprintf(conn, "AUTH TLS\r\n")
@@ -45,8 +44,8 @@ func dumpAuthTLSFromFTP(dialer Dialer, address string, config *tls.Config) (*tls
 	if err != nil {
 		return nil, err
 	}
-	if status != "234" {
-		return nil, fmt.Errorf("FTP server responded with status %s, was expecting 234", status)
+	if status != 234 {
+		return nil, fmt.Errorf("FTP server responded with status %d, was expecting 234", status)
 	}
 
 	tlsConn := tls.Client(conn, config)
@@ -59,15 +58,14 @@ func dumpAuthTLSFromFTP(dialer Dialer, address string, config *tls.Config) (*tls
 	return &state, nil
 }
 
-func readFTP(conn *net.TCPConn) (string, error) {
+func readFTP(conn *net.TCPConn) (int, error) {
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	status := strings.Split(response, " ")
-	if len(status) == 0 {
-		return "", errors.New("garbled response from FTP server after AUTH TLS command")
+	if len(response) <= 3 {
+		return 0, fmt.Errorf("Error parsing ftp protocol: Status code too short: '%s'", response)
 	}
-	return status[0], nil
+	return strconv.Atoi(response[:3])
 }
