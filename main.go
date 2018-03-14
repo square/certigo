@@ -49,7 +49,7 @@ var (
 	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
 	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", "Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').").Short('t').PlaceHolder("PROTOCOL").Enum("mysql", "postgres", "psql", "smtp", "ldap", "ftp")
+	connectStartTLS = connect.Flag("start-tls", fmt.Sprintf("Enable StartTLS protocol; one of: %v.", starttls.Protocols)).Short('t').PlaceHolder("PROTOCOL").Enum(starttls.Protocols...)
 	connectIdentity = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
 	connectProxy    = connect.Flag("proxy", "Optional URI for HTTP(s) CONNECT proxy to dial connections with").URL()
 	connectTimeout  = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
@@ -72,6 +72,9 @@ func main() {
 	app.Version("1.10.0")
 
 	terminalWidth := determineTerminalWidth()
+
+	// Alias starttls to start-tls
+	connect.Flag("starttls", "").Hidden().EnumVar(connectStartTLS, starttls.Protocols...)
 
 	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}

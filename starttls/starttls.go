@@ -34,6 +34,9 @@ import (
 	"github.com/mwitkow/go-http-dialer"
 )
 
+// Protocols are the names of supported protocols
+var Protocols []string = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp"}
+
 type connectResult struct {
 	state *tls.ConnectionState
 	err   error
