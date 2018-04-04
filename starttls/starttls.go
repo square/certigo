@@ -42,11 +42,18 @@ type connectResult struct {
 	err   error
 }
 
-func tlsConfigForConnect(connectName, clientCert, clientKey string) (*tls.Config, **tls.CertificateRequestInfo, error) {
+func tlsConfigForConnect(connectName, connectTo, clientCert, clientKey string) (*tls.Config, **tls.CertificateRequestInfo, error) {
+	var hostname string
+	if connectName != "" {
+		hostname = connectName
+	} else {
+		hostname = strings.Split(connectTo, ":")[0]
+	}
+
 	conf := &tls.Config{
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
-		ServerName:         connectName,
+		ServerName:         hostname,
 		MinVersion:         tls.VersionSSL30,
 	}
 
@@ -128,7 +135,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 	case "postgres", "psql":
 		// No tlsConfig needed for postgres, but all others do.
 	default:
-		tlsConfig, cri, err = tlsConfigForConnect(connectName, clientCert, clientKey)
+		tlsConfig, cri, err = tlsConfigForConnect(connectName, connectTo, clientCert, clientKey)
 		if err != nil {
 			return nil, nil, err
 		}
