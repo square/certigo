@@ -1,5 +1,5 @@
-hash: f7ccb11674e8a2d85c7cdc160a5dd7a3160b1280f9443879235148659939ffb5
-updated: 2017-08-07T15:26:47.237893811-07:00
+hash: 531e5085db3dd23bac021f026beadece03a5d8941ba6dbdced2551393f04f63c
+updated: 2018-04-03T22:18:36.631371-07:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -10,42 +10,41 @@ imports:
 - name: github.com/aokoli/goutils
   version: 3391d3790d23d03408670993e957e8f408993c34
 - name: github.com/fatih/color
-  version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
+  version: 507f6050b8568533fb3f5504de8e5205fa62a114
+- name: github.com/google/uuid
+  version: 064e2069ce9c359c118179501254f67d7d37ba24
 - name: github.com/huandu/xstrings
-  version: 3959339b333561bf62a38b424fd41517c2c90f40
+  version: 2bf18b218c51864a87384c06996e40ff9dcff8e1
 - name: github.com/imdario/mergo
-  version: 3e95a51e0639b4cf372f2ccf74c86749d747fbdc
+  version: 7fe0c75c13abdee74b09fcacef5ea1c6bba6a874
 - name: github.com/Masterminds/semver
   version: 59c29afe1a994eacb71c833025ca7acf874bb1da
 - name: github.com/Masterminds/sprig
-  version: 9526be0327b26ad31aa70296a7b10704883976d5
+  version: 6b2a58267f6a8b1dc8e2eb5519b984008fa85e8c
 - name: github.com/mattn/go-colorable
-  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
-  repo: https://github.com/mattn/go-colorable
+  version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
-  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
-  repo: https://github.com/mattn/go-isatty
+  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/mwitkow/go-http-dialer
   version: 378f744fb2b81a6b96e3f40cde4f3bcab5a9cff0
-- name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/spiffe/go-spiffe
-  version: 2a3d812e4ae000302a242cb42490ff395e9508de
+  version: 2bb3101d62b4bea6371d792e818360e3f056867b
 - name: golang.org/x/crypto
-  version: 5bcd134fee4dd1475da17714aac19c0aa0142e2f
+  version: b2aa35443fbc700ab74c586ae79b81c171851023
   subpackages:
+  - ocsp
   - pbkdf2
   - pkcs12
   - pkcs12/internal/rc2
   - scrypt
   - ssh/terminal
 - name: golang.org/x/sys
-  version: e24f485414aeafb646f6fca458b0bf869c0880a1
-  repo: https://go.googlesource.com/sys
+  version: 378d26f46672a356c46195c28f61bdb4c0a781dd
   subpackages:
   - unix
+  - windows
 - name: gopkg.in/alecthomas/kingpin.v2
-  version: 1087e65c9441605df944fb12c33f0fe7072d18ca
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/asn1-ber.v1
   version: 379148ca0225df7a432012b8df0355c2a2063ac0
 testImports: []
