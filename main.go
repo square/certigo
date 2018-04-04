@@ -150,7 +150,7 @@ func main() {
 			} else {
 				hostname = strings.Split(*connectTo, ":")[0]
 			}
-			verifyResult := verifyChain(connState.PeerCertificates, hostname, *connectCaPath)
+			verifyResult := verifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
 			result.VerifyResult = &verifyResult
 		}
 
@@ -181,7 +181,7 @@ func main() {
 			}
 		})
 
-		verifyResult := verifyChain(chain, *verifyName, *verifyCaPath)
+		verifyResult := verifyChain(chain, nil, *verifyName, *verifyCaPath)
 		if *verifyJSON {
 			blob, _ := json.Marshal(verifyResult)
 			fmt.Println(string(blob))

@@ -25,11 +25,13 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 
 	"crypto/tls"
 
 	"github.com/fatih/color"
 	"github.com/square/certigo/lib"
+	"golang.org/x/crypto/ocsp"
 )
 
 var (
@@ -69,8 +71,10 @@ type simpleVerifyCert struct {
 }
 
 type simpleVerification struct {
-	Error  string               `json:"error,omitempty"`
-	Chains [][]simpleVerifyCert `json:"chains"`
+	Error      string               `json:"error,omitempty"`
+	OCSPStatus *ocsp.Response       `json:"ocsp_response,omitempty"`
+	OCSPError  string               `json:"ocsp_error,omitempty"`
+	Chains     [][]simpleVerifyCert `json:"chains"`
 }
 
 type simpleResult struct {
@@ -120,7 +124,7 @@ func caBundle(caPath string) *x509.CertPool {
 	return bundle
 }
 
-func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerification {
+func verifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) simpleVerification {
 	result := simpleVerification{
 		Chains: [][]simpleVerifyCert{},
 	}
@@ -143,6 +147,14 @@ func verifyChain(certs []*x509.Certificate, dnsName, caPath string) simpleVerifi
 	}
 
 	for _, chain := range chains {
+		status, err := checkOCSP(chain, ocspStaple)
+		if err == nil {
+			result.OCSPStatus = status
+		}
+		if err != nil && err != skippedRevocationCheck {
+			result.OCSPError = err.Error()
+		}
+
 		aChain := []simpleVerifyCert{}
 		for _, cert := range chain {
 			aCert := simpleVerifyCert{
@@ -185,6 +197,26 @@ func printVerifyResult(out io.Writer, result simpleVerification) {
 		fmt.Fprintf(out, red.SprintfFunc()("Failed to verify certificate chain:\n"))
 		fmt.Fprintf(out, "\t%s\n", result.Error)
 		return
+	}
+	if result.OCSPError != "" {
+		fmt.Fprintf(out, red.SprintfFunc()("Certificate has OCSP servers, but was unable to check status:\n"))
+		fmt.Fprintf(out, "\t%s\n\n", result.OCSPError)
+	} else if result.OCSPStatus != nil {
+		var text string
+		var color *color.Color
+		switch result.OCSPStatus.Status {
+		case ocsp.Good:
+			text = "Good"
+			color = green
+		case ocsp.Revoked:
+			text = "Revoked"
+			color = red
+		default:
+			text = "Unknown"
+			color = yellow
+		}
+		fmt.Fprintf(out, color.SprintfFunc()("Checked OCSP status for certificate, got status:"))
+		fmt.Fprintf(out, "\n\t%s (last update: %s)\n\n", text, result.OCSPStatus.ProducedAt.Format(time.UnixDate))
 	}
 	fmt.Fprintf(out, green.SprintfFunc()("Found %d valid certificate chain(s):\n", len(result.Chains)))
 	for i, chain := range result.Chains {
