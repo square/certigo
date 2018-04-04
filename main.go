@@ -75,6 +75,8 @@ func main() {
 
 	// Alias starttls to start-tls
 	connect.Flag("starttls", "").Hidden().EnumVar(connectStartTLS, starttls.Protocols...)
+	// Use long help because many useful flags are under subcommands
+	app.UsageTemplate(kingpin.LongHelpTemplate)
 
 	stdout := colorable.NewColorableStdout()
 	result := simpleResult{}

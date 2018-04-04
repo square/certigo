@@ -27,7 +27,7 @@ On macOS you can also use homebrew to install:
 
     brew install certigo
 
-Note that certigo requires Go 1.9 or later to build.
+Note that certigo requires Go 1.10 or later to build.
 
 ### Develop
 
