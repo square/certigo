@@ -22,7 +22,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -82,14 +81,31 @@ func caBundle(caPath string) *x509.CertPool {
 		return nil
 	}
 
-	bundleBytes, err := ioutil.ReadFile(caPath)
+	caFile, err := os.Open(caPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading CA bundle: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error opening CA bundle %s: %s\n", caPath, err)
 		os.Exit(1)
 	}
 
 	bundle := x509.NewCertPool()
-	bundle.AppendCertsFromPEM(bundleBytes)
+	err = ReadAsX509FromFiles(
+		[]*os.File{caFile},
+		"",
+		func(prompt string) string {
+			// TODO: The JDK trust store ships with this password.
+			return "changeit"
+		},
+		func(cert *x509.Certificate, err error) {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
+			} else {
+				bundle.AddCert(cert)
+			}
+		})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
+		os.Exit(1)
+	}
 	return bundle
 }
 
