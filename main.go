@@ -79,7 +79,7 @@ func main() {
 	app.UsageTemplate(kingpin.LongHelpTemplate)
 
 	stdout := colorable.NewColorableStdout()
-	result := simpleResult{}
+	result := lib.SimpleResult{}
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case dump.FullCommand(): // Dump certificate
 		files := inputFiles(*dumpFiles)
@@ -150,7 +150,7 @@ func main() {
 			} else {
 				hostname = strings.Split(*connectTo, ":")[0]
 			}
-			verifyResult := verifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
+			verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
 			result.VerifyResult = &verifyResult
 		}
 
@@ -166,7 +166,7 @@ func main() {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
-			printVerifyResult(stdout, *result.VerifyResult)
+			lib.PrintVerifyResult(stdout, *result.VerifyResult)
 		}
 	case verify.FullCommand():
 		file := inputFile(*verifyFile)
@@ -181,12 +181,12 @@ func main() {
 			}
 		})
 
-		verifyResult := verifyChain(chain, nil, *verifyName, *verifyCaPath)
+		verifyResult := lib.VerifyChain(chain, nil, *verifyName, *verifyCaPath)
 		if *verifyJSON {
 			blob, _ := json.Marshal(verifyResult)
 			fmt.Println(string(blob))
 		} else {
-			printVerifyResult(stdout, verifyResult)
+			lib.PrintVerifyResult(stdout, verifyResult)
 		}
 		if verifyResult.Error != "" {
 			os.Exit(1)
