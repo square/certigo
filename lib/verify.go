@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package main
+package lib
 
 import (
 	"crypto/x509"
@@ -22,46 +22,14 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"strconv"
 	"time"
 
 	"crypto/tls"
 
 	"github.com/fatih/color"
-	"github.com/square/certigo/lib"
 	"golang.org/x/crypto/ocsp"
 )
-
-var (
-	green  = color.New(color.Bold, color.FgGreen)
-	yellow = color.New(color.Bold, color.FgYellow)
-	red    = color.New(color.Bold, color.FgRed)
-)
-
-var algoName = [...]string{
-	x509.MD2WithRSA:      "MD2-RSA",
-	x509.MD5WithRSA:      "MD5-RSA",
-	x509.SHA1WithRSA:     "SHA1-RSA",
-	x509.SHA256WithRSA:   "SHA256-RSA",
-	x509.SHA384WithRSA:   "SHA384-RSA",
-	x509.SHA512WithRSA:   "SHA512-RSA",
-	x509.DSAWithSHA1:     "DSA-SHA1",
-	x509.DSAWithSHA256:   "DSA-SHA256",
-	x509.ECDSAWithSHA1:   "ECDSA-SHA1",
-	x509.ECDSAWithSHA256: "ECDSA-SHA256",
-	x509.ECDSAWithSHA384: "ECDSA-SHA384",
-	x509.ECDSAWithSHA512: "ECDSA-SHA512",
-}
-
-var badSignatureAlgorithms = [...]x509.SignatureAlgorithm{
-	x509.MD2WithRSA,
-	x509.MD5WithRSA,
-	x509.SHA1WithRSA,
-	x509.DSAWithSHA1,
-	x509.ECDSAWithSHA1,
-}
 
 type simpleVerifyCert struct {
 	Name               string `json:"name"`
@@ -70,24 +38,24 @@ type simpleVerifyCert struct {
 	signatureAlgorithm x509.SignatureAlgorithm
 }
 
-type simpleVerification struct {
+type SimpleVerification struct {
 	Error      string               `json:"error,omitempty"`
 	OCSPStatus *ocsp.Response       `json:"ocsp_response,omitempty"`
 	OCSPError  string               `json:"ocsp_error,omitempty"`
 	Chains     [][]simpleVerifyCert `json:"chains"`
 }
 
-type simpleResult struct {
+type SimpleResult struct {
 	Certificates           []*x509.Certificate `json:"certificates"`
-	VerifyResult           *simpleVerification `json:"verify_result,omitempty"`
+	VerifyResult           *SimpleVerification `json:"verify_result,omitempty"`
 	TLSConnectionState     *tls.ConnectionState
 	CertificateRequestInfo *tls.CertificateRequestInfo
 }
 
-func (s simpleResult) MarshalJSON() ([]byte, error) {
+func (s SimpleResult) MarshalJSON() ([]byte, error) {
 	certs := make([]interface{}, len(s.Certificates))
 	for i, c := range s.Certificates {
-		certs[i] = lib.EncodeX509ToObject(c)
+		certs[i] = EncodeX509ToObject(c)
 	}
 
 	out := map[string]interface{}{}
@@ -96,10 +64,10 @@ func (s simpleResult) MarshalJSON() ([]byte, error) {
 		out["verify_result"] = s.VerifyResult
 	}
 	if s.TLSConnectionState != nil {
-		out["tls_connection"] = lib.EncodeTLSToObject(s.TLSConnectionState)
+		out["tls_connection"] = EncodeTLSToObject(s.TLSConnectionState)
 	}
 	if s.CertificateRequestInfo != nil {
-		encoded, err := lib.EncodeCRIToObject(s.CertificateRequestInfo)
+		encoded, err := EncodeCRIToObject(s.CertificateRequestInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -113,19 +81,36 @@ func caBundle(caPath string) *x509.CertPool {
 		return nil
 	}
 
-	bundleBytes, err := ioutil.ReadFile(caPath)
+	caFile, err := os.Open(caPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading CA bundle: %s\n", err)
+		fmt.Fprintf(os.Stderr, "error opening CA bundle %s: %s\n", caPath, err)
 		os.Exit(1)
 	}
 
 	bundle := x509.NewCertPool()
-	bundle.AppendCertsFromPEM(bundleBytes)
+	err = ReadAsX509FromFiles(
+		[]*os.File{caFile},
+		"",
+		func(prompt string) string {
+			// TODO: The JDK trust store ships with this password.
+			return "changeit"
+		},
+		func(cert *x509.Certificate, err error) {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
+			} else {
+				bundle.AddCert(cert)
+			}
+		})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
+		os.Exit(1)
+	}
 	return bundle
 }
 
-func verifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) simpleVerification {
-	result := simpleVerification{
+func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) SimpleVerification {
+	result := SimpleVerification{
 		Chains: [][]simpleVerifyCert{},
 	}
 
@@ -158,12 +143,12 @@ func verifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 		aChain := []simpleVerifyCert{}
 		for _, cert := range chain {
 			aCert := simpleVerifyCert{
-				IsSelfSigned:       lib.IsSelfSigned(cert),
+				IsSelfSigned:       IsSelfSigned(cert),
 				signatureAlgorithm: cert.SignatureAlgorithm,
-				PEM:                string(pem.EncodeToMemory(lib.EncodeX509ToPEM(cert, nil))),
+				PEM:                string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 			}
 
-			aCert.Name = lib.PrintCommonName(cert.Subject)
+			aCert.Name = PrintCommonName(cert.Subject)
 			aChain = append(aChain, aCert)
 		}
 		result.Chains = append(result.Chains, aChain)
@@ -185,14 +170,7 @@ func fmtCert(cert simpleVerifyCert) string {
 	return name
 }
 
-func algString(algo x509.SignatureAlgorithm) string {
-	if 0 < algo && int(algo) < len(algoName) {
-		return algoName[algo]
-	}
-	return strconv.Itoa(int(algo))
-}
-
-func printVerifyResult(out io.Writer, result simpleVerification) {
+func PrintVerifyResult(out io.Writer, result SimpleVerification) {
 	if result.Error != "" {
 		fmt.Fprintf(out, red.SprintfFunc()("Failed to verify certificate chain:\n"))
 		fmt.Fprintf(out, "\t%s\n", result.Error)
