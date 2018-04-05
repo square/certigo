@@ -27,11 +27,37 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/fatih/color"
 	"golang.org/x/crypto/ocsp"
 )
 
 var (
 	skippedRevocationCheck = errors.New("skipped revocation check")
+
+	revocationStatusColor = map[int]*color.Color{
+		ocsp.Good:    green,
+		ocsp.Revoked: red,
+		ocsp.Unknown: yellow,
+	}
+
+	revocationStatusDescription = map[int]string{
+		ocsp.Good:    "Good",
+		ocsp.Revoked: "Revoked",
+		ocsp.Unknown: "Unknown",
+	}
+
+	revocationReasonDescription = map[int]string{
+		ocsp.Unspecified:          "Unspecified",
+		ocsp.KeyCompromise:        "KeyCompromise",
+		ocsp.CACompromise:         "CACompromise",
+		ocsp.AffiliationChanged:   "AffiliationChanged",
+		ocsp.Superseded:           "Superseded",
+		ocsp.CessationOfOperation: "CessationOfOperation",
+		ocsp.CertificateHold:      "CertificateHold",
+		ocsp.RemoveFromCRL:        "RemoveFromCRL",
+		ocsp.PrivilegeWithdrawn:   "PrivilegeWithdrawn",
+		ocsp.AACompromise:         "AACompromise",
+	}
 )
 
 func checkOCSP(chain []*x509.Certificate, ocspStaple []byte) (status *ocsp.Response, err error) {
