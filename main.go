@@ -41,6 +41,7 @@ var (
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	dumpDepth    = dump.Flag("depth", "Certificate chain information upto a certain depth.").Short('d').Default("0").Int()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").String()
@@ -55,6 +56,7 @@ var (
 	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	connectVerify   = connect.Flag("verify", "Verify certificate chain.").Bool()
+	connectDepth    = connect.Flag("depth", "Certificate chain information upto a certain depth.").Short('d').Default("0").Int()
 
 	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -104,11 +106,21 @@ func main() {
 				}
 			})
 
+			// Calculate the depth of certificate from the leaf up that needs to be processed
+			chainLength := len(result.Certificates)
+			idx := chainLength
+			if chainLength > *dumpDepth && *dumpDepth > 0 {
+				idx = *dumpDepth
+			}
+
 			if *dumpJSON {
+				// Adjust the length of the result.Certificates length
+				result.Certificates = result.Certificates[:idx]
 				blob, _ := json.Marshal(result)
 				fmt.Println(string(blob))
 			} else {
-				for i, cert := range result.Certificates {
+
+				for i, cert := range result.Certificates[:idx] {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
@@ -135,7 +147,14 @@ func main() {
 		}
 		result.TLSConnectionState = connState
 		result.CertificateRequestInfo = cri
-		for _, cert := range connState.PeerCertificates {
+
+		chainLength := len(connState.PeerCertificates)
+		idx := chainLength
+		if chainLength > *connectDepth && *connectDepth > 0 {
+			idx = *connectDepth
+		}
+
+		for _, cert := range connState.PeerCertificates[:idx] {
 			if *connectPem {
 				pem.Encode(os.Stdout, lib.EncodeX509ToPEM(cert, nil))
 			} else {
@@ -151,6 +170,9 @@ func main() {
 		}
 		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
 		result.VerifyResult = &verifyResult
+
+		// Adjust the length of result.Certificates
+		result.Certificates = result.Certificates[:idx]
 
 		if *connectJSON {
 			blob, _ := json.Marshal(result)
