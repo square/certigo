@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"golang.org/x/crypto/ocsp"
@@ -58,6 +58,16 @@ var (
 		ocsp.PrivilegeWithdrawn:   "PrivilegeWithdrawn",
 		ocsp.AACompromise:         "AACompromise",
 	}
+
+	ocspHttpClient = &http.Client{
+		// Set a timeout so we don't block forever on broken servers.
+		Timeout: 5 * time.Second,
+	}
+)
+
+const (
+	// We retry multiple times, because OCSP servers are often a bit unreliable.
+	maxOCSPValidationRetries = 3
 )
 
 func checkOCSP(chain []*x509.Certificate, ocspStaple []byte) (status *ocsp.Response, err error) {
@@ -66,28 +76,37 @@ func checkOCSP(chain []*x509.Certificate, ocspStaple []byte) (status *ocsp.Respo
 		return nil, skippedRevocationCheck
 	}
 
-	encoded := ocspStaple
-	if len(encoded) == 0 {
-		encoded, err = fetchOCSP(chain)
-		if err != nil {
-			return nil, err
-		}
+	retries := maxOCSPValidationRetries
+	if len(ocspStaple) > 0 {
+		// Don't retry if stapled
+		retries = 1
 	}
 
-	status, err = ocsp.ParseResponse(encoded, chain[1])
-	if err != nil {
-		return nil, fmt.Errorf("bad OCSP status: %s", err)
+	var issuer *x509.Certificate
+	for i := 0; i < retries; i++ {
+		encoded := ocspStaple
+		if len(encoded) == 0 {
+			encoded, _, err = fetchOCSP(chain)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		status, err = ocsp.ParseResponse(encoded, issuer)
+		if err == nil {
+			break
+		}
 	}
 
 	return status, err
 }
 
-func fetchOCSP(chain []*x509.Certificate) ([]byte, error) {
+func fetchOCSP(chain []*x509.Certificate) ([]byte, *x509.Certificate, error) {
 	var lastError error
 	for _, issuer := range chain[1:] {
 		encoded, err := ocsp.CreateRequest(chain[0], issuer, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failure building request: %s", err)
+			return nil, nil, fmt.Errorf("failure building request: %s", err)
 		}
 
 		// Try all the OCSP servers listed in the certificate
@@ -95,7 +114,10 @@ func fetchOCSP(chain []*x509.Certificate) ([]byte, error) {
 			// We try both GET and POST requests, because some servers are janky.
 			reqs := []*http.Request{}
 			if len(encoded) < 255 {
-				// GET only supported if we can stash the OCSP request into the path
+				// GET only supported for requests with small payloads, so we can stash
+				// them in the path. RFC says 255 bytes encoded, but doesn't mention if that
+				// refers to the DER-encoded payload before or after base64 is applied. We
+				// just assume it's the former and try both GET and POST in case one fails.
 				req, err := buildOCSPwithGET(server, encoded)
 				if err != nil {
 					lastError = err
@@ -113,7 +135,7 @@ func fetchOCSP(chain []*x509.Certificate) ([]byte, error) {
 			reqs = append(reqs, req)
 
 			for _, req := range reqs {
-				resp, err := (&http.Client{}).Do(req)
+				resp, err := ocspHttpClient.Do(req)
 				if err != nil {
 					lastError = err
 					continue
@@ -131,12 +153,12 @@ func fetchOCSP(chain []*x509.Certificate) ([]byte, error) {
 					continue
 				}
 
-				return body, nil
+				return body, issuer, nil
 			}
 		}
 	}
 
-	return nil, lastError
+	return nil, nil, lastError
 }
 
 func buildOCSPwithPOST(server string, encoded []byte) (*http.Request, error) {
@@ -157,19 +179,7 @@ func buildOCSPwithGET(server string, encoded []byte) (*http.Request, error) {
 		server = server + "/"
 	}
 
-	base, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	// Note that this is *not* url-safe base64 encoding, so we escape
-	path, err := url.Parse(url.PathEscape(base64.StdEncoding.EncodeToString(encoded)))
-	if err != nil {
-		return nil, err
-	}
-
-	uri := base.ResolveReference(path)
-	req, err := http.NewRequest("GET", uri.String(), nil)
+	req, err := http.NewRequest("GET", server+base64.StdEncoding.EncodeToString(encoded), nil)
 	if err != nil {
 		return nil, err
 	}
