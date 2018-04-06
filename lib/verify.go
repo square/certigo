@@ -27,7 +27,6 @@ import (
 
 	"crypto/tls"
 
-	"github.com/fatih/color"
 	"golang.org/x/crypto/ocsp"
 )
 
@@ -39,10 +38,11 @@ type simpleVerifyCert struct {
 }
 
 type SimpleVerification struct {
-	Error      string               `json:"error,omitempty"`
-	OCSPStatus *ocsp.Response       `json:"ocsp_response,omitempty"`
-	OCSPError  string               `json:"ocsp_error,omitempty"`
-	Chains     [][]simpleVerifyCert `json:"chains"`
+	Error          string               `json:"error,omitempty"`
+	OCSPStatus     *ocsp.Response       `json:"ocsp_response,omitempty"`
+	OCSPWasStapled bool                 `json:"ocsp_was_stapled,omitempty"`
+	OCSPError      string               `json:"ocsp_error,omitempty"`
+	Chains         [][]simpleVerifyCert `json:"chains"`
 }
 
 type SimpleResult struct {
@@ -111,7 +111,8 @@ func caBundle(caPath string) *x509.CertPool {
 
 func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) SimpleVerification {
 	result := SimpleVerification{
-		Chains: [][]simpleVerifyCert{},
+		Chains:         [][]simpleVerifyCert{},
+		OCSPWasStapled: ocspStaple != nil,
 	}
 
 	intermediates := x509.NewCertPool()
@@ -176,26 +177,12 @@ func PrintVerifyResult(out io.Writer, result SimpleVerification) {
 		fmt.Fprintf(out, "\t%s\n", result.Error)
 		return
 	}
-	if result.OCSPError != "" {
-		fmt.Fprintf(out, red.SprintfFunc()("Certificate has OCSP servers, but was unable to check status:\n"))
-		fmt.Fprintf(out, "\t%s\n\n", result.OCSPError)
-	} else if result.OCSPStatus != nil {
-		var text string
-		var color *color.Color
-		switch result.OCSPStatus.Status {
-		case ocsp.Good:
-			text = "Good"
-			color = green
-		case ocsp.Revoked:
-			text = "Revoked"
-			color = red
-		default:
-			text = "Unknown"
-			color = yellow
-		}
-		fmt.Fprintf(out, color.SprintfFunc()("Checked OCSP status for certificate, got status:"))
-		fmt.Fprintf(out, "\n\t%s (last update: %s)\n\n", text, result.OCSPStatus.ProducedAt.Format(time.UnixDate))
-	}
+
+	printOCSPStatus(out, result)
+	printCertificateChains(out, result)
+}
+
+func printCertificateChains(out io.Writer, result SimpleVerification) {
 	fmt.Fprintf(out, green.SprintfFunc()("Found %d valid certificate chain(s):\n", len(result.Chains)))
 	for i, chain := range result.Chains {
 		fmt.Fprintf(out, "[%d] %s\n", i, fmtCert(chain[0]))
@@ -205,5 +192,44 @@ func PrintVerifyResult(out io.Writer, result SimpleVerification) {
 			}
 			fmt.Fprintf(out, "\t=> %s\n", fmtCert(cert))
 		}
+	}
+}
+
+func printOCSPStatus(out io.Writer, result SimpleVerification) {
+	if result.OCSPError != "" {
+		fmt.Fprintf(out, red.SprintfFunc()("Certificate has OCSP extension, but was unable to check status:\n"))
+		fmt.Fprintf(out, "\t%s\n\n", result.OCSPError)
+		return
+	}
+
+	if result.OCSPStatus != nil {
+		status, ok := revocationStatusDescription[result.OCSPStatus.Status]
+		if !ok {
+			status = "Unknown"
+		}
+
+		color, ok := revocationStatusColor[result.OCSPStatus.Status]
+		if !ok {
+			color = yellow
+		}
+
+		wasStapled := ""
+		if result.OCSPWasStapled {
+			wasStapled = " (was stapled)"
+		}
+
+		fmt.Fprintf(out, color.SprintfFunc()("Checked OCSP status for certificate%s, got:", wasStapled))
+		fmt.Fprintf(out, "\n\t%s (last update: %s)", status, result.OCSPStatus.ProducedAt.Format(time.RFC822))
+
+		if result.OCSPStatus.Status == ocsp.Revoked {
+			reason, ok := revocationReasonDescription[result.OCSPStatus.RevocationReason]
+			if !ok {
+				reason = "Unknown"
+			}
+
+			fmt.Fprintf(out, "\n\tWas revoked at %s due to: %s", result.OCSPStatus.RevokedAt.Format(time.RFC822), reason)
+		}
+
+		fmt.Fprintf(out, "\n\n")
 	}
 }
