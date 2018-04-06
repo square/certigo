@@ -42,7 +42,7 @@ Certigo has commands to dump certificates and keystores from a file, to connect 
 ```
 usage: certigo [<flags>] <command> [<args> ...]
 
-A command line certificate examination utility.
+A command-line utility to examine and validate certificates to help with debugging SSL/TLS issues.
 
 Flags:
       --help     Show context-sensitive help (also try --help-long and --help-man).
@@ -55,24 +55,29 @@ Commands:
 
 
   dump [<flags>] [<file>...]
-    Display information about a certificate from a file/stdin.
+    Display information about a certificate from a file or stdin.
 
     -f, --format=FORMAT      Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).
     -p, --password=PASSWORD  Password for PKCS12/JCEKS key stores (reads from TTY if missing).
     -m, --pem                Write output as PEM blocks instead of human-readable format.
     -j, --json               Write output as machine-readable JSON format.
+    -l, --leaf               Certificate chain information only for the leaf cert.
 
-  connect [<flags>] [<server:port>]
+  connect [<flags>] [<server[:port]>]
     Connect to a server and print its certificate(s).
 
     -n, --name=NAME           Override the server name used for Server Name Indication (SNI).
         --ca=CA               Path to CA bundle (system default if unspecified).
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
-    -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
+    -t, --start-tls=PROTOCOL  Enable StartTLS protocol; one of: [mysql postgres psql smtp ldap ftp imap].
+        --identity="certigo"  With --start-tls, sets the DB user or SMTP EHLO name
+        --proxy=PROXY         Optional URI for HTTP(s) CONNECT proxy to dial connections with
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
+        --verify              Verify certificate chain.
+    -l, --leaf                Certificate chain information only for the leaf cert.
 
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.

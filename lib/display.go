@@ -56,7 +56,7 @@ Authority Key ID: {{.Issuer.KeyID | hexify}}
 {{- if .BasicConstraints}}
 Basic Constraints: CA:{{.BasicConstraints.IsCA}}{{if .BasicConstraints.MaxPathLen}}, pathlen:{{.BasicConstraints.MaxPathLen}}{{end}}{{end}}
 {{- if .NameConstraints}}
-Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}: 
+Name Constraints{{if .NameConstraints.Critical}} (critical){{end}}:
 {{- if .NameConstraints.PermittedDNSDomains}}
 Permitted DNS domains:
 	{{wrapWith .Width "\n\t" (join ", " .NameConstraints.PermittedDNSDomains)}}
