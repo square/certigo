@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"fmt"
@@ -126,6 +127,11 @@ func EncodeCRIToObject(cri *tls.CertificateRequestInfo) (interface{}, error) {
 		out.SignatureSchemes = append(out.SignatureSchemes, desc)
 	}
 	return out, nil
+}
+
+// EncodeCSRToObject returns a JSON-marshallable representation of a Certificate Request object
+func EncodeCSRToObject(csr *x509.CertificateRequest) interface{} {
+	return createSimpleCertificateRequest("", csr)
 }
 
 // Just a map lookup with a default

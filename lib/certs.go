@@ -130,7 +130,7 @@ func ReadAsPEM(readers []io.Reader, format string, password func(string) string,
 // inputs. Input data may be in plain-text PEM files, DER-encoded certificates
 // or PKCS7 envelopes, or PKCS12/JCEKS keystores. All inputs will be converted
 // to X.509 certificates (private keys are skipped) and passed to the callback.
-func ReadAsX509FromFiles(files []*os.File, format string, password func(string) string, callback func(*x509.Certificate, error)) error {
+func ReadAsX509FromFiles(files []*os.File, format string, password func(string) string, callback func(interface{}, error)) error {
 	errs := []error{}
 	for _, file := range files {
 		reader := bufio.NewReaderSize(file, 4)
@@ -151,7 +151,7 @@ func ReadAsX509FromFiles(files []*os.File, format string, password func(string) 
 // data may be in plain-text PEM files, DER-encoded certificates or PKCS7
 // envelopes, or PKCS12/JCEKS keystores. All inputs will be converted to X.509
 // certificates (private keys are skipped) and passed to the callback.
-func ReadAsX509(readers []io.Reader, format string, password func(string) string, callback func(*x509.Certificate, error)) error {
+func ReadAsX509(readers []io.Reader, format string, password func(string) string, callback func(interface{}, error)) error {
 	errs := []error{}
 	for _, r := range readers {
 		reader := bufio.NewReaderSize(r, 4)
@@ -168,7 +168,7 @@ func ReadAsX509(readers []io.Reader, format string, password func(string) string
 	return errorFromErrors(errs)
 }
 
-func pemToX509(callback func(*x509.Certificate, error)) func(*pem.Block) {
+func pemToX509(callback func(interface{}, error)) func(*pem.Block) {
 	return func(block *pem.Block) {
 		switch block.Type {
 		case "CERTIFICATE":
@@ -182,6 +182,13 @@ func pemToX509(callback func(*x509.Certificate, error)) func(*pem.Block) {
 				}
 			} else {
 				callback(nil, err)
+			}
+		case "CERTIFICATE REQUEST":
+			cert, err := x509.ParseCertificateRequest(block.Bytes)
+			if err != nil {
+				callback(nil, err)
+			} else {
+				callback(cert, nil)
 			}
 		}
 	}
@@ -281,6 +288,15 @@ func EncodeX509ToPEM(cert *x509.Certificate, headers map[string]string) *pem.Blo
 	return &pem.Block{
 		Type:    "CERTIFICATE",
 		Bytes:   cert.Raw,
+		Headers: headers,
+	}
+}
+
+// EncodeX509CSRToPEM converts an X.509 certificate request to a PEM block for output
+func EncodeX509CSRToPEM(csr *x509.CertificateRequest, headers map[string]string) *pem.Block {
+	return &pem.Block{
+		Type:    "CERTIFICATE REQUEST",
+		Bytes:   csr.Raw,
 		Headers: headers,
 	}
 }

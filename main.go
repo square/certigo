@@ -43,6 +43,7 @@ var (
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	dumpDepth    = dump.Flag("depth", "Certificate information upto a certain depth.").Short('d').Default("0").Int()
+	dumpCsr      = dump.Flag("csr", "Parse only Certificate Signing Request(s) in the file(s).").Short('c').Bool()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").String()
@@ -95,12 +96,37 @@ func main() {
 				block.Headers = nil
 				pem.Encode(os.Stdout, block)
 			})
+		} else if *dumpCsr {
+			err = lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(csr interface{}, err error) {
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+				} else {
+					csr, ok := csr.(*x509.CertificateRequest)
+					if ok {
+						result.CertificateRequests = append(result.CertificateRequests, csr)
+					}
+				}
+			})
+
+			if *dumpJSON {
+				blob, _ := json.Marshal(result)
+				fmt.Println(string(blob))
+			} else {
+
+				for i, csr := range result.CertificateRequests {
+					fmt.Fprintf(stdout, "** CERTIFICATE REQUEST%d **\n", i+1)
+					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(csr, terminalWidth, *verbose))
+				}
+			}
 		} else {
-			err = lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate, err error) {
+			err = lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert interface{}, err error) {
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 				} else {
-					result.Certificates = append(result.Certificates, cert)
+					cert, ok := cert.(*x509.Certificate)
+					if ok {
+						result.Certificates = append(result.Certificates, cert)
+					}
 				}
 			})
 
@@ -127,7 +153,7 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 			os.Exit(1)
-		} else if len(result.Certificates) == 0 && !*dumpPem {
+		} else if len(result.Certificates) == 0 && !*dumpPem && !*dumpCsr {
 			fmt.Fprintf(os.Stderr, "warning: no certificates found in input\n")
 		}
 
@@ -193,11 +219,14 @@ func main() {
 		defer file.Close()
 
 		chain := []*x509.Certificate{}
-		lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert *x509.Certificate, err error) {
+		lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, readPassword, func(cert interface{}, err error) {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 			} else {
-				chain = append(chain, cert)
+				cert, ok := cert.(*x509.Certificate)
+				if ok {
+					chain = append(chain, cert)
+				}
 			}
 		})
 
