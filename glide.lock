@@ -27,8 +27,6 @@ imports:
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/mwitkow/go-http-dialer
   version: 378f744fb2b81a6b96e3f40cde4f3bcab5a9cff0
-- name: github.com/spiffe/go-spiffe
-  version: 2bb3101d62b4bea6371d792e818360e3f056867b
 - name: golang.org/x/crypto
   version: b2aa35443fbc700ab74c586ae79b81c171851023
   subpackages:
