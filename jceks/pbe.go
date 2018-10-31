@@ -55,6 +55,8 @@ func recoverPBEWithMD5AndDES3CBC(
 		return nil, err
 	}
 
+	fmt.Printf("Loading PBE with iterations %d\n", params.Iterations)
+
 	// Convert password to byte array, so that it can be digested.
 	passwdBytes := make([]byte, len(password))
 	for i := 0; i < len(password); i++ {
