@@ -9,9 +9,9 @@ Certigo is a utility to examine and validate certificates to help with debugging
 
 ### Features
 
-**Supports all common file formats**: Certigo can read and dump certificates in various formats. It can automatically detect and read from X.509 (DER/PEM), JCEKS, PKCS7 and PKCS12 files. Certificates can be dumped to a human-readable format, a set of PEM blocks, or a JSON object for use in scripting. 
+**Supports all common file formats**: Certigo can read and dump certificates in various formats. It can automatically detect and read from X.509 (DER/PEM), JCEKS, PKCS7 and PKCS12 files. Certificates can be dumped to a human-readable format, a set of PEM blocks, or a JSON object for use in scripting.
 
-**Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small. 
+**Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small.
 
 **Supports STARTTLS Protocols**: Trying to debug SSL/TLS connections on a database or mail server? Certigo supports establishing connections via StartTLS protocols for MySQL, PostgreSQL, SMTP, LDAP, and FTP, making it possible to debug connection issues or scan for expired certificates more easily.
 
@@ -31,13 +31,13 @@ Note that certigo requires Go 1.11 or later to build.
 
 ### Develop
 
-We use [glide][1] for managing vendored dependencies. If you would like to contribute, see the [CONTRIBUTING.md](CONTRIBUTING.md) file for extra information.  
+We use [Go modules][1] for managing vendored dependencies. If you would like to contribute, see the [CONTRIBUTING.md](CONTRIBUTING.md) file for extra information.
 
-[1]: https://glide.sh
+[1]: https://github.com/golang/go/wiki/Modules
 
 ### Usage
 
-Certigo has commands to dump certificates and keystores from a file, to connect and fetch certificates from a remote server, and to verify the validity of certificates in a file. All commands can produce JSON output with the `--json` flag which can be used for scripting. See below for a full list of options. 
+Certigo has commands to dump certificates and keystores from a file, to connect and fetch certificates from a remote server, and to verify the validity of certificates in a file. All commands can produce JSON output with the `--json` flag which can be used for scripting. See below for a full list of options.
 
 ```
 usage: certigo [<flags>] <command> [<args> ...]

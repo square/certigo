@@ -6,17 +6,16 @@ go:
   - '1.11.x'
 
 install:
-  - go get github.com/Masterminds/glide
   - pip install cram --user
 
 before_script:
-  - go vet -v `glide nv`
+  - go vet -v ./...
 
 script:
   - GOOS=linux GOARCH=amd64 go build -o certigo-linux-amd64
   - GOOS=darwin GOARCH=amd64 go build -o certigo-darwin-amd64
   - GOOS=windows GOARCH=amd64 go build -o certigo-windows-amd64.exe
-  - go test -v `glide nv`
+  - go test -v ./...
   - ln -s certigo-linux-amd64 certigo
   - PATH=$PWD:$PATH cram -v tests/*.t
 
