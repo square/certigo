@@ -24,12 +24,11 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/alecthomas/kingpin.v2"
-
-	"github.com/mattn/go-colorable"
+	colorable "github.com/mattn/go-colorable"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
 	"golang.org/x/crypto/ssh/terminal"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -69,7 +68,7 @@ const minWidth = 60
 const maxWidth = 80
 
 func main() {
-	app.Version("1.10.0")
+	app.Version("1.11.0")
 
 	terminalWidth := determineTerminalWidth()
 
