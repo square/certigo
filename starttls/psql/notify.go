@@ -267,7 +267,7 @@ func (l *ListenerConn) sendSimpleQuery(q string) (err error) {
 	return nil
 }
 
-// Execute a "simple query" (i.e. one with no bindable parameters) on the
+// ExecSimpleQuery executes a "simple query" (i.e. one with no bindable parameters) on the
 // connection.  The possible return values are:
 //   1) "executed" is true; the query was executed to completion on the
 //      database server.  If the query failed, err will be set to the error
@@ -346,7 +346,7 @@ func (l *ListenerConn) Close() error {
 	return l.cn.c.Close()
 }
 
-// Err() returns the reason the connection was closed.  It is not safe to call
+// Err returns the reason the connection was closed.  It is not safe to call
 // this function until l.Notify has been closed.
 func (l *ListenerConn) Err() error {
 	return l.err
@@ -454,7 +454,7 @@ func NewDialListener(d Dialer,
 	return l
 }
 
-// Returns the notification channel for this listener.  This is the same
+// NotificationChannel returns the notification channel for this listener.  This is the same
 // channel as Notify, and will not be recreated during the life time of the
 // Listener.
 func (l *Listener) NotificationChannel() <-chan *Notification {
