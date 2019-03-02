@@ -10,7 +10,7 @@ import (
 //     - has a Printf method to write the debug output
 type debugging bool
 
-// write debug output
+// Printf writes debug output
 func (debug debugging) Printf(format string, args ...interface{}) {
 	if debug {
 		log.Printf(format, args...)
