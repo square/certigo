@@ -35,7 +35,7 @@ import (
 )
 
 // Protocols are the names of supported protocols
-var Protocols []string = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp"}
+var Protocols []string = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp", "imap"}
 
 type connectResult struct {
 	state *tls.ConnectionState
@@ -233,6 +233,10 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		case "ftp":
 			addr := withDefaultPort(connectTo, 21)
 			state, err = dumpAuthTLSFromFTP(dialer, addr, tlsConfig)
+			res <- connectResult{state, err}
+		case "imap":
+			addr := withDefaultPort(connectTo, 143)
+			state, err = dumpAuthTLSFromIMAP(dialer, addr, tlsConfig)
 			res <- connectResult{state, err}
 		default:
 			res <- connectResult{nil, fmt.Errorf("unknown StartTLS protocol: %s", startTLSType)}
