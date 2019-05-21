@@ -21,31 +21,30 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
-	"strconv"
 )
 
-func dumpTLSConnStateFromFTP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
+func dumpTLSConnStateFromIMAP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
 	c, err := dialer.Dial("tcp", address)
 	if err != nil {
 		return nil, err
 	}
 
 	conn := c.(*net.TCPConn)
-	status, err := readFTP(conn)
+	status, err := readIMAP(conn)
 	if err != nil {
 		return nil, err
 	}
-	if status != 220 {
-		return nil, fmt.Errorf("FTP server responded with status %d, was expecting 220", status)
+	if status != "OK" {
+		return nil, fmt.Errorf("IMAP server responded with %s, was expecting OK", status)
 	}
 
-	fmt.Fprintf(conn, "AUTH TLS\r\n")
-	status, err = readFTP(conn)
+	fmt.Fprintf(conn, "1 STARTTLS\r\n")
+	status, err = readIMAP(conn)
 	if err != nil {
 		return nil, err
 	}
-	if status != 234 {
-		return nil, fmt.Errorf("FTP server responded with status %d, was expecting 234", status)
+	if status != "OK" {
+		return nil, fmt.Errorf("IMAP server responded with %s, was expecting OK", status)
 	}
 
 	tlsConn := tls.Client(conn, config)
@@ -58,14 +57,11 @@ func dumpTLSConnStateFromFTP(dialer Dialer, address string, config *tls.Config) 
 	return &state, nil
 }
 
-func readFTP(conn *net.TCPConn) (int, error) {
+func readIMAP(conn *net.TCPConn) (string, error) {
 	reader := bufio.NewReader(conn)
 	response, err := reader.ReadString('\n')
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	if len(response) <= 3 {
-		return 0, fmt.Errorf("Error parsing ftp protocol: Status code too short: '%s'", response)
-	}
-	return strconv.Atoi(response[:3])
+	return response[2:4], nil
 }
