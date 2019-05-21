@@ -29,9 +29,9 @@ import (
 
 	"github.com/square/certigo/starttls/ldap"
 	"github.com/square/certigo/starttls/mysql"
-	"github.com/square/certigo/starttls/psql"
+	pq "github.com/square/certigo/starttls/psql"
 
-	"github.com/mwitkow/go-http-dialer"
+	http_dialer "github.com/mwitkow/go-http-dialer"
 )
 
 // Protocols are the names of supported protocols
@@ -232,11 +232,11 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			res <- connectResult{&state, nil}
 		case "ftp":
 			addr := withDefaultPort(connectTo, 21)
-			state, err = dumpAuthTLSFromFTP(dialer, addr, tlsConfig)
+			state, err = dumpTLSConnStateFromFTP(dialer, addr, tlsConfig)
 			res <- connectResult{state, err}
 		case "imap":
 			addr := withDefaultPort(connectTo, 143)
-			state, err = dumpAuthTLSFromIMAP(dialer, addr, tlsConfig)
+			state, err = dumpTLSConnStateFromIMAP(dialer, addr, tlsConfig)
 			res <- connectResult{state, err}
 		default:
 			res <- connectResult{nil, fmt.Errorf("unknown StartTLS protocol: %s", startTLSType)}

@@ -23,7 +23,7 @@ import (
 	"net"
 )
 
-func dumpAuthTLSFromIMAP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
+func dumpTLSConnStateFromIMAP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
 	c, err := dialer.Dial("tcp", address)
 	if err != nil {
 		return nil, err

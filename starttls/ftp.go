@@ -24,7 +24,7 @@ import (
 	"strconv"
 )
 
-func dumpAuthTLSFromFTP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
+func dumpTLSConnStateFromFTP(dialer Dialer, address string, config *tls.Config) (*tls.ConnectionState, error) {
 	c, err := dialer.Dial("tcp", address)
 	if err != nil {
 		return nil, err
