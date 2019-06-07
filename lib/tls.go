@@ -161,6 +161,7 @@ var tlsVersions = map[uint16]description{
 	tls.VersionTLS10: {"TLS 1.0", "tls_1_0", insecure},
 	tls.VersionTLS11: {"TLS 1.1", "tls_1_1", ok},
 	tls.VersionTLS12: {"TLS 1.2", "tls_1_2", good},
+	tls.VersionTLS13: {"TLS 1.3", "tls_1_3", good},
 }
 
 func parseRawSubject(subject []byte) (pkix.Name, error) {
@@ -179,6 +180,9 @@ func parseRawSubject(subject []byte) (pkix.Name, error) {
 // Fill in a human readable name, extracted from the slug
 func explainCipher(d description) description {
 	kexAndCipher := strings.Split(d.Slug, "_WITH_")
+	if len(kexAndCipher) < 2 {
+		return d
+	}
 	d.Name = fmt.Sprintf("%s key exchange, %s cipher", kexAndCipher[0][len("TLS_"):], kexAndCipher[1])
 	return d
 }
