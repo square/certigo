@@ -54,6 +54,7 @@ var (
 	connectTimeout  = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
 	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	connectVerify   = connect.Flag("verify", "Verify certificate chain.").Bool()
 
 	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -142,16 +143,14 @@ func main() {
 			}
 		}
 
-		if !*connectPem {
-			var hostname string
-			if *connectName != "" {
-				hostname = *connectName
-			} else {
-				hostname = strings.Split(*connectTo, ":")[0]
-			}
-			verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
-			result.VerifyResult = &verifyResult
+		var hostname string
+		if *connectName != "" {
+			hostname = *connectName
+		} else {
+			hostname = strings.Split(*connectTo, ":")[0]
 		}
+		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
+		result.VerifyResult = &verifyResult
 
 		if *connectJSON {
 			blob, _ := json.Marshal(result)
@@ -166,6 +165,10 @@ func main() {
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
 			lib.PrintVerifyResult(stdout, *result.VerifyResult)
+		}
+
+		if *connectVerify && len(result.VerifyResult.Error) > 0 {
+			os.Exit(1)
 		}
 	case verify.FullCommand():
 		file := inputFile(*verifyFile)
