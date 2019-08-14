@@ -5,19 +5,14 @@ language: go
 go:
   - '1.12.x'
 
-install:
-  - pip install cram --user
-
-before_script:
-  - go vet -v ./...
+services:
+ - docker
 
 script:
-  - GOOS=linux GOARCH=amd64 go build -o certigo-linux-amd64
-  - GOOS=darwin GOARCH=amd64 go build -o certigo-darwin-amd64
-  - GOOS=windows GOARCH=amd64 go build -o certigo-windows-amd64.exe
-  - go test -v ./...
-  - ln -s certigo-linux-amd64 certigo
-  - PATH=$PWD:$PATH cram -v tests/*.t
+  - docker build -f Dockerfile .
+  - GOOS=linux GOARCH=amd64 go build -o certigo-$GOOS-$GOARCH
+  - GOOS=darwin GOARCH=amd64 go build -o certigo-$GOOS-$GOARCH
+  - GOOS=windows GOARCH=amd64 go build -o certigo-$GOOS-$GOARCH
 
 deploy:
   provider: releases
