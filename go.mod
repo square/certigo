@@ -2,7 +2,7 @@ module github.com/square/certigo
 
 require (
 	github.com/Masterminds/semver v1.4.2 // indirect
-	github.com/Masterminds/sprig v2.20.0+incompatible
+	github.com/Masterminds/sprig v2.21.0+incompatible
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/aokoli/goutils v1.0.1 // indirect
