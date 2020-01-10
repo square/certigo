@@ -2,8 +2,12 @@ package starttls
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
+	"net/url"
 	"time"
+
+	"github.com/mwitkow/go-http-dialer"
 )
 
 type timeoutError struct{}
@@ -50,4 +54,20 @@ func dialWithDialer(dialer Dialer, timeout time.Duration, network, addr string, 
 	}
 
 	return conn, nil
+}
+
+func wrapDialerWithProxy(dialer Dialer, connectProxy *url.URL, tlsConfig *tls.Config) (Dialer, error) {
+	dialerOpt := http_dialer.WithDialer(dialer.(*net.Dialer))
+	tlsOpt := http_dialer.WithTls(tlsConfig)
+	if connectProxy.User != nil {
+		password, ok := connectProxy.User.Password()
+		if !ok {
+			return nil, fmt.Errorf("proxy username without password not currently supported")
+		}
+		auth := http_dialer.WithProxyAuth(http_dialer.AuthBasic(connectProxy.User.Username(), password))
+		dialer = http_dialer.New(connectProxy, dialerOpt, tlsOpt, auth)
+	} else {
+		dialer = http_dialer.New(connectProxy, dialerOpt, tlsOpt)
+	}
+	return dialer, nil
 }
