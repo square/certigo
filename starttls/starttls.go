@@ -33,7 +33,7 @@ import (
 )
 
 // Protocols are the names of supported protocols
-var Protocols []string = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp", "imap"}
+var Protocols = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp", "imap"}
 
 type connectResult struct {
 	state *tls.ConnectionState

@@ -76,15 +76,14 @@ func (s SimpleResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
-func caBundle(caPath string) *x509.CertPool {
+func caBundle(caPath string) (*x509.CertPool, error) {
 	if caPath == "" {
-		return nil
+		return nil, nil
 	}
 
 	caFile, err := os.Open(caPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error opening CA bundle %s: %s\n", caPath, err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error opening CA bundle %s: %s\n", caPath, err)
 	}
 
 	bundle := x509.NewCertPool()
@@ -95,18 +94,18 @@ func caBundle(caPath string) *x509.CertPool {
 			// TODO: The JDK trust store ships with this password.
 			return "changeit"
 		},
-		func(cert *x509.Certificate, err error) {
+		func(cert *x509.Certificate, err error) error {
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
+				return fmt.Errorf("error parsing CA bundle: %s\n", err)
 			} else {
 				bundle.AddCert(cert)
 			}
+			return nil
 		})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing CA bundle: %s\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error parsing CA bundle: %s\n", err)
 	}
-	return bundle
+	return bundle, nil
 }
 
 func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) SimpleVerification {
@@ -120,9 +119,14 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 		intermediates.AddCert(certs[i])
 	}
 
+	roots, err := caBundle(caPath)
+	if err != nil {
+		result.Error = fmt.Sprintf("%s", err)
+		return result
+	}
 	opts := x509.VerifyOptions{
 		DNSName:       dnsName,
-		Roots:         caBundle(caPath),
+		Roots:         roots,
 		Intermediates: intermediates,
 	}
 
