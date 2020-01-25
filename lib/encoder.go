@@ -207,6 +207,24 @@ type simpleCertificate struct {
 	Width int `json:"-"`
 }
 
+type simpleCertificateRequest struct {
+	Version            int              `json:"version,omitempty"`
+	SignatureAlgorithm simpleSigAlg     `json:"signature_algorithm"`
+	PublicKeyAlgorithm string           `json:"public_key_algorithm"`
+	Subject            simplePKIXName   `json:"subject"`
+	Extensions         []pkix.Extension `json:"extensions,omitempty"`
+	ExtraExtensions    []pkix.Extension `json:"extra_extensions,omitempty"`
+	AltDNSNames        []string         `json:"dns_names,omitempty"`
+	EmailAddresses     []string         `json:"email_addresses,omitempty"`
+	AltIPAddresses     []net.IP         `json:"ip_addresses,omitempty"`
+	URINames           []string         `json:"uri_names,omitempty"`
+	Warnings           []string         `json:"warnings,omitempty"`
+	PEM                string           `json:"pem,omitempty"`
+
+	// Internal fields for text display. Set - to skip serialize.
+	Width int `json:"-"`
+}
+
 type simplePKIXName struct {
 	Name  pkix.Name
 	KeyID []byte
@@ -281,6 +299,32 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 	}
 	out.ExtKeyUsage = simpleEku
 
+	return out
+}
+
+func createSimpleCertificateRequest(name string, csr *x509.CertificateRequest) simpleCertificateRequest {
+	out := simpleCertificateRequest{
+		Version:            csr.Version,
+		SignatureAlgorithm: simpleSigAlg(csr.SignatureAlgorithm),
+		PublicKeyAlgorithm: csr.PublicKeyAlgorithm.String(),
+		Subject: simplePKIXName{
+			Name:  csr.Subject,
+			KeyID: []byte(csr.Subject.SerialNumber),
+		},
+		Extensions:      csr.Extensions,
+		ExtraExtensions: csr.ExtraExtensions,
+		AltDNSNames:     csr.DNSNames,
+		EmailAddresses:  csr.EmailAddresses,
+		AltIPAddresses:  csr.IPAddresses,
+		PEM:             string(pem.EncodeToMemory(EncodeX509CSRToPEM(csr, nil))),
+	}
+
+	uriNames := make([]string, len(csr.URIs))
+	for i, u := range csr.URIs {
+		uriNames[i] = u.String()
+	}
+
+	out.Warnings = csrWarnings(csr, uriNames)
 	return out
 }
 
@@ -409,9 +453,52 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 	return
 }
 
+func csrWarnings(csr *x509.CertificateRequest, uriNames []string) (warnings []string) {
+	if csr.CheckSignature() != nil {
+		warnings = append(warnings, "Signature on this appears to be invalid")
+	}
+
+	if csr.Version < 2 {
+		warnings = append(warnings, fmt.Sprintf("Certificate Request is not in X509v3 format (version is %d)", csr.Version))
+	}
+
+	if len(csr.DNSNames) == 0 && len(csr.IPAddresses) == 0 && len(uriNames) == 0 {
+		warnings = append(warnings, fmt.Sprintf("Certificate Request doesn't have any valid DNS/URI names or IP addresses set"))
+	}
+
+	warnings = append(warnings, algWarnings(csr)...)
+
+	return
+}
+
 // algWarnings checks key sizes, signature algorithms.
-func algWarnings(cert *x509.Certificate) (warnings []string) {
-	alg, size := decodeKey(cert.PublicKey)
+func algWarnings(obj interface{}) (warnings []string) {
+	var alg string
+	var size int
+	var signatureAlg x509.SignatureAlgorithm
+	var key *rsa.PublicKey
+
+	switch obj.(type) {
+	case *x509.Certificate:
+		cert, _ := obj.(*x509.Certificate)
+		alg, size = decodeKey(cert.PublicKey)
+		signatureAlg = cert.SignatureAlgorithm
+
+		if alg == "RSA" {
+			key = cert.PublicKey.(*rsa.PublicKey)
+		}
+
+	case *x509.CertificateRequest:
+		csr, _ := obj.(*x509.CertificateRequest)
+		alg, size = decodeKey(csr.PublicKey)
+		signatureAlg = csr.SignatureAlgorithm
+
+		if alg == "RSA" {
+			key = csr.PublicKey.(*rsa.PublicKey)
+		}
+	}
+
+	// alg, size := decodeKey(cert.PublicKey)
 	if (alg == "RSA" || alg == "DSA") && size < 2048 {
 		warnings = append(warnings, fmt.Sprintf("Size of %s key should be at least 2048 bits", alg))
 	}
@@ -420,13 +507,12 @@ func algWarnings(cert *x509.Certificate) (warnings []string) {
 	}
 
 	for _, alg := range badSignatureAlgorithms {
-		if cert.SignatureAlgorithm == alg {
+		if signatureAlg == alg {
 			warnings = append(warnings, fmt.Sprintf("Signed with %s, which is an outdated signature algorithm", algString(alg)))
 		}
 	}
 
 	if alg == "RSA" {
-		key := cert.PublicKey.(*rsa.PublicKey)
 		if key.E < 3 {
 			warnings = append(warnings, "Public key exponent in RSA key is less than 3")
 		}

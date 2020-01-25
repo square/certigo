@@ -42,7 +42,7 @@ Certigo has commands to dump certificates and keystores from a file, to connect 
 ```
 usage: certigo [<flags>] <command> [<args> ...]
 
-A command line certificate examination utility.
+A command-line utility to examine and validate certificates to help with debugging SSL/TLS issues.
 
 Flags:
       --help     Show context-sensitive help (also try --help-long and --help-man).
@@ -55,24 +55,30 @@ Commands:
 
 
   dump [<flags>] [<file>...]
-    Display information about a certificate from a file/stdin.
+    Display information about a certificate from a file or stdin.
 
     -f, --format=FORMAT      Format of given input (PEM, DER, JCEKS, PKCS12; heuristic if missing).
     -p, --password=PASSWORD  Password for PKCS12/JCEKS key stores (reads from TTY if missing).
     -m, --pem                Write output as PEM blocks instead of human-readable format.
     -j, --json               Write output as machine-readable JSON format.
+    -d, --depth=0            Certificate chain information upto a certain depth.
+    -c, --csr                Parse only Certificate Signing Request(s) in the file(s).
 
-  connect [<flags>] [<server:port>]
+  connect [<flags>] [<server[:port]>]
     Connect to a server and print its certificate(s).
 
     -n, --name=NAME           Override the server name used for Server Name Indication (SNI).
         --ca=CA               Path to CA bundle (system default if unspecified).
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
-    -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
+    -t, --start-tls=PROTOCOL  Enable StartTLS protocol; one of: [mysql postgres psql smtp ldap ftp imap].
+        --identity="certigo"  With --start-tls, sets the DB user or SMTP EHLO name
+        --proxy=PROXY         Optional URI for HTTP(s) CONNECT proxy to dial connections with
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
+        --verify              Verify certificate chain.
+    -d, --depth=0             Certificate chain information upto a certain depth.
 
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.
@@ -86,7 +92,7 @@ Commands:
 
 ### Examples
 
-Display information about a certificate (also supports `--pem` and `--json` output):
+Display information about a certificate (also supports `--pem`, `--depth` and `--json` output):
 
 ```
 $ certigo dump --verbose squareup-2016.crt
@@ -123,6 +129,25 @@ Alternate DNS Names:
 	www.squareup.com, squareup.com, account.squareup.com, mkt.com,
 	www.mkt.com, market.squareup.com, gosq.com, www.gosq.com, gosq.co,
 	www.gosq.co
+```
+
+Display information about a certificate signing request (also supports `--depth` and `--json` output)
+
+```
+$ certigo dump --csr test.csr --verbose
+** CERTIFICATE REQUEST 1 **
+Signature: ECDSA-SHA256
+Subject Info:
+	Country: IN
+	Province: KA
+	Locality: Bangalore
+	Organization: Certigo
+	Organizational Unit: InfoSec
+	CommonName: test.certigo.com
+	Email Address: a@b.c
+Warnings:
+	Certificate Request is not in X509v3 format (version is 0)
+	Certificate Request doesn't have any valid DNS/URI names or IP addresses set
 ```
 
 Display & validate certificates from a remote server (also supports `--start-tls`):
