@@ -156,6 +156,62 @@ Email Addresses:
 Warnings:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
+var csrLayout = `
+{{- if .Version}}{{.Version}}
+{{end -}}
+Subject:
+	{{wrapWith .Width "\n\t" (.Subject.Name | printShortName)}}
+{{- if .AltDNSNames}}
+DNS Names:
+	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}{{end}}
+{{- if .AltIPAddresses}}
+	{{wrapWith .Width "\n\t" (join ", " .AltIPAdresses)}}{{end}}
+{{- if .URINames}}
+URI Names:
+	{{wrapWith .Width "\n\t" (join ", " .URINames)}}{{end}}
+{{- if .EmailAddresses}}
+Email Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
+{{- if .Warnings}}
+Warnings:{{range .Warnings}}
+	{{. | redify}}{{end}}{{end}}`
+
+var verboseCSRLayout = `
+{{- define "PkixName" -}}
+{{- range .Names}}
+	{{ .Type | oidName }}: {{ .Value }}
+{{- end -}}
+{{end -}}
+
+Signature: {{.SignatureAlgorithm | highlightAlgorithm}}
+Subject Info:
+	{{- template "PkixName" .Subject.Name}}
+{{- if .AltDNSNames}}
+{{- range .Extensions}}
+	{{ .Id | oidName}}: {{.Value}}
+{{- end -}}
+DNS Names:
+	{{wrapWith .Width "\n\t" (join ", " .AltDNSNames)}}
+{{- end}}
+{{- if .AltIPAddresses}}
+IP Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .AltIPAddresses)}}
+{{- end}}
+{{- if .URINames}}
+URI Names:
+	{{wrapWith .Width "\n\t" (join ", " .URINames)}}
+{{- end}}
+{{- if .EmailAddresses}}
+Email Addresses:
+	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}
+{{- end}}
+{{- if .Warnings}}
+Warnings:
+{{- range .Warnings}}
+	{{. | redify}}
+{{- end}}
+{{- end}}`
+
 type certWithName struct {
 	name string
 	file string
@@ -200,52 +256,91 @@ func EncodeX509ToObject(cert *x509.Certificate) interface{} {
 }
 
 // EncodeX509ToText encodes an X.509 certificate into human-readable text.
-func EncodeX509ToText(cert *x509.Certificate, terminalWidth int, verbose bool) []byte {
-	c := createSimpleCertificate("", cert)
-	c.Width = terminalWidth - 8 /* Need some margin for tab */
-
-	return displayCert(c, verbose)
+func EncodeX509ToText(obj interface{}, terminalWidth int, verbose bool) []byte {
+	switch obj.(type) {
+	case *x509.Certificate:
+		obj, ok := obj.(*x509.Certificate)
+		if ok {
+			c := createSimpleCertificate("", obj)
+			c.Width = terminalWidth - 8 /* Need some margin for tab */
+			return displayCert(c, verbose)
+		}
+	case *x509.CertificateRequest:
+		obj, ok := obj.(*x509.CertificateRequest)
+		if ok {
+			c := createSimpleCertificateRequest("", obj)
+			c.Width = terminalWidth - 8 /* Need some margin for tab */
+			return displayCert(c, verbose)
+		}
+	}
+	// should never happen
+	return nil
 }
 
 // displayCert takes in a parsed certificate object
 // (for jceks certs, blank otherwise), and prints out relevant
 // information. Start and end dates are colored based on whether or not
 // the certificate is expired, not expired, or close to expiring.
-func displayCert(cert simpleCertificate, verbose bool) []byte {
+func displayCert(obj interface{}, verbose bool) []byte {
 	// Use template functions from sprig, but add some extras
 	funcMap := sprig.TxtFuncMap()
-
-	extras := template.FuncMap{
-		"certStart":          certStart,
-		"certEnd":            certEnd,
-		"redify":             redify,
-		"highlightAlgorithm": highlightAlgorithm,
-		"hexify":             hexify,
-		"keyUsage":           keyUsage,
-		"extKeyUsage":        extKeyUsage,
-		"oidName":            oidName,
-		"oidShort":           oidShort,
-		"printShortName":     PrintShortName,
-		"printCommonName":    PrintCommonName,
-	}
-	for k, v := range extras {
-		funcMap[k] = v
-	}
-
-	t := template.New("Cert template").Funcs(funcMap)
+	var t *template.Template
 	var err error
-	if verbose {
-		t, err = t.Parse(verboseLayout)
-	} else {
-		t, err = t.Parse(layout)
+
+	switch obj.(type) {
+	case simpleCertificate:
+		extras := template.FuncMap{
+			"certStart":          certStart,
+			"certEnd":            certEnd,
+			"redify":             redify,
+			"highlightAlgorithm": highlightAlgorithm,
+			"hexify":             hexify,
+			"keyUsage":           keyUsage,
+			"extKeyUsage":        extKeyUsage,
+			"oidName":            oidName,
+			"oidShort":           oidShort,
+			"printShortName":     PrintShortName,
+			"printCommonName":    PrintCommonName,
+		}
+		for k, v := range extras {
+			funcMap[k] = v
+		}
+
+		t = template.New("Cert template").Funcs(funcMap)
+		if verbose {
+			t, err = t.Parse(verboseLayout)
+		} else {
+			t, err = t.Parse(layout)
+		}
+	case simpleCertificateRequest:
+		extras := template.FuncMap{
+			"redify":             redify,
+			"highlightAlgorithm": highlightAlgorithm,
+			"hexify":             hexify,
+			"oidName":            oidName,
+			"oidShort":           oidShort,
+			"printShortName":     PrintShortName,
+			"printCommonName":    PrintCommonName,
+		}
+		for k, v := range extras {
+			funcMap[k] = v
+		}
+
+		t = template.New("Cert Request template").Funcs(funcMap)
+		if verbose {
+			t, err = t.Parse(verboseCSRLayout)
+		} else {
+			t, err = t.Parse(csrLayout)
+		}
 	}
+
 	if err != nil {
 		// Should never happen
 		panic(err)
 	}
 	var buffer bytes.Buffer
 	w := bufio.NewWriter(&buffer)
-	err = t.Execute(w, cert)
+	err = t.Execute(w, obj)
 	if err != nil {
 		// Should never happen
 		panic(err)

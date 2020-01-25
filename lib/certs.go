@@ -285,6 +285,15 @@ func EncodeX509ToPEM(cert *x509.Certificate, headers map[string]string) *pem.Blo
 	}
 }
 
+// EncodeX509CSRToPEM converts an X.509 certificate request to a PEM block for output
+func EncodeX509CSRToPEM(csr *x509.CertificateRequest, headers map[string]string) *pem.Block {
+	return &pem.Block{
+		Type:    "CERTIFICATE REQUEST",
+		Bytes:   csr.Raw,
+		Headers: headers,
+	}
+}
+
 // Convert a PKCS7 envelope into a PEM block for output.
 func pkcs7ToPem(block *pkcs7.SignedDataEnvelope, headers map[string]string) *pem.Block {
 	return &pem.Block{

@@ -46,20 +46,22 @@ type SimpleVerification struct {
 }
 
 type SimpleResult struct {
-	Certificates           []*x509.Certificate `json:"certificates"`
-	VerifyResult           *SimpleVerification `json:"verify_result,omitempty"`
+	Certificates           []*x509.Certificate        `json:"certificates"`
+	CertificateRequests    []*x509.CertificateRequest `json:"certificate_requests"`
+	VerifyResult           *SimpleVerification        `json:"verify_result,omitempty"`
 	TLSConnectionState     *tls.ConnectionState
 	CertificateRequestInfo *tls.CertificateRequestInfo
 }
 
 func (s SimpleResult) MarshalJSON() ([]byte, error) {
-	certs := make([]interface{}, len(s.Certificates))
-	for i, c := range s.Certificates {
-		certs[i] = EncodeX509ToObject(c)
-	}
-
 	out := map[string]interface{}{}
-	out["certificates"] = certs
+	if s.Certificates != nil {
+		certs := make([]interface{}, len(s.Certificates))
+		for i, c := range s.Certificates {
+			certs[i] = EncodeX509ToObject(c)
+		}
+		out["certificates"] = certs
+	}
 	if s.VerifyResult != nil {
 		out["verify_result"] = s.VerifyResult
 	}
@@ -72,6 +74,14 @@ func (s SimpleResult) MarshalJSON() ([]byte, error) {
 			return nil, err
 		}
 		out["certificate_request_info"] = encoded
+	}
+	if s.CertificateRequests != nil {
+		csrs := make([]interface{}, len(s.CertificateRequests))
+		for i, c := range s.CertificateRequests {
+			csrs[i] = EncodeCSRToObject(c)
+		}
+
+		out["certificate_requests"] = csrs
 	}
 	return json.Marshal(out)
 }

@@ -42,6 +42,7 @@ var (
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	dumpDepth    = dump.Flag("depth", "Certificate chain information upto a certain depth.").Short('d').Default("0").Int()
+	dumpCsr      = dump.Flag("csr", "Parse only Certificate Signing Request(s) in the file(s).").Short('c').Bool()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").String()
@@ -97,6 +98,31 @@ func main() {
 				block.Headers = nil
 				pem.Encode(os.Stdout, block)
 			})
+		} else if *dumpCsr {
+			err = lib.ReadAsPEMFromFiles(files, *dumpType, nil, func(block *pem.Block) {
+				certReq, err := x509.ParseCertificateRequest(block.Bytes)
+				if err != nil {
+					return
+				}
+
+				result.CertificateRequests = append(result.CertificateRequests, certReq)
+			})
+
+			csrCount := len(result.CertificateRequests)
+			if csrCount > *dumpDepth && *dumpDepth > 0 {
+				csrCount = *dumpDepth
+			}
+
+			if *dumpJSON {
+				result.CertificateRequests = result.CertificateRequests[:csrCount]
+				blob, _ := json.Marshal(result)
+				fmt.Println(string(blob))
+			} else {
+				for i, csr := range result.CertificateRequests[:csrCount] {
+					fmt.Fprintf(stdout, "** CERTIFICATE REQUEST %d **\n", i+1)
+					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(csr, terminalWidth, *verbose))
+				}
+			}
 		} else {
 			err = lib.ReadAsX509FromFiles(files, *dumpType, readPassword, func(cert *x509.Certificate, err error) {
 				if err != nil {
@@ -129,8 +155,8 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 			os.Exit(1)
-		} else if len(result.Certificates) == 0 && !*dumpPem {
-			fmt.Fprintf(os.Stderr, "warning: no certificates found in input\n")
+		} else if len(result.Certificates) == 0 && !*dumpPem && len(result.CertificateRequests) == 0 {
+			fmt.Fprintf(os.Stderr, "warning: no certificates or requests found in input\n")
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
