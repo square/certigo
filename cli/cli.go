@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"strings"
+
+	"github.com/alecthomas/kingpin"
 	"github.com/square/certigo/cli/terminal"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
-	"gopkg.in/alecthomas/kingpin.v2"
-	"os"
-	"strings"
 )
 
 var (
@@ -23,6 +24,7 @@ var (
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	dumpLeaf     = dump.Flag("leaf", "Only display the first certificate").Short('l').Bool()
 
 	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
@@ -37,6 +39,7 @@ var (
 	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	connectVerify   = connect.Flag("verify", "Verify certificate chain.").Bool()
+	connectLeaf     = connect.Flag("leaf", "Only display the first certificate").Short('l').Bool()
 
 	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -105,7 +108,11 @@ func Run(args []string, tty terminal.Terminal) int {
 				blob, _ := json.Marshal(result)
 				fmt.Println(string(blob))
 			} else {
-				for i, cert := range result.Certificates {
+				certList := result.Certificates
+				if *dumpLeaf && len(certList) > 0 {
+					certList = certList[:1]
+				}
+				for i, cert := range certList {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
@@ -154,7 +161,11 @@ func Run(args []string, tty terminal.Terminal) int {
 				stdout, "%s\n\n",
 				lib.EncodeTLSInfoToText(result.TLSConnectionState, result.CertificateRequestInfo))
 
-			for i, cert := range result.Certificates {
+			certList := result.Certificates
+			if *connectLeaf && len(result.Certificates) > 0 {
+				certList = result.Certificates[:1]
+			}
+			for i, cert := range certList {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}

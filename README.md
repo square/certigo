@@ -61,6 +61,7 @@ Commands:
     -p, --password=PASSWORD  Password for PKCS12/JCEKS key stores (reads from TTY if missing).
     -m, --pem                Write output as PEM blocks instead of human-readable format.
     -j, --json               Write output as machine-readable JSON format.
+    -l, --leaf               Write only the first certificate
 
   connect [<flags>] [<server:port>]
     Connect to a server and print its certificate(s).
@@ -73,6 +74,7 @@ Commands:
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
+    -l, --leaf               Write only the first certificate
 
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.
