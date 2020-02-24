@@ -114,6 +114,11 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 		OCSPWasStapled: ocspStaple != nil,
 	}
 
+	if len(certs) == 0 {
+		result.Error = "no certificates found"
+		return result
+	}
+
 	intermediates := x509.NewCertPool()
 	for i := 1; i < len(certs); i++ {
 		intermediates.AddCert(certs[i])
