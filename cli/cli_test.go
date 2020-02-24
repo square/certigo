@@ -42,6 +42,7 @@ t/DtcM/GpAhBbLP9Tk7kPB41v5fRIxVDo50Iz/qvkr37pQ4RsejSFg==
 `
 
 const expectedVerbose string = `** CERTIFICATE 1 **
+Input Format: PEM
 Serial: 4096
 Valid: 2017-07-19 16:50 UTC to 2017-07-29 16:50 UTC
 Signature: SHA256-RSA

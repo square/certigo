@@ -87,16 +87,17 @@ func Run(args []string, tty terminal.Terminal) int {
 		}()
 
 		if *dumpPem {
-			err = lib.ReadAsPEMFromFiles(files, *dumpType, tty.ReadPassword, func(block *pem.Block) error {
+			err = lib.ReadAsPEMFromFiles(files, *dumpType, tty.ReadPassword, func(block *pem.Block, format string) error {
 				block.Headers = nil
 				return pem.Encode(stdout, block)
 			})
 		} else {
-			err = lib.ReadAsX509FromFiles(files, *dumpType, tty.ReadPassword, func(cert *x509.Certificate, err error) error {
+			err = lib.ReadAsX509FromFiles(files, *dumpType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 				if err != nil {
 					return fmt.Errorf("error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 				} else {
 					result.Certificates = append(result.Certificates, cert)
+					result.Formats = append(result.Formats, format)
 				}
 				return nil
 			})
@@ -107,6 +108,7 @@ func Run(args []string, tty terminal.Terminal) int {
 			} else {
 				for i, cert := range result.Certificates {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
 					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
@@ -156,6 +158,7 @@ func Run(args []string, tty terminal.Terminal) int {
 
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+				fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
 			lib.PrintVerifyResult(stdout, *result.VerifyResult)
@@ -176,7 +179,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		defer file.Close()
 
 		chain := []*x509.Certificate{}
-		err = lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, tty.ReadPassword, func(cert *x509.Certificate, err error) error {
+		err = lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 			if err != nil {
 				return err
 			} else {

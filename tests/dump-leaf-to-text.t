@@ -28,6 +28,7 @@ Dump an example certificate (example-leaf.crt)
 
   $ certigo --verbose dump example-leaf.crt
   ** CERTIFICATE 1 **
+  Input Format: PEM
   Serial: 15384458167827828543
   Valid: 2016-06-10 22:14 UTC to 2023-04-15 22:14 UTC
   Signature: SHA256-RSA

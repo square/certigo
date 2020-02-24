@@ -55,6 +55,7 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
 
   $ certigo --verbose dump example-name-constraints.crt
   ** CERTIFICATE 1 **
+  Input Format: PEM
   Serial: 13776854720312847553
   Valid: 2017-08-18 19:48 UTC to 2024-06-22 19:48 UTC
   Signature: SHA256-RSA (self-signed)
@@ -88,6 +89,7 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
   \tCert Sign (esc)
   
   ** CERTIFICATE 2 **
+  Input Format: PEM
   Serial: 0
   Valid: 2011-12-06 13:49 UTC to 2031-12-01 13:49 UTC
   Signature: SHA1-RSA (self-signed)
