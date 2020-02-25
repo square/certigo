@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/square/certigo/cli/terminal"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"os"
-	"strings"
 )
 
 var (
@@ -47,6 +48,10 @@ var (
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 )
 
+const (
+	version = "1.12.0"
+)
+
 func Run(args []string, tty terminal.Terminal) int {
 	terminalWidth := tty.DetermineWidth()
 	stdout := tty.Output()
@@ -61,7 +66,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 		return 2
 	}
-	app.Version("1.11.0")
+	app.Version(version)
 
 	// Alias starttls to start-tls
 	connect.Flag("starttls", "").Hidden().EnumVar(connectStartTLS, starttls.Protocols...)
