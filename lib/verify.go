@@ -47,6 +47,7 @@ type SimpleVerification struct {
 
 type SimpleResult struct {
 	Certificates           []*x509.Certificate `json:"certificates"`
+	Formats                []string
 	VerifyResult           *SimpleVerification `json:"verify_result,omitempty"`
 	TLSConnectionState     *tls.ConnectionState
 	CertificateRequestInfo *tls.CertificateRequestInfo
@@ -94,7 +95,7 @@ func caBundle(caPath string) (*x509.CertPool, error) {
 			// TODO: The JDK trust store ships with this password.
 			return "changeit"
 		},
-		func(cert *x509.Certificate, err error) error {
+		func(cert *x509.Certificate, format string, err error) error {
 			if err != nil {
 				return fmt.Errorf("error parsing CA bundle: %s\n", err)
 			} else {
