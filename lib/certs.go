@@ -183,6 +183,8 @@ func pemToX509(callback func(*x509.Certificate, string, error) error) func(*pem.
 			} else {
 				return callback(nil, format, err)
 			}
+		case "CERTIFICATE REQUEST":
+			fmt.Println(red.SprintfFunc()("warning: certificate requests are not supported"))
 		}
 		return nil
 	}
