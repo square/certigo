@@ -180,10 +180,11 @@ func parseRawSubject(subject []byte) (pkix.Name, error) {
 // Fill in a human readable name, extracted from the slug
 func explainCipher(d description) description {
 	kexAndCipher := strings.Split(d.Slug, "_WITH_")
-	if len(kexAndCipher) < 2 {
-		return d
+	if len(kexAndCipher) == 2 {
+		d.Name = fmt.Sprintf("%s key exchange, %s cipher", kexAndCipher[0][len("TLS_"):], kexAndCipher[1])
+	} else {
+		d.Name = fmt.Sprintf("%s cipher", d.Slug[len("TLS_"):])
 	}
-	d.Name = fmt.Sprintf("%s key exchange, %s cipher", kexAndCipher[0][len("TLS_"):], kexAndCipher[1])
 	return d
 }
 
