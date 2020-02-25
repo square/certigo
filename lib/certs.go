@@ -195,7 +195,8 @@ func readCertsFromStream(reader io.Reader, filename string, format string, passw
 		headers[fileHeader] = filename
 	}
 
-	switch strings.TrimSpace(format) {
+	format = strings.TrimSpace(format)
+	switch format {
 	case "PEM":
 		scanner := pemScanner(reader)
 		for scanner.Scan() {
