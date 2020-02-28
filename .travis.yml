@@ -22,11 +22,12 @@ script:
 deploy:
   provider: releases
   api_key:
-    secure: i+82k3Khvke2ejCJ3B+BE0nsemPSXnwcm4cDtuC8BF3vXPSO36hIbPDZ+mnGlqiGw54tduY3jrytCwo1YHnxu8veT3cJ27p9wDQt7Lz6kLf1wRHBp180PL2bfz1tOugtDsAw9D78EJj0LvWtupY0CmzXl8idVua1T9Z5HTR4V28QoDw0JY/+GB+Aq+C51oyDcICtLJBVhc4Wl/K7AqZPWEBC/kn1fG6BYbFIHCNLho4qiCLW9aQdFL5usHJ07992VBlzXLSkP9WU1w/pZ1kT4YaopusyQH8FG1be+V8hf74N0I9vhR/YRTK4cOuAo3Gu87HiEK0U9pgubyoYTRWeZYS9ryVH8Wa7QelauWbH16OWeWv18w98/8aaKE7RgZHlrMFwXnzzFokXuFqzMNWKOP5QxMOqlkY6UcgwS7RqbjxvHyzfapb212s5qgN1LAE85fys2ExMFEPO2NLry9PZVD2bHbQ+Y6bQg6XiI8Kvvmz0dRaY+chADpDNjIK+zpDwc3o1MjvnwiUt7AZrj4PvVD381E0X3JWmMeOOaW46LC5hn5Bhobl6wDC1crgf3QAqfMhFlAd+O0j7qOrW31vm1wPMtaeNQIAq/xjGROvLeBgKlzx1bfK51YQxIC3wRA2AVrxispHkq+rK30lGPhNHWLb91qy4tuy7y1sUAnwm8Dk=
+    # mbyczkowski's OAuth token
+    secure: SJqQjZ+4TT/CqAPy/7Z/Y1kIoYQt1GMw/kVkh6QpYqTaknqnWmNlwn/GdMATdiFo5X4GsPoE9euc+z5E9FeVgOlxypOzf/H0K2eV5YRitjQYrtzjVCkCnWt6AIOBRHWF31+mtkk2kbG7k0N/cj6GOpj93sX2Bh8+zM3O86SEgC2bipGTuNkR+PJh09Euthe1C/zlELyyo1Hg/rfnD8mRmPK7hSRj0FTlJLCkxHC7ou9r6FMyxC25uRKg7r3bocOOYUyDstZRid5HnKbxhfPhCAE+xHdLuH3+iQdAS0g0TYIfajGEm4nrgCWlMB7hqKcP5Ob3YFNdlmAp/61y2tBRZlk5S3bjU4XnEfjxN7wmAs0Em+SAH9R2U1hl4fDOwxXoBxDuKpu1FH598Q4xA2bfZrnzNnzVXvRTjSAb4a0CzwU8wRuftqCeGWrylaDPRSVVAtTUyukEoV/3KBfZaSCE5xXI7uu2IsqG4SLmxod1X/EdamM16ZkUzrsgtCJGUIjNcOQw1lro9PV1A5oac02hkEwW87N5OY36abTlKhkbpGZJvkN21UF4HUJM/W1UCUMYNZ7hOwU3H2kWZrmWHSXfRvjwJxwqXYVEX4MTULccV8JcPq4fRywV+uCkT/aGEzNXLv++9r7Ut9aqGuQi6Aee2SjtjRBVXeWKpCJMUNB8fow=
   file:
-   - certigo-linux-amd64
-   - certigo-darwin-amd64
-   - certigo-windows-amd64.exe
+    - certigo-linux-amd64
+    - certigo-darwin-amd64
+    - certigo-windows-amd64.exe
   skip_cleanup: true
   draft: true
   on:
