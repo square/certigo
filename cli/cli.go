@@ -163,7 +163,6 @@ func Run(args []string, tty terminal.Terminal) int {
 
 			for i, cert := range result.Certificates {
 				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-				fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
 				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
 			lib.PrintVerifyResult(stdout, *result.VerifyResult)
