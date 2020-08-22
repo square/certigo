@@ -33,7 +33,7 @@ import (
 )
 
 // Protocols are the names of supported protocols
-var Protocols = []string{"mysql", "postgres", "psql", "smtp", "ldap", "ftp", "imap"}
+var Protocols = []string{"mssql", "mysql", "postgres", "psql", "smtp", "ldap", "ftp", "imap"}
 
 type connectResult struct {
 	state *tls.ConnectionState
@@ -107,9 +107,9 @@ func withDefaultPort(addr string, portN uint16) string {
 }
 
 // GetConnectionState connects to a TLS server, returning the connection state.
-// Currently, startTLSType can be one of "mysql", "postgres" or "psql", or the
-// empty string, which does a normal TLS connection. connectTo specifies the
-// address to connect to. connectName sets SNI. identity sets DB username,
+// Currently, startTLSType can be one of "mssql", "mysql", "postgres" or "psql",
+// or the empty string, which does a normal TLS connection. connectTo specifies
+// the address to connect to. connectName sets SNI. identity sets DB username,
 // SMTP EHLO. connectCert and connectKey are client cert/key.
 func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCert, clientKey string, connectProxy *url.URL, timeout time.Duration) (*tls.ConnectionState, *tls.CertificateRequestInfo, error) {
 	var err error
@@ -175,6 +175,20 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			state, err = l.TLSConnectionState()
 			if err != nil {
 				res <- connectResult{nil, fmt.Errorf("LDAP connection isn't TLS after StartTLS: %s", err.Error())}
+				return
+			}
+			res <- connectResult{state, nil}
+		case "mssql":
+			server, port, err := net.SplitHostPort(withDefaultPort(connectTo, 1433))
+			connectionString := fmt.Sprintf(
+				"Server=%s; Port=%s; Encrypt=true; Dial Timeout=%d; Connection Timeout=%d; App Name=certigo;",
+				server,
+				port,
+				timeout/time.Second,
+				timeout/time.Second)
+			state, err = mssqlDumpTLS(connectionString, tlsConfig)
+			if err != nil {
+				res <- connectResult{nil, err}
 				return
 			}
 			res <- connectResult{state, nil}
