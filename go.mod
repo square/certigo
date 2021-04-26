@@ -14,7 +14,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20181015023909-0c41d7ab0a0e
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/asn1-ber.v1 v1.0.0-20170511165959-379148ca0225
