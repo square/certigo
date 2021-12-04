@@ -66,6 +66,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 		return 2
 	}
+	app.HelpFlag.Short('h')
 	app.Version(version)
 
 	// Alias starttls to start-tls
