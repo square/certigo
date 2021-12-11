@@ -22,6 +22,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"time"
 
@@ -109,6 +111,30 @@ func caBundle(caPath string) (*x509.CertPool, error) {
 	return bundle, nil
 }
 
+func fetchAIA(cert *x509.Certificate) *x509.Certificate {
+	for _, url := range cert.IssuingCertificateURL {
+		resp, err := http.Get(url)
+		if err != nil {
+			continue
+		}
+
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			continue
+		}
+
+		intermediate, err := x509.ParseCertificate(body)
+		if err != nil {
+			continue
+		}
+
+		return intermediate
+	}
+
+	return nil
+}
+
 func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) SimpleVerification {
 	result := SimpleVerification{
 		Chains:         [][]simpleVerifyCert{},
@@ -139,6 +165,20 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 	chains, err := certs[0].Verify(opts)
 	if err != nil {
 		result.Error = fmt.Sprintf("%s", err)
+
+		if len(intermediates.Subjects()) == 0 {
+			// No intermediates found, maybe broken chain. Let's try AIA fetching?
+			intermediate := fetchAIA(certs[0])
+			if intermediate != nil {
+				intermediates.AddCert(intermediate)
+				_, err := certs[0].Verify(opts)
+				if err == nil {
+					// Would work with proper intermediates.
+					result.Error = "server is not sending required intermediate certificate(s)"
+				}
+			}
+		}
+
 		return result
 	}
 
