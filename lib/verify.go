@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"crypto/tls"
@@ -109,7 +110,7 @@ func caBundle(caPath string) (*x509.CertPool, error) {
 	return bundle, nil
 }
 
-func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath string) SimpleVerification {
+func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caPath string) SimpleVerification {
 	result := SimpleVerification{
 		Chains:         [][]simpleVerifyCert{},
 		OCSPWasStapled: ocspStaple != nil,
@@ -130,8 +131,17 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 		result.Error = fmt.Sprintf("%s", err)
 		return result
 	}
+	// expectedName could be a hostname or could be a SPIFFE ID (spiffe://...)
+	// x509 package doesn't support verifying SPIFFE IDs. We thus have to do a bit more work here.
+	spiffeIDExpected := strings.HasPrefix(expectedName, "spiffe://")
+	var expectedDnsName string
+	if spiffeIDExpected {
+		expectedDnsName = ""
+	} else {
+		expectedDnsName = expectedName
+	}
 	opts := x509.VerifyOptions{
-		DNSName:       dnsName,
+		DNSName:       expectedDnsName,
 		Roots:         roots,
 		Intermediates: intermediates,
 	}
@@ -140,6 +150,23 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, dnsName, caPath s
 	if err != nil {
 		result.Error = fmt.Sprintf("%s", err)
 		return result
+	}
+
+	if spiffeIDExpected {
+		// The Verify method above didn't actually verify that the certificate matches the expected
+		// SPIFFE ID. We thus perform this check explicitly here.
+		expectedSpiffeID := expectedName
+		matched := false
+		for _, uri := range certs[0].URIs {
+			if uri.String() == expectedSpiffeID {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			result.Error = fmt.Sprintf("certificate is not valid for any SPIFFE IDs, but wanted to match %s", expectedSpiffeID)
+			return result
+		}
 	}
 
 	for _, chain := range chains {
