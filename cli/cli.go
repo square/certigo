@@ -148,13 +148,14 @@ func Run(args []string, tty terminal.Terminal) int {
 
 		// Determine what name the server's certificate should match
 		var expectedNameInCertificate string
-		if *connectVerifyExpectedName != "" {
+		switch {
+		case *connectVerifyExpectedName != "":
 			// Use the explicitly provided the name to expect
 			expectedNameInCertificate = *connectVerifyExpectedName
-		} else if *connectName != "" {
+		case *connectName != "":
 			// Use provided SNI
 			expectedNameInCertificate = *connectName
-		} else {
+		default:
 			// Use the hostname/IP from the connect string
 			expectedNameInCertificate = strings.Split(*connectTo, ":")[0]
 		}
