@@ -25,19 +25,20 @@ var (
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 
-	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
-	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
-	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
-	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
-	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", fmt.Sprintf("Enable StartTLS protocol; one of: %v.", starttls.Protocols)).Short('t').PlaceHolder("PROTOCOL").Enum(starttls.Protocols...)
-	connectIdentity = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
-	connectProxy    = connect.Flag("proxy", "Optional URI for HTTP(s) CONNECT proxy to dial connections with").URL()
-	connectTimeout  = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
-	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
-	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
-	connectVerify   = connect.Flag("verify", "Verify certificate chain.").Bool()
+	connect                   = app.Command("connect", "Connect to a server and print its certificate(s).")
+	connectTo                 = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
+	connectName               = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
+	connectCaPath             = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	connectCert               = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
+	connectKey                = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
+	connectStartTLS           = connect.Flag("start-tls", fmt.Sprintf("Enable StartTLS protocol; one of: %v.", starttls.Protocols)).Short('t').PlaceHolder("PROTOCOL").Enum(starttls.Protocols...)
+	connectIdentity           = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
+	connectProxy              = connect.Flag("proxy", "Optional URI for HTTP(s) CONNECT proxy to dial connections with").URL()
+	connectTimeout            = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
+	connectPem                = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
+	connectJSON               = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	connectVerify             = connect.Flag("verify", "Verify certificate chain.").Bool()
+	connectVerifyExpectedName = connect.Flag("expected-name", "Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.").String()
 
 	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -145,13 +146,20 @@ func Run(args []string, tty terminal.Terminal) int {
 			}
 		}
 
-		var hostname string
-		if *connectName != "" {
-			hostname = *connectName
-		} else {
-			hostname = strings.Split(*connectTo, ":")[0]
+		// Determine what name the server's certificate should match
+		var expectedNameInCertificate string
+		switch {
+		case *connectVerifyExpectedName != "":
+			// Use the explicitly provided name
+			expectedNameInCertificate = *connectVerifyExpectedName
+		case *connectName != "":
+			// Use the provided SNI
+			expectedNameInCertificate = *connectName
+		default:
+			// Use the hostname/IP from the connect string
+			expectedNameInCertificate = strings.Split(*connectTo, ":")[0]
 		}
-		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
+		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, expectedNameInCertificate, *connectCaPath)
 		result.VerifyResult = &verifyResult
 
 		if *connectJSON {
