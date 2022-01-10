@@ -150,10 +150,10 @@ func Run(args []string, tty terminal.Terminal) int {
 		var expectedNameInCertificate string
 		switch {
 		case *connectVerifyExpectedName != "":
-			// Use the explicitly provided the name to expect
+			// Use the explicitly provided name
 			expectedNameInCertificate = *connectVerifyExpectedName
 		case *connectName != "":
-			// Use provided SNI
+			// Use the provided SNI
 			expectedNameInCertificate = *connectName
 		default:
 			// Use the hostname/IP from the connect string
