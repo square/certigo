@@ -50,7 +50,7 @@ var (
 )
 
 const (
-	version = "1.13.0"
+	version = "1.14.1"
 )
 
 func Run(args []string, tty terminal.Terminal) int {
