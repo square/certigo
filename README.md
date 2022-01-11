@@ -70,9 +70,13 @@ Commands:
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
     -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
+        --identity=certigo    With --start-tls, sets the DB user or SMTP EHLO name.
+        --proxy               Optional URI for HTTP(s) CONNECT proxy to dial connections with.
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
+        --verify              Verify certificate chain.
+        --expected-name       Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.
 
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.
