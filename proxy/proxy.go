@@ -14,13 +14,21 @@ import (
 )
 
 type Options struct {
-	Inspect      func(verification *lib.SimpleVerification, conn *tls.ConnectionState)
-	Port         int
-	Target       string
-	ServerName   string
-	CAPath       string
-	CertPath     string
-	KeyPath      string
+	// Called after each TLS connection is verified (in a separate goroutine). Required.
+	Inspect func(verification *lib.SimpleVerification, conn *tls.ConnectionState)
+	// Port to listen on. Required.
+	Port int
+	// URL to proxy to (should be https://...)
+	Target string
+	// SNI override. Optional.
+	ServerName string
+	// Roots to verify server certificate against. If empty, the system cert store is used.
+	CAPath string
+	// Client certificate. Optional.
+	CertPath string
+	// Client key. Optional.
+	KeyPath string
+	// Expected name in the server certificate.
 	ExpectedName string
 }
 
