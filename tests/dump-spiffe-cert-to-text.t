@@ -35,6 +35,7 @@ Dump a SPIFFE example certificate (example-spiffe.crt)
 
   $ certigo --verbose dump example-spiffe.crt
   ** CERTIFICATE 1 **
+  Input Format: PEM
   Serial: 4096
   Valid: 2017-07-19 16:50 UTC to 2017-07-29 16:50 UTC
   Signature: SHA256-RSA

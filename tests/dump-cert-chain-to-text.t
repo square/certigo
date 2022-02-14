@@ -109,6 +109,7 @@ Dump a live cert chain (squareup-chain.crt)
 
   $ certigo --verbose dump squareup-chain.crt
   ** CERTIFICATE 1 **
+  Input Format: PEM
   Serial: 260680855742043049380997676879525498489
   Valid: 2016-07-15 20:15 UTC to 2017-07-31 20:45 UTC
   Signature: SHA256-RSA
@@ -148,6 +149,7 @@ Dump a live cert chain (squareup-chain.crt)
   \tgosq.co, www.gosq.co (esc)
   
   ** CERTIFICATE 2 **
+  Input Format: PEM
   Serial: 30215777750102225331854468774
   Valid: 2014-12-15 15:25 UTC to 2030-10-15 15:55 UTC
   Signature: SHA256-RSA
@@ -176,6 +178,7 @@ Dump a live cert chain (squareup-chain.crt)
   \tServer Auth (esc)
   
   ** CERTIFICATE 3 **
+  Input Format: PEM
   Serial: 1372799044
   Valid: 2014-09-22 17:14 UTC to 2024-09-23 01:31 UTC
   Signature: SHA256-RSA

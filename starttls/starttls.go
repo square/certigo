@@ -247,6 +247,10 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		return nil, nil, fmt.Errorf("error connecting: %v", result.err)
 	}
 
+	if cri == nil {
+		return result.state, nil, nil
+	}
+
 	if result.state.Version < tls.VersionTLS12 && *cri != nil {
 		// Sending supported signature schemes was added in TLS 1.2,
 		// but Go lies to us in the GetClientCertificate callback and

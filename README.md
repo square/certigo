@@ -11,7 +11,7 @@ Certigo is a utility to examine and validate certificates to help with debugging
 
 **Supports all common file formats**: Certigo can read and dump certificates in various formats. It can automatically detect and read from X.509 (DER/PEM), JCEKS, PKCS7 and PKCS12 files. Certificates can be dumped to a human-readable format, a set of PEM blocks, or a JSON object for use in scripting.
 
-**Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certififcates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small.
+**Validation and linting**: Not sure if your generated certificate is valid? Certigo can connect to remote servers to display and validate their certificate chains. It can also point out common errors on certificates, such as using an older X.509 format, signatures with outdated hashes, or keys that are too small.
 
 **Supports STARTTLS Protocols**: Trying to debug SSL/TLS connections on a database or mail server? Certigo supports establishing connections via StartTLS protocols for MySQL, PostgreSQL, SMTP, LDAP, IMAP, and FTP, making it possible to debug connection issues or scan for expired certificates more easily.
 
@@ -71,10 +71,14 @@ Commands:
         --cert=CERT           Client certificate chain for connecting to server (PEM).
         --key=KEY             Private key for client certificate, if not in same file (PEM).
     -t, --start-tls=PROTOCOL  Enable StartTLS protocol ('ldap', 'mysql', 'postgres', 'smtp' or 'ftp').
+        --identity=certigo    With --start-tls, sets the DB user or SMTP EHLO name.
+        --proxy               Optional URI for HTTP(s) CONNECT proxy to dial connections with.
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
-    -l, --leaf               Write only the first certificate
+    -l, --leaf                Write only the first certificate
+        --verify              Verify certificate chain.
+        --expected-name       Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.
 
   verify --name=NAME [<flags>] [<file>]
     Verify a certificate chain from file/stdin against a name.

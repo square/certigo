@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/alecthomas/kingpin"
 	"github.com/square/certigo/cli/terminal"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -26,20 +26,21 @@ var (
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	dumpLeaf     = dump.Flag("leaf", "Only display the first certificate").Short('l').Bool()
 
-	connect         = app.Command("connect", "Connect to a server and print its certificate(s).")
-	connectTo       = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
-	connectName     = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
-	connectCaPath   = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
-	connectCert     = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
-	connectKey      = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
-	connectStartTLS = connect.Flag("start-tls", fmt.Sprintf("Enable StartTLS protocol; one of: %v.", starttls.Protocols)).Short('t').PlaceHolder("PROTOCOL").Enum(starttls.Protocols...)
-	connectIdentity = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
-	connectProxy    = connect.Flag("proxy", "Optional URI for HTTP(s) CONNECT proxy to dial connections with").URL()
-	connectTimeout  = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
-	connectPem      = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
-	connectJSON     = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
-	connectVerify   = connect.Flag("verify", "Verify certificate chain.").Bool()
-	connectLeaf     = connect.Flag("leaf", "Only display the first certificate").Short('l').Bool()
+	connect                   = app.Command("connect", "Connect to a server and print its certificate(s).")
+	connectTo                 = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
+	connectName               = connect.Flag("name", "Override the server name used for Server Name Indication (SNI).").Short('n').String()
+	connectCaPath             = connect.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	connectCert               = connect.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
+	connectKey                = connect.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
+	connectStartTLS           = connect.Flag("start-tls", fmt.Sprintf("Enable StartTLS protocol; one of: %v.", starttls.Protocols)).Short('t').PlaceHolder("PROTOCOL").Enum(starttls.Protocols...)
+	connectIdentity           = connect.Flag("identity", "With --start-tls, sets the DB user or SMTP EHLO name").Default("certigo").String()
+	connectProxy              = connect.Flag("proxy", "Optional URI for HTTP(s) CONNECT proxy to dial connections with").URL()
+	connectTimeout            = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
+	connectPem                = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
+	connectJSON               = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+  connectLeaf               = connect.Flag("leaf", "Only display the first certificate").Short('l').Bool()
+	connectVerify             = connect.Flag("verify", "Verify certificate chain.").Bool()
+	connectVerifyExpectedName = connect.Flag("expected-name", "Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.").String()
 
 	verify         = app.Command("verify", "Verify a certificate chain from file/stdin against a name.")
 	verifyFile     = verify.Arg("file", "Certificate file to dump (or stdin if not specified).").ExistingFile()
@@ -48,6 +49,10 @@ var (
 	verifyName     = verify.Flag("name", "Server name to verify certificate against.").Short('n').Required().String()
 	verifyCaPath   = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+)
+
+const (
+	version = "1.14.1"
 )
 
 func Run(args []string, tty terminal.Terminal) int {
@@ -64,7 +69,8 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 		return 2
 	}
-	app.Version("1.11.0")
+	app.HelpFlag.Short('h')
+	app.Version(version)
 
 	// Alias starttls to start-tls
 	connect.Flag("starttls", "").Hidden().EnumVar(connectStartTLS, starttls.Protocols...)
@@ -90,16 +96,17 @@ func Run(args []string, tty terminal.Terminal) int {
 		}()
 
 		if *dumpPem {
-			err = lib.ReadAsPEMFromFiles(files, *dumpType, tty.ReadPassword, func(block *pem.Block) error {
+			err = lib.ReadAsPEMFromFiles(files, *dumpType, tty.ReadPassword, func(block *pem.Block, format string) error {
 				block.Headers = nil
 				return pem.Encode(stdout, block)
 			})
 		} else {
-			err = lib.ReadAsX509FromFiles(files, *dumpType, tty.ReadPassword, func(cert *x509.Certificate, err error) error {
+			err = lib.ReadAsX509FromFiles(files, *dumpType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 				if err != nil {
 					return fmt.Errorf("error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 				} else {
 					result.Certificates = append(result.Certificates, cert)
+					result.Formats = append(result.Formats, format)
 				}
 				return nil
 			})
@@ -114,6 +121,7 @@ func Run(args []string, tty terminal.Terminal) int {
 				}
 				for i, cert := range certList {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
 					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
@@ -144,13 +152,20 @@ func Run(args []string, tty terminal.Terminal) int {
 			}
 		}
 
-		var hostname string
-		if *connectName != "" {
-			hostname = *connectName
-		} else {
-			hostname = strings.Split(*connectTo, ":")[0]
+		// Determine what name the server's certificate should match
+		var expectedNameInCertificate string
+		switch {
+		case *connectVerifyExpectedName != "":
+			// Use the explicitly provided name
+			expectedNameInCertificate = *connectVerifyExpectedName
+		case *connectName != "":
+			// Use the provided SNI
+			expectedNameInCertificate = *connectName
+		default:
+			// Use the hostname/IP from the connect string
+			expectedNameInCertificate = strings.Split(*connectTo, ":")[0]
 		}
-		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, hostname, *connectCaPath)
+		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, expectedNameInCertificate, *connectCaPath)
 		result.VerifyResult = &verifyResult
 
 		if *connectJSON {
@@ -187,7 +202,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		defer file.Close()
 
 		chain := []*x509.Certificate{}
-		err = lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, tty.ReadPassword, func(cert *x509.Certificate, err error) error {
+		err = lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 			if err != nil {
 				return err
 			} else {

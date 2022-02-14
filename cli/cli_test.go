@@ -2,6 +2,8 @@ package cli
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -42,6 +44,7 @@ t/DtcM/GpAhBbLP9Tk7kPB41v5fRIxVDo50Iz/qvkr37pQ4RsejSFg==
 `
 
 const expectedVerbose string = `** CERTIFICATE 1 **
+Input Format: PEM
 Serial: 4096
 Valid: 2017-07-19 16:50 UTC to 2017-07-29 16:50 UTC
 Signature: SHA256-RSA
@@ -65,6 +68,64 @@ Extended Key Usage:
 URI Names:
 	spiffe://dev.acme.com/path/service
 
+`
+
+const expectedConnect string = `** TLS Connection **
+Version: TLS 1.3
+Cipher Suite: AES_128_GCM_SHA256 cipher
+
+** CERTIFICATE 1 **
+Serial: 64483185769360960274258770740570494187
+Valid: 1970-01-01 00:00 UTC to 2084-01-29 16:00 UTC
+Signature: SHA256-RSA (self-signed)
+Subject Info:
+	Organization: Acme Co
+Issuer Info:
+	Organization: Acme Co
+Basic Constraints: CA:true
+Key Usage:
+	Digital Signature
+	Key Encipherment
+	Cert Sign
+Extended Key Usage:
+	Server Auth
+DNS Names:
+	example.com
+IP Addresses:
+	127.0.0.1, ::1
+Warnings:
+	Size of RSA key should be at least 2048 bits
+
+Failed to verify certificate chain:
+	x509: certificate signed by unknown authority
+** TLS Connection **
+Version: TLS 1.3
+Cipher Suite: AES_128_GCM_SHA256 cipher
+
+** CERTIFICATE 1 **
+Serial: 64483185769360960274258770740570494187
+Valid: 1970-01-01 00:00 UTC to 2084-01-29 16:00 UTC
+Signature: SHA256-RSA (self-signed)
+Subject Info:
+	Organization: Acme Co
+Issuer Info:
+	Organization: Acme Co
+Basic Constraints: CA:true
+Key Usage:
+	Digital Signature
+	Key Encipherment
+	Cert Sign
+Extended Key Usage:
+	Server Auth
+DNS Names:
+	example.com
+IP Addresses:
+	127.0.0.1, ::1
+Warnings:
+	Size of RSA key should be at least 2048 bits
+
+Failed to verify certificate chain:
+	x509: certificate signed by unknown authority
 `
 
 // Test basic dump functionality:  Dump a cert
@@ -91,4 +152,16 @@ func TestDumpMissingFile(t *testing.T) {
 	const expected = "path 'this-is-a-file-that-definitely-does-not-exist1111.pem' does not exist, try --help\n"
 	assert.Equal(t, expected, testTerminal.ErrorBuf.String())
 	assert.Empty(t, testTerminal.OutputBuf.Bytes())
+}
+
+func TestConnect(t *testing.T) {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	args := []string{"connect", "--verbose", ts.URL[len("https://"):]}
+	testTerminal := terminal.TestTerminal{Width: 80}
+	Run(args, &testTerminal)
+	assert.EqualValues(t, 0, Run(args, &testTerminal), "process should exit 0")
+	assert.Empty(t, testTerminal.ErrorBuf.Bytes(), "no error output expected")
+	assert.EqualValues(t, expectedConnect, testTerminal.OutputBuf.String())
 }
