@@ -24,6 +24,7 @@ var (
 	dumpPassword = dump.Flag("password", "Password for PKCS12/JCEKS key stores (reads from TTY if missing).").Short('p').String()
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	dumpFirst    = dump.Flag("first", "Only display the first certificate. This flag can be paired with --json or --pem.").Short('l').Bool()
 
 	connect                   = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo                 = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
@@ -37,6 +38,7 @@ var (
 	connectTimeout            = connect.Flag("timeout", "Timeout for connecting to remote server (can be '5m', '1s', etc).").Default("5s").Duration()
 	connectPem                = connect.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	connectJSON               = connect.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+	connectFirst              = connect.Flag("first", "Only display the first certificate. This flag can be paired with --json or --pem.").Short('l').Bool()
 	connectVerify             = connect.Flag("verify", "Verify certificate chain.").Bool()
 	connectVerifyExpectedName = connect.Flag("expected-name", "Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.").String()
 
@@ -94,8 +96,14 @@ func Run(args []string, tty terminal.Terminal) int {
 		}()
 
 		if *dumpPem {
+			dumped := 0
 			err = lib.ReadAsPEMFromFiles(files, *dumpType, tty.ReadPassword, func(block *pem.Block, format string) error {
+				if *dumpFirst && dumped > 0 {
+					return nil
+				}
+
 				block.Headers = nil
+				dumped++
 				return pem.Encode(stdout, block)
 			})
 		} else {
@@ -108,6 +116,15 @@ func Run(args []string, tty terminal.Terminal) int {
 				}
 				return nil
 			})
+
+			certList := result.Certificates
+			formatList := result.Formats
+			if *dumpFirst && len(certList) > 0 {
+				certList = certList[:1]
+				formatList = formatList[:1]
+				result.Certificates = certList
+				result.Formats = formatList
+			}
 
 			if *dumpJSON {
 				blob, _ := json.Marshal(result)
@@ -161,6 +178,15 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 		verifyResult := lib.VerifyChain(connState.PeerCertificates, connState.OCSPResponse, expectedNameInCertificate, *connectCaPath)
 		result.VerifyResult = &verifyResult
+
+		certList := result.Certificates
+		formatList := result.Formats
+		if *connectFirst && len(certList) > 0 {
+			certList = certList[:1]
+			formatList = formatList[:1]
+			result.Certificates = certList
+			result.Formats = formatList
+		}
 
 		if *connectJSON {
 			blob, _ := json.Marshal(result)
