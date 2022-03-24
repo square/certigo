@@ -180,12 +180,9 @@ func Run(args []string, tty terminal.Terminal) int {
 		result.VerifyResult = &verifyResult
 
 		certList := result.Certificates
-		formatList := result.Formats
 		if *connectFirst && len(certList) > 0 {
 			certList = certList[:1]
-			formatList = formatList[:1]
 			result.Certificates = certList
-			result.Formats = formatList
 		}
 
 		if *connectJSON {
