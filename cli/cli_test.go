@@ -197,15 +197,13 @@ func TestConnect(t *testing.T) {
 	_, err = rootPath.Write([]byte(localhostRoot))
 	require.NoError(t, err)
 
-	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-
 	cert, err := tls.X509KeyPair(localhostCert, localhostKey)
-	if err != nil {
-		t.Fatalf("X509KeyPair failed: %v", err)
-	}
-	ts.TLS.Certificates = []tls.Certificate{cert}
+	require.NoError(t, err)
 
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
+
+	ts.TLS.Certificates = []tls.Certificate{cert}
 
 	args := []string{"connect", "--verbose", "--ca", rootPath.Name(), "--verify", "--expected-name", "127.0.0.1", ts.URL[len("https://"):]}
 	testTerminal := terminal.TestTerminal{Width: 80}
