@@ -106,7 +106,7 @@ URI Names:
 
 `
 
-// The ciphersuite negotiated can vary, so allow any in the expected connection result below.
+// The ciphersuite negotiated can vary, so allow all ciphersuites in the connection result below.
 var cipherSuiteRegex = regexp.MustCompile("(?m)^Cipher Suite: .*$")
 var CipherSuiteRepl = "Cipher Suite: XXX"
 
