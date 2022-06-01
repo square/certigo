@@ -13,41 +13,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// localhostCert is a PEM-encoded TLS cert with SAN IPs
-// "127.0.0.1" and "[::1]", expiring at Jan 29 16:00:00 2084 GMT.
-// generated from src/crypto/tls:
-// go run generate_cert.go  --rsa-bits 1024 --host 127.0.0.1,::1,example.com --ca --start-date "Jan 1 00:00:00 1970" --duration=1000000h
+// certstrap init --curve P-256 --cn "Localhost Root" --expires "20 years"
+var localhostRoot = []byte(`-----BEGIN CERTIFICATE-----
+MIIBZzCCAQygAwIBAgIBATAKBggqhkjOPQQDAjAZMRcwFQYDVQQDEw5Mb2NhbGhv
+c3QgUm9vdDAeFw0yMjA1MzEyMTIyNTRaFw00MjA1MzEyMTMyNTJaMBkxFzAVBgNV
+BAMTDkxvY2FsaG9zdCBSb290MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFU5m
+vrrtaf20iV8PtR9Vtri/AaOAFIDZGB24mXq8bAtqrpYJTmw4W9FXjuhF9I/hk4kb
+VwkUJ/RPSQDo4WAYz6NFMEMwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYB
+Af8CAQAwHQYDVR0OBBYEFKmuTXHQnGbvxH+YrwLza85GBUT1MAoGCCqGSM49BAMC
+A0kAMEYCIQDzxBz6YMWQv6kn+14Gsp+QB0q8AU+lP/Z0GJMl/SCs+QIhAPAWMOjc
+mW2/VQQ+IRyDXj92xdJQ+953pBYY/inVjTBA
+-----END CERTIFICATE-----`)
+
+// certstrap request-cert --common-name localhost --curve P-256 --ip 127.0.0.1
+// certstrap sign localhost --CA Localhost_Root --expires "20 years"
 var localhostCert = []byte(`-----BEGIN CERTIFICATE-----
-MIICEzCCAXygAwIBAgIQMIMChMLGrR+QvmQvpwAU6zANBgkqhkiG9w0BAQsFADAS
-MRAwDgYDVQQKEwdBY21lIENvMCAXDTcwMDEwMTAwMDAwMFoYDzIwODQwMTI5MTYw
-MDAwWjASMRAwDgYDVQQKEwdBY21lIENvMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCB
-iQKBgQDuLnQAI3mDgey3VBzWnB2L39JUU4txjeVE6myuDqkM/uGlfjb9SjY1bIw4
-iA5sBBZzHi3z0h1YV8QPuxEbi4nW91IJm2gsvvZhIrCHS3l6afab4pZBl2+XsDul
-rKBxKKtD1rGxlG4LjncdabFn9gvLZad2bSysqz/qTAUStTvqJQIDAQABo2gwZjAO
-BgNVHQ8BAf8EBAMCAqQwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDwYDVR0TAQH/BAUw
-AwEB/zAuBgNVHREEJzAlggtleGFtcGxlLmNvbYcEfwAAAYcQAAAAAAAAAAAAAAAA
-AAAAATANBgkqhkiG9w0BAQsFAAOBgQCEcetwO59EWk7WiJsG4x8SY+UIAA+flUI9
-tyC4lNhbcF2Idq9greZwbYCqTTTr2XiRNSMLCOjKyI7ukPoPjo16ocHj+P3vZGfs
-h1fIw3cSS2OolhloGw/XM6RWPWtPAlGykKLciQrBru5NAPvCMsb/I1DAceTiotQM
-fblo6RBxUQ==
+MIIBsDCCAVagAwIBAgIRAJ0DJ0Fq0oq1WrJVGOX8cyMwCgYIKoZIzj0EAwIwGTEX
+MBUGA1UEAxMOTG9jYWxob3N0IFJvb3QwHhcNMjIwNTMxMjEyNDM4WhcNNDIwNTMx
+MjEzMjUxWjAUMRIwEAYDVQQDEwlsb2NhbGhvc3QwWTATBgcqhkjOPQIBBggqhkjO
+PQMBBwNCAATM99XdCMWptOjjx1INxFJSLhcqrFGIzXSfNNpL0EpPhsjkl2rLYBo7
+mNvUBz2pSTMkHA8emmVeBGr748DsMQHGo4GDMIGAMA4GA1UdDwEB/wQEAwIDuDAd
+BgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFEtGby8/yZBA
+gfDySvtlSxqFqfZNMB8GA1UdIwQYMBaAFKmuTXHQnGbvxH+YrwLza85GBUT1MA8G
+A1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0EAwIDSAAwRQIhAKoEpWBCX6HU4QQMU7B/
+gPQR8oSxPa61OkaKz4He0ekjAiAVN8VtVouHHeWoq892Gbl508fST5wYKeLUdg2u
++v9Syg==
 -----END CERTIFICATE-----`)
 
 // localhostKey is the private key for localhostCert.
-var localhostKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
-MIICXgIBAAKBgQDuLnQAI3mDgey3VBzWnB2L39JUU4txjeVE6myuDqkM/uGlfjb9
-SjY1bIw4iA5sBBZzHi3z0h1YV8QPuxEbi4nW91IJm2gsvvZhIrCHS3l6afab4pZB
-l2+XsDulrKBxKKtD1rGxlG4LjncdabFn9gvLZad2bSysqz/qTAUStTvqJQIDAQAB
-AoGAGRzwwir7XvBOAy5tM/uV6e+Zf6anZzus1s1Y1ClbjbE6HXbnWWF/wbZGOpet
-3Zm4vD6MXc7jpTLryzTQIvVdfQbRc6+MUVeLKwZatTXtdZrhu+Jk7hx0nTPy8Jcb
-uJqFk541aEw+mMogY/xEcfbWd6IOkp+4xqjlFLBEDytgbIECQQDvH/E6nk+hgN4H
-qzzVtxxr397vWrjrIgPbJpQvBsafG7b0dA4AFjwVbFLmQcj2PprIMmPcQrooz8vp
-jy4SHEg1AkEA/v13/5M47K9vCxmb8QeD/asydfsgS5TeuNi8DoUBEmiSJwma7FXY
-fFUtxuvL7XvjwjN5B30pNEbc6Iuyt7y4MQJBAIt21su4b3sjXNueLKH85Q+phy2U
-fQtuUE9txblTu14q3N7gHRZB4ZMhFYyDy8CKrN2cPg/Fvyt0Xlp/DoCzjA0CQQDU
-y2ptGsuSmgUtWj3NM9xuwYPm+Z/F84K6+ARYiZ6PYj013sovGKUFfYAqVXVlxtIX
-qyUBnu3X9ps8ZfjLZO7BAkEAlT4R5Yl6cGhaJQYZHOde3JEMhNRcVFMO8dJDaFeo
-f9Oeos0UUothgiDktdQHxdNEwLjQf7lJJBzV+5OtwswCWA==
------END RSA PRIVATE KEY-----`)
+var localhostKey = []byte(`-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgoAW3yvL3JJBzaAdG
+aPJ9zriULhC+a9ODMQTM1vWBGVahRANCAATM99XdCMWptOjjx1INxFJSLhcqrFGI
+zXSfNNpL0EpPhsjkl2rLYBo7mNvUBz2pSTMkHA8emmVeBGr748DsMQHG
+-----END PRIVATE KEY-----`)
 
 const testCert string = `
 -----BEGIN CERTIFICATE-----
@@ -112,57 +110,57 @@ Version: TLS 1.3
 Cipher Suite: AES_128_GCM_SHA256 cipher
 
 ** CERTIFICATE 1 **
-Serial: 64483185769360960274258770740570494187
-Valid: 1970-01-01 00:00 UTC to 2084-01-29 16:00 UTC
-Signature: SHA256-RSA (self-signed)
+Serial: 208705168425672442866264119814836220707
+Valid: 2022-05-31 21:24 UTC to 2042-05-31 21:32 UTC
+Signature: ECDSA-SHA256
 Subject Info:
-	Organization: Acme Co
+	CommonName: localhost
 Issuer Info:
-	Organization: Acme Co
-Basic Constraints: CA:true
+	CommonName: Localhost Root
+Subject Key ID: 4B:46:6F:2F:3F:C9:90:40:81:F0:F2:4A:FB:65:4B:1A:85:A9:F6:4D
+Authority Key ID: A9:AE:4D:71:D0:9C:66:EF:C4:7F:98:AF:02:F3:6B:CE:46:05:44:F5
 Key Usage:
 	Digital Signature
 	Key Encipherment
-	Cert Sign
+	Data Encipherment
+	Key Agreement
 Extended Key Usage:
 	Server Auth
-DNS Names:
-	example.com
+	Client Auth
 IP Addresses:
-	127.0.0.1, ::1
-Warnings:
-	Size of RSA key should be at least 2048 bits
+	127.0.0.1
 
-Failed to verify certificate chain:
-	x509: certificate signed by unknown authority
+Found 1 valid certificate chain(s):
+[0] CN=localhost
+	=> CN=Localhost Root [self-signed]
 ** TLS Connection **
 Version: TLS 1.3
 Cipher Suite: AES_128_GCM_SHA256 cipher
 
 ** CERTIFICATE 1 **
-Serial: 64483185769360960274258770740570494187
-Valid: 1970-01-01 00:00 UTC to 2084-01-29 16:00 UTC
-Signature: SHA256-RSA (self-signed)
+Serial: 208705168425672442866264119814836220707
+Valid: 2022-05-31 21:24 UTC to 2042-05-31 21:32 UTC
+Signature: ECDSA-SHA256
 Subject Info:
-	Organization: Acme Co
+	CommonName: localhost
 Issuer Info:
-	Organization: Acme Co
-Basic Constraints: CA:true
+	CommonName: Localhost Root
+Subject Key ID: 4B:46:6F:2F:3F:C9:90:40:81:F0:F2:4A:FB:65:4B:1A:85:A9:F6:4D
+Authority Key ID: A9:AE:4D:71:D0:9C:66:EF:C4:7F:98:AF:02:F3:6B:CE:46:05:44:F5
 Key Usage:
 	Digital Signature
 	Key Encipherment
-	Cert Sign
+	Data Encipherment
+	Key Agreement
 Extended Key Usage:
 	Server Auth
-DNS Names:
-	example.com
+	Client Auth
 IP Addresses:
-	127.0.0.1, ::1
-Warnings:
-	Size of RSA key should be at least 2048 bits
+	127.0.0.1
 
-Failed to verify certificate chain:
-	x509: certificate signed by unknown authority
+Found 1 valid certificate chain(s):
+[0] CN=localhost
+	=> CN=Localhost Root [self-signed]
 `
 
 // Test basic dump functionality:  Dump a cert
@@ -192,17 +190,22 @@ func TestDumpMissingFile(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	rootPath, err := ioutil.TempFile("", t.Name())
+	require.NoError(t, err)
+	defer os.Remove(rootPath.Name())
+
+	_, err = rootPath.Write([]byte(localhostRoot))
+	require.NoError(t, err)
 
 	cert, err := tls.X509KeyPair(localhostCert, localhostKey)
-	if err != nil {
-		t.Fatalf("X509KeyPair failed: %v", err)
-	}
-	ts.TLS.Certificates = []tls.Certificate{cert}
+	require.NoError(t, err)
 
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
 
-	args := []string{"connect", "--verbose", ts.URL[len("https://"):]}
+	ts.TLS.Certificates = []tls.Certificate{cert}
+
+	args := []string{"connect", "--verbose", "--ca", rootPath.Name(), "--verify", "--expected-name", "127.0.0.1", ts.URL[len("https://"):]}
 	testTerminal := terminal.TestTerminal{Width: 80}
 	Run(args, &testTerminal)
 	assert.EqualValues(t, 0, Run(args, &testTerminal), "process should exit 0")
