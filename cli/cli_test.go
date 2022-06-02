@@ -108,7 +108,7 @@ URI Names:
 
 // The ciphersuite negotiated can vary, so allow all ciphersuites in the connection result below.
 var cipherSuiteRegex = regexp.MustCompile("(?m)^Cipher Suite: .*$")
-var CipherSuiteRepl = "Cipher Suite: XXX"
+var cipherSuiteRepl = "Cipher Suite: XXX"
 
 const expectedConnect string = `** TLS Connection **
 Version: TLS 1.3
@@ -216,6 +216,6 @@ func TestConnect(t *testing.T) {
 	assert.EqualValues(t, 0, Run(args, &testTerminal), "process should exit 0")
 	assert.Empty(t, testTerminal.ErrorBuf.Bytes(), "no error output expected")
 
-	out := cipherSuiteRegex.ReplaceAllLiteralString(testTerminal.OutputBuf.String(), CipherSuiteRepl)
+	out := cipherSuiteRegex.ReplaceAllLiteralString(testTerminal.OutputBuf.String(), cipherSuiteRepl)
 	assert.EqualValues(t, expectedConnect, out)
 }
