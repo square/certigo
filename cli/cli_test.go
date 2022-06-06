@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/square/certigo/cli/terminal"
@@ -105,9 +106,13 @@ URI Names:
 
 `
 
+// The ciphersuite negotiated can vary, so allow all ciphersuites in the connection result below.
+var cipherSuiteRegex = regexp.MustCompile("(?m)^Cipher Suite: .*$")
+var cipherSuiteRepl = "Cipher Suite: XXX"
+
 const expectedConnect string = `** TLS Connection **
 Version: TLS 1.3
-Cipher Suite: AES_128_GCM_SHA256 cipher
+Cipher Suite: XXX
 
 ** CERTIFICATE 1 **
 Serial: 208705168425672442866264119814836220707
@@ -135,7 +140,7 @@ Found 1 valid certificate chain(s):
 	=> CN=Localhost Root [self-signed]
 ** TLS Connection **
 Version: TLS 1.3
-Cipher Suite: AES_128_GCM_SHA256 cipher
+Cipher Suite: XXX
 
 ** CERTIFICATE 1 **
 Serial: 208705168425672442866264119814836220707
@@ -210,5 +215,7 @@ func TestConnect(t *testing.T) {
 	Run(args, &testTerminal)
 	assert.EqualValues(t, 0, Run(args, &testTerminal), "process should exit 0")
 	assert.Empty(t, testTerminal.ErrorBuf.Bytes(), "no error output expected")
-	assert.EqualValues(t, expectedConnect, testTerminal.OutputBuf.String())
+
+	out := cipherSuiteRegex.ReplaceAllLiteralString(testTerminal.OutputBuf.String(), cipherSuiteRepl)
+	assert.EqualValues(t, expectedConnect, out)
 }
