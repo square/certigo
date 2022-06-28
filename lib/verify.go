@@ -168,7 +168,7 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caP
 		if err == nil {
 			result.OCSPStatus = status
 		}
-		if errors.Is(err, errSkippedRevocationCheck) {
+		if err != nil && !errors.Is(err, errSkippedRevocationCheck) {
 			result.OCSPError = err.Error()
 		}
 

@@ -112,7 +112,7 @@ func fetchOCSP(cert, issuer *x509.Certificate) ([]byte, error) {
 	}
 
 	// Try all the OCSP servers listed in the certificate
-	var lastError error = errSkippedRevocationCheck
+	var lastError error
 	for _, server := range cert.OCSPServer {
 		// We try both GET and POST requests, because some servers are janky.
 		reqs := []*http.Request{}
