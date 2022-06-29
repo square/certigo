@@ -124,7 +124,6 @@ URI Names:
 Email Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}
 {{- end}}
-{{- if .SCTList}}
 {{- range .SCTList}}
 Signed Certificate Timestamp:
 	Version: {{.Version | sctVersion}}
@@ -137,7 +136,6 @@ Signed Certificate Timestamp:
 	Log ID: {{wrapWith 48 "\n\t        " (.LogID | hexify)}}
 	Timestamp: {{.Timestamp | formatTime}}
 	Signature: {{.SignatureAlgorithm | highlightAlgorithm}}
-{{- end}}
 {{- end}}
 {{- if .Warnings}}
 Warnings:
