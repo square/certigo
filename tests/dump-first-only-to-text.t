@@ -149,6 +149,8 @@ Dump a live cert chain (squareup-chain.crt) with leaf flag
   \tgosq.co, www.gosq.co (esc)
   Signed Certificate Timestamp:
   \tVersion: 0 (v1) (esc)
+  \tLog Operator: Google (esc)
+  \tLog URL: https://ct.googleapis.com/aviator/ (esc)
   \tLog ID: 68:F6:98:F8:1F:64:82:BE:3A:8C:EE:B9:28:1D:4C:FC: (esc)
   \t        71:51:5D:67:93:D4:44:D1:0A:67:AC:BB:4F:4F:FB:C4 (esc)
   \tTimestamp: 2016-07-15 20:45 GMT (esc)
