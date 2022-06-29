@@ -147,6 +147,28 @@ Dump a live cert chain (squareup-chain.crt)
   \taccount.squareup.com, mkt.com, www.mkt.com, (esc)
   \tmarket.squareup.com, gosq.com, www.gosq.com, (esc)
   \tgosq.co, www.gosq.co (esc)
+  Signed Certificate Timestamp:
+  \tVersion: 0 (v1) (esc)
+  \tLog ID: 68:F6:98:F8:1F:64:82:BE:3A:8C:EE:B9:28:1D:4C:FC: (esc)
+  \t        71:51:5D:67:93:D4:44:D1:0A:67:AC:BB:4F:4F:FB:C4 (esc)
+  \tTimestamp: 2016-07-15 20:45 GMT (esc)
+  \tSignature: ECDSA-SHA256 (esc)
+  Signed Certificate Timestamp:
+  \tVersion: 0 (v1) (esc)
+  \tLog Operator: DigiCert (esc)
+  \tLog URL: https://ct1.digicert-ct.com/log/ (esc)
+  \tLog ID: 56:14:06:9A:2F:D7:C2:EC:D3:F5:E1:BD:44:B2:3E:C7: (esc)
+  \t        46:76:B9:BC:99:11:5C:C0:EF:94:98:55:D6:89:D0:DD (esc)
+  \tTimestamp: 2016-07-15 20:45 GMT (esc)
+  \tSignature: ECDSA-SHA256 (esc)
+  Signed Certificate Timestamp:
+  \tVersion: 0 (v1) (esc)
+  \tLog Operator: Google (esc)
+  \tLog URL: https://ct.googleapis.com/pilot/ (esc)
+  \tLog ID: A4:B9:09:90:B4:18:58:14:87:BB:13:A2:CC:67:70:0A: (esc)
+  \t        3C:35:98:04:F9:1B:DF:B8:E3:77:CD:0E:C8:0D:DC:10 (esc)
+  \tTimestamp: 2016-07-15 20:45 GMT (esc)
+  \tSignature: ECDSA-SHA256 (esc)
   
   ** CERTIFICATE 2 **
   Input Format: PEM
