@@ -32,6 +32,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	cttls "github.com/google/certificate-transparency-go/tls"
 )
 
 var keyUsages = []x509.KeyUsage{
@@ -201,11 +203,21 @@ type simpleCertificate struct {
 	AltIPAddresses        []net.IP            `json:"ip_addresses,omitempty"`
 	URINames              []string            `json:"uri_names,omitempty"`
 	EmailAddresses        []string            `json:"email_addresses,omitempty"`
+	SCTList               []*simpleSCT        `json:"sct_list,omitempty"`
 	Warnings              []string            `json:"warnings,omitempty"`
 	PEM                   string              `json:"pem,omitempty"`
 
 	// Internal fields for text display. Set - to skip serialize.
 	Width int `json:"-"`
+}
+
+type simpleSCT struct {
+	Version            uint64       `json:"version"`
+	LogOperator        string       `json:"log_operator,omitempty"`
+	LogURL             string       `json:"log_url,omitempty"`
+	LogID              []byte       `json:"log_id"`
+	Timestamp          time.Time    `json:"timestamp"`
+	SignatureAlgorithm simpleSigAlg `json:"signature_algorithm"`
 }
 
 type simplePKIXName struct {
@@ -217,6 +229,44 @@ type simpleKeyUsage x509.KeyUsage
 type simpleExtKeyUsage x509.ExtKeyUsage
 
 type simpleSigAlg x509.SignatureAlgorithm
+
+func sctSignatureAlg(alg cttls.SignatureAndHashAlgorithm) simpleSigAlg {
+	x509Alg := x509.UnknownSignatureAlgorithm
+	switch alg.Signature {
+	case cttls.RSA:
+		switch alg.Hash {
+		case cttls.MD5:
+			x509Alg = x509.MD5WithRSA
+		case cttls.SHA1:
+			x509Alg = x509.SHA1WithRSA
+		case cttls.SHA256:
+			x509Alg = x509.SHA256WithRSA
+		case cttls.SHA384:
+			x509Alg = x509.SHA384WithRSA
+		case cttls.SHA512:
+			x509Alg = x509.SHA512WithRSA
+		}
+	case cttls.DSA:
+		switch alg.Hash {
+		case cttls.SHA1:
+			x509Alg = x509.DSAWithSHA1
+		case cttls.SHA256:
+			x509Alg = x509.DSAWithSHA256
+		}
+	case cttls.ECDSA:
+		switch alg.Hash {
+		case cttls.SHA1:
+			x509Alg = x509.ECDSAWithSHA1
+		case cttls.SHA256:
+			x509Alg = x509.ECDSAWithSHA256
+		case cttls.SHA384:
+			x509Alg = x509.ECDSAWithSHA384
+		case cttls.SHA512:
+			x509Alg = x509.ECDSAWithSHA512
+		}
+	}
+	return simpleSigAlg(x509Alg)
+}
 
 func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertificate {
 	out := simpleCertificate{
@@ -240,6 +290,7 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		AltDNSNames:           cert.DNSNames,
 		AltIPAddresses:        cert.IPAddresses,
 		EmailAddresses:        cert.EmailAddresses,
+		SCTList:               parseSCTList(cert),
 		PEM:                   string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 	}
 
@@ -363,13 +414,13 @@ func algString(algo x509.SignatureAlgorithm) string {
 
 // decodeKey returns the algorithm and key size for a public key.
 func decodeKey(publicKey interface{}) (string, int) {
-	switch publicKey.(type) {
+	switch pk := publicKey.(type) {
 	case *dsa.PublicKey:
-		return "DSA", publicKey.(*dsa.PublicKey).P.BitLen()
+		return "DSA", pk.P.BitLen()
 	case *ecdsa.PublicKey:
-		return "ECDSA", publicKey.(*ecdsa.PublicKey).Curve.Params().BitSize
+		return "ECDSA", pk.Curve.Params().BitSize
 	case *rsa.PublicKey:
-		return "RSA", publicKey.(*rsa.PublicKey).N.BitLen()
+		return "RSA", pk.N.BitLen()
 	default:
 		return "", 0
 	}
@@ -398,7 +449,7 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 	}
 
 	if len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0 && len(uriNames) == 0 && !cert.IsCA {
-		warnings = append(warnings, fmt.Sprintf("Certificate doesn't have any valid DNS/URI names or IP addresses set"))
+		warnings = append(warnings, "Certificate doesn't have any valid DNS/URI names or IP addresses set")
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {
