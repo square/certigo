@@ -168,4 +168,4 @@ Dump a live cert chain (squareup-chain.crt) with leaf flag
   \tLog ID: A4:B9:09:90:B4:18:58:14:87:BB:13:A2:CC:67:70:0A: (esc)
   \t        3C:35:98:04:F9:1B:DF:B8:E3:77:CD:0E:C8:0D:DC:10 (esc)
   \tTimestamp: 2016-07-15 20:45 GMT (esc)
-  \tSignature: ECDSA-SHA256 (esc) 
+  \tSignature: ECDSA-SHA256 (esc)
