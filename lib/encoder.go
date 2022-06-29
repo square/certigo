@@ -32,8 +32,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	cttls "github.com/google/certificate-transparency-go/tls"
 )
 
 var keyUsages = []x509.KeyUsage{
@@ -229,44 +227,6 @@ type simpleKeyUsage x509.KeyUsage
 type simpleExtKeyUsage x509.ExtKeyUsage
 
 type simpleSigAlg x509.SignatureAlgorithm
-
-func sctSignatureAlg(alg cttls.SignatureAndHashAlgorithm) simpleSigAlg {
-	x509Alg := x509.UnknownSignatureAlgorithm
-	switch alg.Signature {
-	case cttls.RSA:
-		switch alg.Hash {
-		case cttls.MD5:
-			x509Alg = x509.MD5WithRSA
-		case cttls.SHA1:
-			x509Alg = x509.SHA1WithRSA
-		case cttls.SHA256:
-			x509Alg = x509.SHA256WithRSA
-		case cttls.SHA384:
-			x509Alg = x509.SHA384WithRSA
-		case cttls.SHA512:
-			x509Alg = x509.SHA512WithRSA
-		}
-	case cttls.DSA:
-		switch alg.Hash {
-		case cttls.SHA1:
-			x509Alg = x509.DSAWithSHA1
-		case cttls.SHA256:
-			x509Alg = x509.DSAWithSHA256
-		}
-	case cttls.ECDSA:
-		switch alg.Hash {
-		case cttls.SHA1:
-			x509Alg = x509.ECDSAWithSHA1
-		case cttls.SHA256:
-			x509Alg = x509.ECDSAWithSHA256
-		case cttls.SHA384:
-			x509Alg = x509.ECDSAWithSHA384
-		case cttls.SHA512:
-			x509Alg = x509.ECDSAWithSHA512
-		}
-	}
-	return simpleSigAlg(x509Alg)
-}
 
 func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertificate {
 	out := simpleCertificate{

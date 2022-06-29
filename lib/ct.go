@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	cttls "github.com/google/certificate-transparency-go/tls"
 	ctx509 "github.com/google/certificate-transparency-go/x509"
 	ctutil "github.com/google/certificate-transparency-go/x509util"
 )
@@ -105,4 +106,42 @@ func getLogByID(id []byte) *ctLog {
 	})
 	b64 := base64.StdEncoding.EncodeToString(id)
 	return knownLogs[b64]
+}
+
+func sctSignatureAlg(alg cttls.SignatureAndHashAlgorithm) simpleSigAlg {
+	x509Alg := x509.UnknownSignatureAlgorithm
+	switch alg.Signature {
+	case cttls.RSA:
+		switch alg.Hash {
+		case cttls.MD5:
+			x509Alg = x509.MD5WithRSA
+		case cttls.SHA1:
+			x509Alg = x509.SHA1WithRSA
+		case cttls.SHA256:
+			x509Alg = x509.SHA256WithRSA
+		case cttls.SHA384:
+			x509Alg = x509.SHA384WithRSA
+		case cttls.SHA512:
+			x509Alg = x509.SHA512WithRSA
+		}
+	case cttls.DSA:
+		switch alg.Hash {
+		case cttls.SHA1:
+			x509Alg = x509.DSAWithSHA1
+		case cttls.SHA256:
+			x509Alg = x509.DSAWithSHA256
+		}
+	case cttls.ECDSA:
+		switch alg.Hash {
+		case cttls.SHA1:
+			x509Alg = x509.ECDSAWithSHA1
+		case cttls.SHA256:
+			x509Alg = x509.ECDSAWithSHA256
+		case cttls.SHA384:
+			x509Alg = x509.ECDSAWithSHA384
+		case cttls.SHA512:
+			x509Alg = x509.ECDSAWithSHA512
+		}
+	}
+	return simpleSigAlg(x509Alg)
 }
