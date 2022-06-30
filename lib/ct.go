@@ -11,7 +11,7 @@ import (
 	ctutil "github.com/google/certificate-transparency-go/x509util"
 )
 
-//go:generate go run github.com/square/certigo/internal/gen-known-logs --package lib --out ctlogs.go
+//go:generate go run github.com/square/certigo/internal/gen-known-logs --out ctlogs.go
 //go:generate go fmt ctlogs.go
 
 func parseSCTList(cert *x509.Certificate) []*simpleSCT {
