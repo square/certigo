@@ -11,6 +11,9 @@ import (
 	ctutil "github.com/google/certificate-transparency-go/x509util"
 )
 
+//go:generate go run github.com/square/certigo/internal/gen-known-logs --package lib --out ctlogs.go
+//go:generate go fmt ctlogs.go
+
 func parseSCTList(cert *x509.Certificate) []*simpleSCT {
 	// ctutil contains a fork of crypto/x509 with support for SCTs. We must re-parse the
 	// whole certificate to get at them, so do a quick check to see if the SCT extension
