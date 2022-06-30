@@ -6,4 +6,4 @@ Logs are fetched parsed from https://www.gstatic.com/ct/log_list/v2/all_logs_lis
 
 ## Usage
 
-From the current directory (`certigo/internal/gen-known-logs`), run `make ctlogs`. This will fetch the list of logs and place generated code in [lib/ctlogs.go](../../lib/ctlogs.go).
+Run `go generate ./...` to regenerate known logs.
