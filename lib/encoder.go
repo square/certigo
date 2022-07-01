@@ -28,10 +28,16 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	zx509 "github.com/zmap/zcrypto/x509"
+	"github.com/zmap/zlint/v3"
+	"github.com/zmap/zlint/v3/lint"
 )
 
 var keyUsages = []x509.KeyUsage{
@@ -386,67 +392,33 @@ func decodeKey(publicKey interface{}) (string, int) {
 	}
 }
 
+var lintRegistryOnce sync.Once
+var lintRegistry lint.Registry
+
 // certWarnings prints a list of warnings to show common mistakes in certs.
 func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string) {
-	if cert.SerialNumber.Sign() != 1 {
-		warnings = append(warnings, "Serial number in cert appears to be zero/negative")
+	parsed, err := zx509.ParseCertificate(cert.Raw)
+	if err != nil {
+		warnings = append(warnings, fmt.Sprintf("Failed to parse certificate: %v", err))
+		return
 	}
 
-	if cert.SerialNumber.BitLen() > 160 {
-		warnings = append(warnings, "Serial number too long; should be 20 bytes or less")
-	}
+	lintRegistryOnce.Do(func() {
+		registry, err := lint.GlobalRegistry().Filter(lint.FilterOptions{
+			IncludeSources: []lint.LintSource{lint.RFC5280},
+		})
+		if err != nil {
+			log.Fatalf("Failed to filter lint registry: %v", err)
+		}
+		lintRegistry = registry
+	})
 
-	if cert.KeyUsage&x509.KeyUsageCertSign != 0 && !cert.IsCA {
-		warnings = append(warnings, "Key usage 'cert sign' is set, but is not a CA cert")
-	}
-
-	if cert.KeyUsage&x509.KeyUsageCertSign == 0 && cert.IsCA {
-		warnings = append(warnings, "Certificate is a CA cert, but key usage 'cert sign' missing")
-	}
-
-	if cert.Version < 2 {
-		warnings = append(warnings, fmt.Sprintf("Certificate is not in X509v3 format (version is %d)", cert.Version+1))
-	}
-
-	if len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0 && len(uriNames) == 0 && !cert.IsCA {
-		warnings = append(warnings, "Certificate doesn't have any valid DNS/URI names or IP addresses set")
-	}
-
-	if len(cert.UnhandledCriticalExtensions) > 0 {
-		warnings = append(warnings, "Certificate has unhandled critical extensions")
-	}
-
-	warnings = append(warnings, algWarnings(cert)...)
-
-	return
-}
-
-// algWarnings checks key sizes, signature algorithms.
-func algWarnings(cert *x509.Certificate) (warnings []string) {
-	alg, size := decodeKey(cert.PublicKey)
-	if (alg == "RSA" || alg == "DSA") && size < 2048 {
-		warnings = append(warnings, fmt.Sprintf("Size of %s key should be at least 2048 bits", alg))
-	}
-	if alg == "ECDSA" && size < 224 {
-		warnings = append(warnings, fmt.Sprintf("Size of %s key should be at least 224 bits", alg))
-	}
-
-	for _, alg := range badSignatureAlgorithms {
-		if cert.SignatureAlgorithm == alg {
-			warnings = append(warnings, fmt.Sprintf("Signed with %s, which is an outdated signature algorithm", algString(alg)))
+	lints := zlint.LintCertificateEx(parsed, lintRegistry)
+	for k, v := range lints.Results {
+		if v.Status >= lint.Warn {
+			warnings = append(warnings, fmt.Sprintf("[%s] %s", k, v.Details))
 		}
 	}
-
-	if alg == "RSA" {
-		key := cert.PublicKey.(*rsa.PublicKey)
-		if key.E < 3 {
-			warnings = append(warnings, "Public key exponent in RSA key is less than 3")
-		}
-		if key.N.Sign() != 1 {
-			warnings = append(warnings, "Public key modulus in RSA key appears to be zero/negative")
-		}
-	}
-
 	return
 }
 
