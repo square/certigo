@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -176,11 +175,11 @@ func buildOCSPwithPOST(server string, encoded []byte) (*http.Request, error) {
 }
 
 func buildOCSPwithGET(server string, encoded []byte) (*http.Request, error) {
-	if !strings.HasSuffix(server, "/") {
-		server = server + "/"
-	}
+	// https://datatracker.ietf.org/doc/html/rfc6960#appendix-A.1
+	// GET {url}/{url-encoding of base-64 encoding of the DER encoding of the OCSPRequest}
+	url := fmt.Sprintf("%s/%s", server, base64.StdEncoding.EncodeToString(encoded))
 
-	req, err := http.NewRequest("GET", server+base64.StdEncoding.EncodeToString(encoded), nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
