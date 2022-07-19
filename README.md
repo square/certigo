@@ -61,7 +61,7 @@ Commands:
     -p, --password=PASSWORD  Password for PKCS12/JCEKS key stores (reads from TTY if missing).
     -m, --pem                Write output as PEM blocks instead of human-readable format.
     -j, --json               Write output as machine-readable JSON format.
-    -l, --first               Only display the first certificate. This flag can be paired with --json or --pem.
+    -l, --first              Only display the first certificate. This flag can be paired with --json or --pem.
 
   connect [<flags>] [<server:port>]
     Connect to a server and print its certificate(s).
