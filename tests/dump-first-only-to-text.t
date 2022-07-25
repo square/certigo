@@ -1,6 +1,6 @@
 Set up test data.
 
-  $ cat > squareup-chain.crt <<EOF
+  $ cat > squareup-chain-leaf-only.crt <<EOF
   > -----BEGIN CERTIFICATE-----
   > MIIHnjCCBoagAwIBAgIRAMQdTn1Z7px7AAAAAFTMznkwDQYJKoZIhvcNAQELBQAw
   > gboxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1FbnRydXN0LCBJbmMuMSgwJgYDVQQL
@@ -105,9 +105,9 @@ Set up test data.
   > -----END CERTIFICATE-----
   > EOF
 
-Dump a live cert chain (squareup-chain.crt)
+Dump a live cert chain (squareup-chain.crt) with leaf flag
 
-  $ certigo --verbose dump squareup-chain.crt
+  $ certigo --verbose dump squareup-chain-leaf-only.crt --first
   ** CERTIFICATE 1 **
   Input Format: PEM
   Serial: 260680855742043049380997676879525498489
@@ -171,59 +171,4 @@ Dump a live cert chain (squareup-chain.crt)
   \t        3C:35:98:04:F9:1B:DF:B8:E3:77:CD:0E:C8:0D:DC:10 (esc)
   \tTimestamp: 2016-07-15 20:45 GMT (esc)
   \tSignature: ECDSA-SHA256 (esc)
-  
-  ** CERTIFICATE 2 **
-  Input Format: PEM
-  Serial: 30215777750102225331854468774
-  Valid: 2014-12-15 15:25 UTC to 2030-10-15 15:55 UTC
-  Signature: SHA256-RSA
-  Subject Info:
-  \tCountry: US (esc)
-  \tOrganization: Entrust, Inc. (esc)
-  \tOrganizational Unit: See www.entrust.net/legal-terms (esc)
-  \tOrganizational Unit: (c) 2014 Entrust, Inc. - for authorized use only (esc)
-  \tCommonName: Entrust Certification Authority - L1M (esc)
-  Issuer Info:
-  \tCountry: US (esc)
-  \tOrganization: Entrust, Inc. (esc)
-  \tOrganizational Unit: See www.entrust.net/legal-terms (esc)
-  \tOrganizational Unit: (c) 2009 Entrust, Inc. - for authorized use only (esc)
-  \tCommonName: Entrust Root Certification Authority - G2 (esc)
-  Subject Key ID: C3:F7:D0:B5:2A:30:AD:AF:0D:91:21:70:39:54:DD:BC:89:70:C7:3A
-  Authority Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
-  Basic Constraints: CA:true, pathlen:0
-  OCSP Server(s):
-  \thttp://ocsp.entrust.net (esc)
-  Key Usage:
-  \tCert Sign (esc)
-  \tCRL Sign (esc)
-  Extended Key Usage:
-  \tClient Auth (esc)
-  \tServer Auth (esc)
-  
-  ** CERTIFICATE 3 **
-  Input Format: PEM
-  Serial: 1372799044
-  Valid: 2014-09-22 17:14 UTC to 2024-09-23 01:31 UTC
-  Signature: SHA256-RSA
-  Subject Info:
-  \tCountry: US (esc)
-  \tOrganization: Entrust, Inc. (esc)
-  \tOrganizational Unit: See www.entrust.net/legal-terms (esc)
-  \tOrganizational Unit: (c) 2009 Entrust, Inc. - for authorized use only (esc)
-  \tCommonName: Entrust Root Certification Authority - G2 (esc)
-  Issuer Info:
-  \tCountry: US (esc)
-  \tOrganization: Entrust, Inc. (esc)
-  \tOrganizational Unit: www.entrust.net/CPS is incorporated by reference (esc)
-  \tOrganizational Unit: (c) 2006 Entrust, Inc. (esc)
-  \tCommonName: Entrust Root Certification Authority (esc)
-  Subject Key ID: 6A:72:26:7A:D0:1E:EF:7D:E7:3B:69:51:D4:6C:8D:9F:90:12:66:AB
-  Authority Key ID: 68:90:E4:67:A4:A6:53:80:C7:86:66:A4:F1:F7:4B:43:FB:84:BD:6D
-  Basic Constraints: CA:true, pathlen:1
-  OCSP Server(s):
-  \thttp://ocsp.entrust.net (esc)
-  Key Usage:
-  \tCert Sign (esc)
-  \tCRL Sign (esc)
   
