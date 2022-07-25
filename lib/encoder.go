@@ -201,11 +201,21 @@ type simpleCertificate struct {
 	AltIPAddresses        []net.IP            `json:"ip_addresses,omitempty"`
 	URINames              []string            `json:"uri_names,omitempty"`
 	EmailAddresses        []string            `json:"email_addresses,omitempty"`
+	SCTList               []*simpleSCT        `json:"sct_list,omitempty"`
 	Warnings              []string            `json:"warnings,omitempty"`
 	PEM                   string              `json:"pem,omitempty"`
 
 	// Internal fields for text display. Set - to skip serialize.
 	Width int `json:"-"`
+}
+
+type simpleSCT struct {
+	Version            uint64       `json:"version"`
+	LogOperator        string       `json:"log_operator,omitempty"`
+	LogURL             string       `json:"log_url,omitempty"`
+	LogID              []byte       `json:"log_id"`
+	Timestamp          time.Time    `json:"timestamp"`
+	SignatureAlgorithm simpleSigAlg `json:"signature_algorithm"`
 }
 
 type simplePKIXName struct {
@@ -240,6 +250,7 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		AltDNSNames:           cert.DNSNames,
 		AltIPAddresses:        cert.IPAddresses,
 		EmailAddresses:        cert.EmailAddresses,
+		SCTList:               parseSCTList(cert),
 		PEM:                   string(pem.EncodeToMemory(EncodeX509ToPEM(cert, nil))),
 	}
 
@@ -363,13 +374,13 @@ func algString(algo x509.SignatureAlgorithm) string {
 
 // decodeKey returns the algorithm and key size for a public key.
 func decodeKey(publicKey interface{}) (string, int) {
-	switch publicKey.(type) {
+	switch pk := publicKey.(type) {
 	case *dsa.PublicKey:
-		return "DSA", publicKey.(*dsa.PublicKey).P.BitLen()
+		return "DSA", pk.P.BitLen()
 	case *ecdsa.PublicKey:
-		return "ECDSA", publicKey.(*ecdsa.PublicKey).Curve.Params().BitSize
+		return "ECDSA", pk.Curve.Params().BitSize
 	case *rsa.PublicKey:
-		return "RSA", publicKey.(*rsa.PublicKey).N.BitLen()
+		return "RSA", pk.N.BitLen()
 	default:
 		return "", 0
 	}
@@ -398,7 +409,7 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 	}
 
 	if len(cert.DNSNames) == 0 && len(cert.IPAddresses) == 0 && len(uriNames) == 0 && !cert.IsCA {
-		warnings = append(warnings, fmt.Sprintf("Certificate doesn't have any valid DNS/URI names or IP addresses set"))
+		warnings = append(warnings, "Certificate doesn't have any valid DNS/URI names or IP addresses set")
 	}
 
 	if len(cert.UnhandledCriticalExtensions) > 0 {

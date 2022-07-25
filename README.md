@@ -21,7 +21,7 @@ Certigo is a utility to examine and validate certificates to help with debugging
 
 To install certigo, simply use:
 
-    go get -u github.com/square/certigo
+    go install github.com/square/certigo@latest
 
 On macOS you can also use homebrew to install:
 
@@ -61,6 +61,7 @@ Commands:
     -p, --password=PASSWORD  Password for PKCS12/JCEKS key stores (reads from TTY if missing).
     -m, --pem                Write output as PEM blocks instead of human-readable format.
     -j, --json               Write output as machine-readable JSON format.
+    -l, --first              Only display the first certificate. This flag can be paired with --json or --pem.
 
   connect [<flags>] [<server:port>]
     Connect to a server and print its certificate(s).
@@ -75,6 +76,7 @@ Commands:
         --timeout=5s          Timeout for connecting to remote server (can be '5m', '1s', etc).
     -m, --pem                 Write output as PEM blocks instead of human-readable format.
     -j, --json                Write output as machine-readable JSON format.
+    -l, --first               Only display the first certificate. This flag can be paired with --json or --pem.
         --verify              Verify certificate chain.
         --expected-name       Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overridden, the hostname to connect to.
 

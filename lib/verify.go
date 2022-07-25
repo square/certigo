@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -162,7 +163,7 @@ func VerifyChainWithPool(certs []*x509.Certificate, ocspStaple []byte, expectedN
 		if err == nil {
 			result.OCSPStatus = status
 		}
-		if err != nil && err != skippedRevocationCheck {
+		if err != nil && !errors.Is(err, errSkippedRevocationCheck) {
 			result.OCSPError = err.Error()
 		}
 
