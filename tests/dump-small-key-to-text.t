@@ -38,7 +38,5 @@ Dump an example certificate (example-leaf.crt)
   \tOrganizational Unit: example (esc)
   \tCommonName: example-small-key (esc)
   Warnings:
-  \tCertificate is not in X509v3 format (version is 2) (esc)
-  \tCertificate doesn't have any valid DNS/URI names or IP addresses set (esc)
-  \tSize of RSA key should be at least 2048 bits (esc)
+  \t[w_ext_subject_key_identifier_missing_sub_cert]  (esc)
   

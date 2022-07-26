@@ -62,4 +62,6 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
   \t10.10.0.0/16 (esc)
   Key Usage:
   \tCert Sign (esc)
-  
+  Warnings:
+  \t[e_ext_subject_key_identifier_missing_ca]  (esc)
+  \t[e_ext_name_constraints_not_critical]  (esc)

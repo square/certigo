@@ -38,4 +38,5 @@ Dump an example certificate (example-leaf.crt)
   \tlocalhost (esc)
   IP Addresses:
   \t127.0.0.1, ::1 (esc)
-  
+  Warnings:
+  \t[w_ext_subject_key_identifier_missing_sub_cert]  (esc)
