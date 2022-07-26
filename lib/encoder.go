@@ -406,7 +406,7 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 
 	lintRegistryOnce.Do(func() {
 		registry, err := lint.GlobalRegistry().Filter(lint.FilterOptions{
-			IncludeSources: []lint.LintSource{lint.RFC5280},
+			IncludeSources: []lint.LintSource{lint.RFC5280, lint.CABFBaselineRequirements, lint.Community},
 		})
 		if err != nil {
 			log.Fatalf("Failed to filter lint registry: %v", err)
@@ -414,17 +414,40 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 		lintRegistry = registry
 	})
 
-	//lints := zlint.LintCertificateEx(parsed, lintRegistry)
-	lints := zlint.LintCertificate(parsed)
+	lints := zlint.LintCertificateEx(parsed, lintRegistry)
 	for k, v := range lints.Results {
 		if v.Status >= lint.Warn {
 			warnings = append(warnings, fmt.Sprintf("[%s] %s", k, v.Details))
 		}
 	}
+	//printLints()
 	return
 }
 
 // IsSelfSigned returns true iff the given certificate has a valid self-signature.
 func IsSelfSigned(cert *x509.Certificate) bool {
 	return cert.CheckSignatureFrom(cert) == nil
+}
+
+func printLints() {
+	registry := lint.GlobalRegistry()
+	sources := []lint.LintSource{
+		lint.UnknownLintSource,
+		lint.RFC5280,
+		lint.RFC5891,
+		lint.RFC5480,
+		lint.CABFEVGuidelines,
+		lint.CABFBaselineRequirements,
+		lint.MozillaRootStorePolicy,
+		lint.AppleRootStorePolicy,
+		lint.Community,
+		lint.EtsiEsi,
+	}
+	for _, source := range sources {
+		lints := registry.BySource(source)
+		fmt.Printf("Source: %s\n", source)
+		for _, lint := range lints {
+			fmt.Printf("%s, %s\n", lint.Name, lint.Description)
+		}
+	}
 }
