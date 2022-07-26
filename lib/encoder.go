@@ -35,8 +35,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zmap/zlint/v3/formattedoutput"
-
 	zx509 "github.com/zmap/zcrypto/x509"
 
 	"github.com/zmap/zlint/v3"
@@ -422,7 +420,6 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 			warnings = append(warnings, fmt.Sprintf("[%s] %s", k, v.Details))
 		}
 	}
-	formattedoutput.OutputSummary(lints, true)
 	return
 }
 
