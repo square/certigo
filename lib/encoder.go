@@ -36,6 +36,7 @@ import (
 	"time"
 
 	zx509 "github.com/zmap/zcrypto/x509"
+
 	"github.com/zmap/zlint/v3"
 	"github.com/zmap/zlint/v3/lint"
 )
