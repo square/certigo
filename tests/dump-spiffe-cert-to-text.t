@@ -58,4 +58,14 @@ Dump a SPIFFE example certificate (example-spiffe.crt)
   \tServer Auth (esc)
   URI Names:
   \tspiffe://dev.acme.com/path/service (esc)
-  
+  Warnings:
+  \t[e_sub_cert_certificate_policies_missing]  (esc)
+  \t[e_subject_common_name_not_from_san]  (esc)
+  \t[e_dnsname_contains_bare_iana_suffix]  (esc)
+  \t[e_sub_cert_cert_policy_empty]  (esc)
+  \t[e_sub_cert_province_must_appear]  (esc)
+  \t[e_sub_cert_aia_does_not_contain_ocsp_url]  (esc)
+  \t[w_sub_cert_aia_does_not_contain_issuing_ca_url]  (esc)
+  \t[e_ext_san_uniform_resource_identifier_present]  (esc)
+  \t[e_sub_cert_locality_name_must_appear]  (esc)
+  \t[e_sub_cert_aia_missing]  (esc)

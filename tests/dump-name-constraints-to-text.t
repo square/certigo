@@ -64,4 +64,7 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
   \tCert Sign (esc)
   Warnings:
   \t[e_ext_name_constraints_not_critical]  (esc)
+  \t[e_ca_crl_sign_not_set]  (esc)
   \t[e_ext_subject_key_identifier_missing_ca]  (esc)
+  \t[w_root_ca_basic_constraints_path_len_constraint_field_present]  (esc)
+  \t[e_ext_nc_intersects_reserved_ip]  (esc)

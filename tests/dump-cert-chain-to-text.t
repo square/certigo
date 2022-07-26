@@ -200,6 +200,8 @@ Dump a live cert chain (squareup-chain.crt)
   Extended Key Usage:
   \tClient Auth (esc)
   \tServer Auth (esc)
+  Warnings:
+  \t[w_sub_ca_aia_does_not_contain_issuing_ca_url]  (esc)
   
   ** CERTIFICATE 3 **
   Input Format: PEM
@@ -226,4 +228,5 @@ Dump a live cert chain (squareup-chain.crt)
   Key Usage:
   \tCert Sign (esc)
   \tCRL Sign (esc)
-  
+  Warnings:
+  \t[w_sub_ca_aia_does_not_contain_issuing_ca_url]  (esc)

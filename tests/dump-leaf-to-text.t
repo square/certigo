@@ -52,6 +52,10 @@ Dump an example certificate (example-leaf.crt)
   IP Addresses:
   \t127.0.0.1, ::1 (esc)
   Warnings:
+  \t[e_sub_cert_certificate_policies_missing]  (esc)
   \t[w_ext_subject_key_identifier_missing_sub_cert]  (esc)
-
-
+  \t[e_ext_san_contains_reserved_ip]  (esc)
+  \t[e_sub_cert_aia_missing]  (esc)
+  \t[e_sub_cert_cert_policy_empty]  (esc)
+  \t[e_subject_common_name_not_from_san]  (esc)
+  \t[e_sub_cert_aia_does_not_contain_ocsp_url]  (esc)
