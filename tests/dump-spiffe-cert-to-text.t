@@ -69,3 +69,4 @@ Dump a SPIFFE example certificate (example-spiffe.crt)
   \t[CABF_BR] Subscriber certificates must contain at least one policy identifier that indicates adherence to CAB standards (esc)
   \t[CABF_BR] The Subject Alternate Name extension MUST contain only 'dnsName' and 'ipaddress' name types (esc)
   \t[CABF_BR] The common name field in subscriber certificates must include only names from the SAN extension (esc)
+  

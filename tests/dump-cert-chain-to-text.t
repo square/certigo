@@ -230,3 +230,4 @@ Dump a live cert chain (squareup-chain.crt)
   \tCRL Sign (esc)
   Warnings:
   \t[CABF_BR] Subordinate CA Certificate: authorityInformationAccess SHOULD also contain the HTTP URL of the Issuing CA's certificate. (esc)
+  
