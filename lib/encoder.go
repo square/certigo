@@ -414,7 +414,8 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 		lintRegistry = registry
 	})
 
-	lints := zlint.LintCertificateEx(parsed, lintRegistry)
+	//lints := zlint.LintCertificateEx(parsed, lintRegistry)
+	lints := zlint.LintCertificate(parsed)
 	for k, v := range lints.Results {
 		if v.Status >= lint.Warn {
 			warnings = append(warnings, fmt.Sprintf("[%s] %s", k, v.Details))
