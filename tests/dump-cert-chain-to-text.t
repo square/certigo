@@ -201,7 +201,7 @@ Dump a live cert chain (squareup-chain.crt)
   \tClient Auth (esc)
   \tServer Auth (esc)
   Warnings:
-  \t[w_sub_ca_aia_does_not_contain_issuing_ca_url]  (esc)
+  \t[CABF_BR] Subordinate CA Certificate: authorityInformationAccess SHOULD also contain the HTTP URL of the Issuing CA's certificate. (esc)
   
   ** CERTIFICATE 3 **
   Input Format: PEM
@@ -229,4 +229,4 @@ Dump a live cert chain (squareup-chain.crt)
   \tCert Sign (esc)
   \tCRL Sign (esc)
   Warnings:
-  \t[w_sub_ca_aia_does_not_contain_issuing_ca_url]  (esc)
+  \t[CABF_BR] Subordinate CA Certificate: authorityInformationAccess SHOULD also contain the HTTP URL of the Issuing CA's certificate. (esc)

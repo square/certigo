@@ -63,8 +63,8 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
   Key Usage:
   \tCert Sign (esc)
   Warnings:
-  \t[e_ext_name_constraints_not_critical]  (esc)
-  \t[e_ca_crl_sign_not_set]  (esc)
-  \t[e_ext_subject_key_identifier_missing_ca]  (esc)
-  \t[w_root_ca_basic_constraints_path_len_constraint_field_present]  (esc)
-  \t[e_ext_nc_intersects_reserved_ip]  (esc)
+  \t[CABF_BR] Root CA certificate basicConstraint extension pathLenConstraint field SHOULD NOT be present (esc)
+  \t[CABF_BR] Root and Subordinate CA certificate keyUsage extension's crlSign bit MUST be set (esc)
+  \t[CABF_BR] iPAddress name constraint intersects an IANA reserved network (esc)
+  \t[RFC5280] CAs MUST include a Subject Key Identifier in all CA certificates (esc)
+  \t[RFC5280] If it is included, conforming CAs MUST mark the name constraints extension as critical (esc)
