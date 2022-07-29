@@ -37,15 +37,6 @@ Dump an example certificate (example-leaf.crt)
   \tOrganization: certigo (esc)
   \tOrganizational Unit: example (esc)
   \tCommonName: example-small-key (esc)
-  Warnings:
-  \t[CABF_BR] Certificates MUST be of type X.590 v3 (esc)
-  \t[CABF_BR] For certificates valid after 31 Dec 2013, all certificates using RSA public key algorithm MUST have 2048 bits of modulus (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST be present. (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST contain the HTTP URL of the Issuing CA's OSCP responder. (esc)
-  \t[CABF_BR] Subscriber Certificate: certificatePolicies MUST be present and SHOULD NOT be marked critical. (esc)
-  \t[CABF_BR] Subscriber certificates MUST contain the Subject Alternate Name extension (esc)
-  \t[CABF_BR] Subscriber certificates MUST have the extended key usage extension present (esc)
-  \t[CABF_BR] Subscriber certificates must contain at least one policy identifier that indicates adherence to CAB standards (esc)
-  \t[CABF_BR] The common name field in subscriber certificates must include only names from the SAN extension (esc)
+  Lints:
   \t[RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   

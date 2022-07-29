@@ -51,12 +51,6 @@ Dump an example certificate (example-leaf.crt)
   \tlocalhost (esc)
   IP Addresses:
   \t127.0.0.1, ::1 (esc)
-  Warnings:
-  \t[CABF_BR] CAs SHALL NOT issue certificates with a subjectAltName extension or subject:commonName field containing a Reserved IP Address or Internal Name. (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST be present. (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST contain the HTTP URL of the Issuing CA's OSCP responder. (esc)
-  \t[CABF_BR] Subscriber Certificate: certificatePolicies MUST be present and SHOULD NOT be marked critical. (esc)
-  \t[CABF_BR] Subscriber certificates must contain at least one policy identifier that indicates adherence to CAB standards (esc)
-  \t[CABF_BR] The common name field in subscriber certificates must include only names from the SAN extension (esc)
+  Lints:
   \t[RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   

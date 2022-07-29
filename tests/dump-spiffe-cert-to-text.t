@@ -58,15 +58,3 @@ Dump a SPIFFE example certificate (example-spiffe.crt)
   \tServer Auth (esc)
   URI Names:
   \tspiffe://dev.acme.com/path/service (esc)
-  Warnings:
-  \t[CABF_BR] DNSNames should not contain a bare IANA suffix. (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST be present. (esc)
-  \t[CABF_BR] Subscriber Certificate: authorityInformationAccess MUST contain the HTTP URL of the Issuing CA's OSCP responder. (esc)
-  \t[CABF_BR] Subscriber Certificate: certificatePolicies MUST be present and SHOULD NOT be marked critical. (esc)
-  \t[CABF_BR] Subscriber Certificate: subject:localityName MUST appear if subject:organizationName, subject:givenName, or subject:surname fields are present but the subject:stateOrProvinceName field is absent. (esc)
-  \t[CABF_BR] Subscriber Certificate: subject:stateOrProvinceName MUST appear if the subject:organizationName, subject:givenName, or subject:surname fields are present and subject:localityName is absent. (esc)
-  \t[CABF_BR] Subscriber certificates authorityInformationAccess extension should contain the HTTP URL of the issuing CA\xe2\x80\x99s certificate (esc)
-  \t[CABF_BR] Subscriber certificates must contain at least one policy identifier that indicates adherence to CAB standards (esc)
-  \t[CABF_BR] The Subject Alternate Name extension MUST contain only 'dnsName' and 'ipaddress' name types (esc)
-  \t[CABF_BR] The common name field in subscriber certificates must include only names from the SAN extension (esc)
-  

@@ -236,7 +236,7 @@ Advanced examples on how to combine JSON output with [jq](https://stedolan.githu
 
 ```
 # Find certificates that have linter warnings
-certigo dump --json $INPUT | jq '.certificates[] | select(.warnings != [])'
+certigo dump --json $INPUT | jq '.certificates[] | select(.lints != [])'
 
 # Find certificates that are signed with SHA1-RSA
 certigo dump --json $INPUT | jq '.certificates[] | select(.signature_algorithm == "SHA1-RSA")'

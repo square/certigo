@@ -210,7 +210,7 @@ type simpleCertificate struct {
 	URINames              []string            `json:"uri_names,omitempty"`
 	EmailAddresses        []string            `json:"email_addresses,omitempty"`
 	SCTList               []*simpleSCT        `json:"sct_list,omitempty"`
-	Warnings              []string            `json:"warnings,omitempty"`
+	Lints                 []string            `json:"lints,omitempty"`
 	PEM                   string              `json:"pem,omitempty"`
 
 	// Internal fields for text display. Set - to skip serialize.
@@ -266,7 +266,7 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		out.URINames = append(out.URINames, uri.String())
 	}
 
-	out.Warnings = certWarnings(cert, out.URINames)
+	out.Lints = certLints(cert, out.URINames)
 
 	if cert.BasicConstraintsValid {
 		out.BasicConstraints = &basicConstraints{
@@ -397,17 +397,17 @@ func decodeKey(publicKey interface{}) (string, int) {
 var lintRegistryOnce sync.Once
 var lintRegistry lint.Registry
 
-// certWarnings prints a list of warnings to show common mistakes in certs.
-func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string) {
+// certLints prints a list of lints to show common mistakes in certs.
+func certLints(cert *x509.Certificate, uriNames []string) (lints []string) {
 	parsed, err := zx509.ParseCertificate(cert.Raw)
 	if err != nil {
-		warnings = append(warnings, fmt.Sprintf("Failed to parse certificate: %v", err))
+		lints = append(lints, fmt.Sprintf("Failed to parse certificate: %v", err))
 		return
 	}
 
 	lintRegistryOnce.Do(func() {
 		registry, err := lint.GlobalRegistry().Filter(lint.FilterOptions{
-			IncludeSources: []lint.LintSource{lint.RFC5280, lint.CABFBaselineRequirements, lint.Community},
+			IncludeSources: []lint.LintSource{lint.RFC5280, lint.Community},
 		})
 		if err != nil {
 			log.Fatalf("Failed to filter lint registry: %v", err)
@@ -415,14 +415,15 @@ func certWarnings(cert *x509.Certificate, uriNames []string) (warnings []string)
 		lintRegistry = registry
 	})
 
-	lints := zlint.LintCertificateEx(parsed, lintRegistry)
-	for lintName, lintResult := range lints.Results {
+	zLints := zlint.LintCertificateEx(parsed, lintRegistry)
+	for lintName, lintResult := range zLints.Results {
 		if lintResult.Status >= lint.Warn {
 			lint := lintRegistry.ByName(lintName)
-			warnings = append(warnings, fmt.Sprintf("[%s] %s", lint.Source, lint.Description))
+			lints = append(lints, fmt.Sprintf("%s: [%s] %s", strings.ToUpper(lintResult.Status.String()),
+				lint.Source, lint.Description))
 		}
 	}
-	sort.Strings(warnings)
+	sort.Strings(lints)
 	return
 }
 

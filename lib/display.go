@@ -137,9 +137,9 @@ Signed Certificate Timestamp:
 	Timestamp: {{.Timestamp | formatTime}}
 	Signature: {{.SignatureAlgorithm | highlightAlgorithm}}
 {{- end}}
-{{- if .Warnings}}
-Warnings:
-{{- range .Warnings}}
+{{- if .Lints}}
+Lints:
+{{- range .Lints}}
 	{{. | redify}}
 {{- end}}
 {{- end}}`
@@ -164,8 +164,8 @@ URI Names:
 {{- if .EmailAddresses}}
 Email Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
-{{- if .Warnings}}
-Warnings:{{range .Warnings}}
+{{- if .Lints}}
+Lints:{{range .Lints}}
 	{{. | redify}}{{end}}{{end}}`
 
 // EncodeX509ToJSON encodes an X.509 certificate into a JSON string.
