@@ -164,7 +164,7 @@ URI Names:
 {{- if .EmailAddresses}}
 Email Addresses:
 	{{wrapWith .Width "\n\t" (join ", " .EmailAddresses)}}{{end}}
-{{- if .Lints}}
+{{- if .Warnings}}
 Lints:{{range .Warnings}}
 	{{. | redify}}{{end}}{{end}}`
 
