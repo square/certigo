@@ -210,7 +210,7 @@ type simpleCertificate struct {
 	URINames              []string            `json:"uri_names,omitempty"`
 	EmailAddresses        []string            `json:"email_addresses,omitempty"`
 	SCTList               []*simpleSCT        `json:"sct_list,omitempty"`
-	Lints                 []string            `json:"lints,omitempty"`
+	Warnings              []string            `json:"lints,omitempty"`
 	PEM                   string              `json:"pem,omitempty"`
 
 	// Internal fields for text display. Set - to skip serialize.
@@ -266,7 +266,7 @@ func createSimpleCertificate(name string, cert *x509.Certificate) simpleCertific
 		out.URINames = append(out.URINames, uri.String())
 	}
 
-	out.Lints = certLints(cert, out.URINames)
+	out.Warnings = certLints(cert, out.URINames)
 
 	if cert.BasicConstraintsValid {
 		out.BasicConstraints = &basicConstraints{
