@@ -200,8 +200,6 @@ Dump a live cert chain (squareup-chain.crt)
   Extended Key Usage:
   \tClient Auth (esc)
   \tServer Auth (esc)
-  Warnings:
-  \t[CABF_BR] Subordinate CA Certificate: authorityInformationAccess SHOULD also contain the HTTP URL of the Issuing CA's certificate. (esc)
   
   ** CERTIFICATE 3 **
   Input Format: PEM
@@ -228,3 +226,4 @@ Dump a live cert chain (squareup-chain.crt)
   Key Usage:
   \tCert Sign (esc)
   \tCRL Sign (esc)
+  

@@ -52,5 +52,5 @@ Dump an example certificate (example-leaf.crt)
   IP Addresses:
   \t127.0.0.1, ::1 (esc)
   Lints:
-  \t[RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
+  \tWARN: [RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   

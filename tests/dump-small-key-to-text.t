@@ -38,5 +38,5 @@ Dump an example certificate (example-leaf.crt)
   \tOrganizational Unit: example (esc)
   \tCommonName: example-small-key (esc)
   Lints:
-  \t[RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
+  \tWARN: [RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   
