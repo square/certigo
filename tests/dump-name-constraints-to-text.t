@@ -62,4 +62,7 @@ Dump an example certificate with name constraints (example-name-constraints.crt)
   \t10.10.0.0/16 (esc)
   Key Usage:
   \tCert Sign (esc)
+  Lints:
+  \tERROR: [RFC5280] CAs MUST include a Subject Key Identifier in all CA certificates (esc)
+  \tERROR: [RFC5280] If it is included, conforming CAs MUST mark the name constraints extension as critical (esc)
   
