@@ -6,7 +6,6 @@ package ldap
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 
 	ber "gopkg.in/asn1-ber.v1"
@@ -272,7 +271,7 @@ func addDefaultLDAPResponseDescriptions(packet *ber.Packet) {
 
 // DebugBinaryFile reads and prints packets from the given filename
 func DebugBinaryFile(fileName string) error {
-	file, err := ioutil.ReadFile(fileName)
+	file, err := os.ReadFile(fileName)
 	if err != nil {
 		return NewError(ErrorDebugging, err)
 	}
