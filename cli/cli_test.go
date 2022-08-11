@@ -2,7 +2,6 @@ package cli
 
 import (
 	"crypto/tls"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -170,7 +169,7 @@ Found 1 valid certificate chain(s):
 
 // Test basic dump functionality:  Dump a cert
 func TestDump(t *testing.T) {
-	tmpfile, err := ioutil.TempFile("", t.Name())
+	tmpfile, err := os.CreateTemp("", t.Name())
 	require.NoError(t, err)
 	defer os.Remove(tmpfile.Name())
 
@@ -195,7 +194,7 @@ func TestDumpMissingFile(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	rootPath, err := ioutil.TempFile("", t.Name())
+	rootPath, err := os.CreateTemp("", t.Name())
 	require.NoError(t, err)
 	defer os.Remove(rootPath.Name())
 

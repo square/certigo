@@ -3,7 +3,6 @@ package pq
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/user"
@@ -108,7 +107,7 @@ func sslCertificateAuthority(tlsConf *tls.Config, o values) {
 	if sslrootcert := o.Get("sslrootcert"); sslrootcert != "" {
 		tlsConf.RootCAs = x509.NewCertPool()
 
-		cert, err := ioutil.ReadFile(sslrootcert)
+		cert, err := os.ReadFile(sslrootcert)
 		if err != nil {
 			panic(err)
 		}

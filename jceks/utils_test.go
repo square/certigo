@@ -21,13 +21,13 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
 // LoadPEMKey extracts a private key from a PEM file.
 func LoadPEMKey(filename string) (*rsa.PrivateKey, error) {
-	keyPEMBlock, err := ioutil.ReadFile(filename)
+	keyPEMBlock, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func LoadPEMKey(filename string) (*rsa.PrivateKey, error) {
 
 // LoadPEMCert extracts a certificate from a PEM file.
 func LoadPEMCert(filename string) (*x509.Certificate, error) {
-	certPEMBlock, err := ioutil.ReadFile(filename)
+	certPEMBlock, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
