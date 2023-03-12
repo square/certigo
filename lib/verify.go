@@ -111,7 +111,7 @@ func caBundle(caPath string) (*x509.CertPool, error) {
 	return bundle, nil
 }
 
-func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caPath string) SimpleVerification {
+func VerifyChainWithPool(certs []*x509.Certificate, ocspStaple []byte, expectedName string, roots *x509.CertPool) SimpleVerification {
 	result := SimpleVerification{
 		Chains:         [][]simpleVerifyCert{},
 		OCSPWasStapled: ocspStaple != nil,
@@ -127,11 +127,6 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caP
 		intermediates.AddCert(certs[i])
 	}
 
-	roots, err := caBundle(caPath)
-	if err != nil {
-		result.Error = fmt.Sprintf("%s", err)
-		return result
-	}
 	// expectedName could be a hostname or could be a SPIFFE ID (spiffe://...)
 	// x509 package doesn't support verifying SPIFFE IDs. When we're expecting a SPIFFE ID, we tell
 	// Certificate.Verify below to skip name matching, and then we perform our own matching later
@@ -186,6 +181,14 @@ func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caP
 		result.Chains = append(result.Chains, aChain)
 	}
 	return result
+}
+
+func VerifyChain(certs []*x509.Certificate, ocspStaple []byte, expectedName, caPath string) SimpleVerification {
+	roots, err := caBundle(caPath)
+	if err != nil {
+		return SimpleVerification{Error: err.Error()}
+	}
+	return VerifyChainWithPool(certs, ocspStaple, expectedName, roots)
 }
 
 func fmtCert(cert simpleVerifyCert) string {

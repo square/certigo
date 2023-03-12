@@ -1,15 +1,18 @@
 package cli
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
 	"github.com/square/certigo/cli/terminal"
 	"github.com/square/certigo/lib"
+	"github.com/square/certigo/proxy"
 	"github.com/square/certigo/starttls"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -49,6 +52,15 @@ var (
 	verifyName     = verify.Flag("name", "Server name to verify certificate against.").Short('n').Required().String()
 	verifyCaPath   = verify.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
+
+	tlsProxy                = app.Command("proxy", "Proxy mTLS to a server and print its certificate(s).")
+	proxyPort               = tlsProxy.Arg("port", "Port to listen on.").Required().Int()
+	proxyTo                 = tlsProxy.Arg("target", "URL to proxy to.").Required().String()
+	proxyName               = tlsProxy.Flag("name", "Override the server name used for Server Name Inidication (SNI).").String()
+	proxyCaPath             = tlsProxy.Flag("ca", "Path to CA bundle (system default if unspecified).").ExistingFile()
+	proxyCert               = tlsProxy.Flag("cert", "Client certificate chain for connecting to server (PEM).").ExistingFile()
+	proxyKey                = tlsProxy.Flag("key", "Private key for client certificate, if not in same file (PEM).").ExistingFile()
+	proxyVerifyExpectedName = tlsProxy.Flag("expected-name", "Name expected in the server TLS certificate. Defaults to name from SNI or, if SNI not overidden, the hostname to connect to.").String()
 )
 
 const (
@@ -236,6 +248,45 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 		if verifyResult.Error != "" {
 			return 1
+		}
+	case tlsProxy.FullCommand():
+		printer := func(verification *lib.SimpleVerification, conn *tls.ConnectionState) {
+			fmt.Fprintln(stdout, lib.EncodeTLSInfoToText(conn, nil))
+			for i, cert := range conn.PeerCertificates {
+				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+			}
+			lib.PrintVerifyResult(stdout, *verification)
+		}
+
+		proxyOptions := &proxy.Options{
+			Inspect:    printer,
+			Port:       *proxyPort,
+			Target:     *proxyTo,
+			ServerName: *proxyName,
+			CAPath:     *proxyCaPath,
+			CertPath:   *proxyCert,
+			KeyPath:    *proxyKey,
+		}
+
+		switch {
+		case *proxyVerifyExpectedName != "":
+			// Use the explicitly provided name
+			proxyOptions.ExpectedName = *proxyVerifyExpectedName
+		case *proxyName != "":
+			// Use the provided SNI
+			proxyOptions.ExpectedName = *proxyName
+		default:
+			// Use the hostname/IP from the target URL
+			url, err := url.Parse(*proxyTo)
+			if err != nil {
+				return printErr("error parsing URL %q: %v\n", *proxyTo, err)
+			}
+			proxyOptions.ExpectedName = strings.Split(url.Host, ":")[0]
+		}
+
+		if err := proxy.ListenAndServe(proxyOptions); err != nil {
+			return printErr("%s\n", err)
 		}
 	}
 	return 0
