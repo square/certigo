@@ -95,7 +95,7 @@ func EncodeTLSInfoToText(tcs *tls.ConnectionState, cri *tls.CertificateRequestIn
 		panic(err)
 	}
 	w.Flush()
-	return string(buffer.Bytes())
+	return buffer.String() 
 }
 
 // EncodeTLSToObject returns a JSON-marshallable description of a TLS connection
