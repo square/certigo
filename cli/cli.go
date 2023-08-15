@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -25,6 +26,7 @@ var (
 	dumpPem      = dump.Flag("pem", "Write output as PEM blocks instead of human-readable format.").Short('m').Bool()
 	dumpJSON     = dump.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 	dumpFirst    = dump.Flag("first", "Only display the first certificate. This flag can be paired with --json or --pem.").Short('l').Bool()
+	dumpSha256   = dump.Flag("sha256", "Write sha256sum of cert to output, not compatible --pem or --json.").Short('s').Bool()
 
 	connect                   = app.Command("connect", "Connect to a server and print its certificate(s).")
 	connectTo                 = connect.Arg("server[:port]", "Hostname or IP to connect to, with optional port.").Required().String()
@@ -133,7 +135,12 @@ func Run(args []string, tty terminal.Terminal) int {
 				for i, cert := range result.Certificates {
 					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
 					fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
-					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+					fmt.Fprintf(stdout, "%s\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+					if *dumpSha256 {
+						fingerprint := sha256.Sum256(cert.Raw)
+						fmt.Fprintf(stdout, "SHA-256 Fingerprint:\n\t%x\n", fingerprint)
+					}
+					fmt.Fprintf(stdout, "\n")
 				}
 			}
 		}
