@@ -162,7 +162,7 @@ func fetchOCSP(cert, issuer *x509.Certificate) ([]byte, error) {
 }
 
 func buildOCSPwithPOST(server string, encoded []byte) (*http.Request, error) {
-	req, err := http.NewRequest("POST", server, nil)
+	req, err := http.NewRequest(http.MethodPost, server, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func buildOCSPwithGET(server string, encoded []byte) (*http.Request, error) {
 	// GET {url}/{url-encoding of base-64 encoding of the DER encoding of the OCSPRequest}
 	url := fmt.Sprintf("%s/%s", server, base64.StdEncoding.EncodeToString(encoded))
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
