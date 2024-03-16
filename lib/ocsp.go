@@ -149,7 +149,7 @@ func fetchOCSP(cert, issuer *x509.Certificate) ([]byte, error) {
 			}
 
 			body, err := io.ReadAll(resp.Body)
-			defer resp.Body.Close()
+			resp.Body.Close()
 			if err != nil {
 				lastError = err
 				continue
