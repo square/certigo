@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"bufio"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -54,6 +57,31 @@ var (
 const (
 	version = "1.16.0"
 )
+
+// WriteLineToFile writes a single line to the specified file.
+func WriteLineToFile(fileName, line string) error {
+	// Open the file in append mode, create it if it doesn't exist
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("unable to open file: %s", err)
+	}
+	defer file.Close()
+
+	// Create a new writer
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(line + "\n")
+	if err != nil {
+		return fmt.Errorf("unable to write to file: %s", err)
+	}
+
+	// Flush the writer to ensure all data is written to the file
+	err = writer.Flush()
+	if err != nil {
+		return fmt.Errorf("unable to flush writer: %s", err)
+	}
+
+	return nil
+}
 
 func Run(args []string, tty terminal.Terminal) int {
 	terminalWidth := tty.DetermineWidth()
@@ -130,10 +158,16 @@ func Run(args []string, tty terminal.Terminal) int {
 				blob, _ := json.Marshal(result)
 				fmt.Println(string(blob))
 			} else {
-				for i, cert := range result.Certificates {
-					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-					fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
-					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+				for _, cert := range result.Certificates {
+					hash := sha256.Sum256(cert.Raw)
+					fileLine := fmt.Sprintf("sha256sum: %s; Common Name: %s; Locality: %s; Not Before: %s; Not After: %s", hex.EncodeToString(hash[:]), cert.Subject.CommonName, cert.Subject.Locality, cert.NotBefore, cert.NotAfter)
+					err := WriteLineToFile("/Users/violet/Development/block-trust-bundles/all_CA_certs", fileLine)
+					if err != nil {
+						return printErr("error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+					}
+					// fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					// fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
+					// fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
 		}
