@@ -161,6 +161,10 @@ func Run(args []string, tty terminal.Terminal) int {
 				for _, cert := range result.Certificates {
 					hash := sha256.Sum256(cert.Raw)
 					fileLine := fmt.Sprintf("sha256sum: %s; Common Name: %s; Locality: %s; Not Before: %s; Not After: %s", hex.EncodeToString(hash[:]), cert.Subject.CommonName, cert.Subject.Locality, cert.NotBefore, cert.NotAfter)
+					// This writes all the certificates to a file under the same directory as the PEM file
+					// Each line contains the sha256sum, Common Name, Locality, Not Before, and Not After of the certificate
+					// The sole purpose of this file is to have a concise human-readable summary of the trust bundle
+					// We also use (*dumpFiles)[0] here specifically because we know that there is only one file being processed
 					err := WriteLineToFile(fmt.Sprintf("%s_simplified", (*dumpFiles)[0]), fileLine)
 					if err != nil {
 						return printErr("error: %s\n", strings.TrimSuffix(err.Error(), "\n"))

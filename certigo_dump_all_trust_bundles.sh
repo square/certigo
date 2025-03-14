@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# This script recursively find all the files in a directory and run certigo dump cli on each file to extract the each certificate's information
+
 # Define the root directory
-ROOT_DIR="/Users/violet/Development/block-trust-bundles"
+ROOT_DIR="INSERT ROOT DIRECTORY HERE"
 
 # Function to recursively process files
 process_files() {
