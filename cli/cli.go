@@ -161,13 +161,13 @@ func Run(args []string, tty terminal.Terminal) int {
 				for _, cert := range result.Certificates {
 					hash := sha256.Sum256(cert.Raw)
 					fileLine := fmt.Sprintf("sha256sum: %s; Common Name: %s; Locality: %s; Not Before: %s; Not After: %s", hex.EncodeToString(hash[:]), cert.Subject.CommonName, cert.Subject.Locality, cert.NotBefore, cert.NotAfter)
-					err := WriteLineToFile("/Users/violet/Development/block-trust-bundles/all_CA_certs", fileLine)
+					err := WriteLineToFile(fmt.Sprintf("%s_simplified", (*dumpFiles)[0]), fileLine)
 					if err != nil {
 						return printErr("error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 					}
-					// fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-					// fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
-					// fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+					//fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					//fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
+					//fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
 		}
@@ -175,6 +175,8 @@ func Run(args []string, tty terminal.Terminal) int {
 			return printErr("error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 		} else if len(result.Certificates) == 0 && !*dumpPem {
 			printErr("warning: no certificates found in input\n")
+		} else {
+			fmt.Printf("Successfully parsed %s\n", (*dumpFiles)[0])
 		}
 
 	case connect.FullCommand(): // Get certs by connecting to a server
