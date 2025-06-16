@@ -39,4 +39,4 @@ require (
 	k8s.io/klog/v2 v2.80.1 // indirect
 )
 
-go 1.23.0
+go 1.23
