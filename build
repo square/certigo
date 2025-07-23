@@ -1,6 +1,9 @@
 #!/bin/bash -e
 # Copyright (C) 2016 Square, Inc.
 
+# This script is for use by the Homebrew build toolchain.
+# To build or install certigo in most cases, use the standard Go toolchain described in the README.
+
 ORG_PATH="github.com/square"
 REPO_PATH="${ORG_PATH}/certigo"
 
