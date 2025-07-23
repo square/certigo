@@ -10,9 +10,16 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: golangci-lint
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          check-latest: true
+      - name: Golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1.0
+          install-mode: goinstall
           only-new-issues: true
