@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/fatih/color v1.18.0
+	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/google/certificate-transparency-go v1.3.2
 	github.com/mattn/go-colorable v0.1.14
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
@@ -13,16 +14,17 @@ require (
 	github.com/zmap/zcrypto v0.0.0-20220402174210-599ec18ecbac
 	github.com/zmap/zlint/v3 v3.3.1
 	golang.org/x/crypto v0.40.0
-	gopkg.in/asn1-ber.v1 v1.0.0-20170511165959-379148ca0225
 	software.sslmate.com/src/go-pkcs12 v0.6.0
 )
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
+	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.3.0 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

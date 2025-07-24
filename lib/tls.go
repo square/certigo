@@ -161,7 +161,6 @@ var qualityColors = map[uint8]*color.Color{
 }
 
 var tlsVersions = map[uint16]description{
-	tls.VersionSSL30: {"SSL 3.0", "ssl_3_0", insecure}, //nolint:staticcheck // Support for now
 	tls.VersionTLS10: {"TLS 1.0", "tls_1_0", insecure},
 	tls.VersionTLS11: {"TLS 1.1", "tls_1_1", ok},
 	tls.VersionTLS12: {"TLS 1.2", "tls_1_2", good},
