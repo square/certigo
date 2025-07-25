@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mattn/go-colorable"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal" //nolint:staticcheck // TODO: Change dependencies when upgrading to Go >= 1.17
 )
 
 const minWidth = 60
@@ -53,19 +53,19 @@ func (t *TTY) ReadPassword(prompt string) string {
 	if err != nil {
 		tty = os.Stdin
 	} else {
-		defer tty.Close()
+		defer func() { _ = tty.Close() }()
 	}
 
-	tty.WriteString("Enter password")
+	_, _ = tty.WriteString("Enter password")
 	if prompt != "" {
-		tty.WriteString(fmt.Sprintf(" for entry [%s]", prompt))
+		_, _ = fmt.Fprintf(tty, " for entry [%s]", prompt)
 	}
-	tty.WriteString(": ")
+	_, _ = tty.WriteString(": ")
 
 	password, err := terminal.ReadPassword(int(tty.Fd()))
-	tty.WriteString("\n")
+	_, _ = tty.WriteString("\n")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading password: %s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error reading password: %s\n", err)
 		os.Exit(1)
 	}
 

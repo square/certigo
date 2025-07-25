@@ -37,17 +37,17 @@ type pbeParameters struct {
 
 // Here's how this algorithm works:
 //
-// 1. Split salt in two halves. If the two halves are identical,
-//    invert one of them.
-// 2. Concatenate password with each of the halves.
-// 3. Digest each concatenation with c iterations, where c is the
-//    iterationCount. Concatenate the output from each digest round with the
-//    password, and use the result as the input to the next digest operation.
-//    The digest algorithm is MD5.
-// 4. After c iterations, use the 2 resulting digests as follows:
-//    The 16 bytes of the first digest and the 1st 8 bytes of the 2nd digest
-//    form the triple DES key, and the last 8 bytes of the 2nd digest form the
-//    IV.
+//  1. Split salt in two halves. If the two halves are identical,
+//     invert one of them.
+//  2. Concatenate password with each of the halves.
+//  3. Digest each concatenation with c iterations, where c is the
+//     iterationCount. Concatenate the output from each digest round with the
+//     password, and use the result as the input to the next digest operation.
+//     The digest algorithm is MD5.
+//  4. After c iterations, use the 2 resulting digests as follows:
+//     The 16 bytes of the first digest and the 1st 8 bytes of the 2nd digest
+//     form the triple DES key, and the last 8 bytes of the 2nd digest form the
+//     IV.
 func recoverPBEWithMD5AndDES3CBC(
 	algo pkix.AlgorithmIdentifier, encryptedKey, password []byte) ([]byte, error) {
 	var params pbeParameters
@@ -66,7 +66,7 @@ func recoverPBEWithMD5AndDES3CBC(
 		return nil, fmt.Errorf("unexpected salt length: %d", len(salt))
 	}
 
-	if bytes.Compare(salt[0:4], salt[4:]) == 0 {
+	if bytes.Equal(salt[0:4], salt[4:]) {
 		// First and second half of salt are equal, invert first half.
 		for i := 0; i < 2; i++ {
 			salt[i], salt[3-i] = salt[3-i], salt[i]

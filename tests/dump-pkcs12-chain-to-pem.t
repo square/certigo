@@ -143,7 +143,7 @@ Dump PEM blocks from a PKCS12 keystore. Multiple pem blocks are displayed
   6hRqpe+kXdFNpxj/83JGXGLpU6obNBGg27n4o2SINsIIHci6mDGi0mbs08eEkyqL
   2GbYHPp6z2n/UQ==
   -----END CERTIFICATE-----
-  -----BEGIN PRIVATE KEY-----
+  -----BEGIN RSA PRIVATE KEY-----
   MIIEowIBAAKCAQEAvHeFpNHWCsjV47fwXvmV5HpKdoPqm6j1UlfUFJyXxmxY0KoT
   pdXoWP5DktZZiO6L2plb64t0UKxh/KyHOO8nv7bE7BMBsAc/oYmMmqou5oDVyEWA
   Ud6llVN7TN/3o8DVMORwIgt54TDqqCiLylp9DETd4uUsg9hhAwLRjtAyTQH/lQVO
@@ -169,4 +169,4 @@ Dump PEM blocks from a PKCS12 keystore. Multiple pem blocks are displayed
   4DdpAoGBALFruy/DW2urx5oFyppFv0xVLuRHzwW5gFyVSoa2/7TElBBQ7luXOVvX
   QulcA8LTBbp9ZlJ6O5SrNKZW3QpSWeuRoGaxsfs6Yq1sGDbyiWtuufDknAqEiZg6
   LGdAI9LSB35HihR3AzNW+FsQ3p1aiEuWETFH9BaNLE2CdVJ7mLlT
-  -----END PRIVATE KEY-----
+  -----END RSA PRIVATE KEY-----

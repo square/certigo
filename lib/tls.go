@@ -94,8 +94,12 @@ func EncodeTLSInfoToText(tcs *tls.ConnectionState, cri *tls.CertificateRequestIn
 		// Should never happen
 		panic(err)
 	}
-	w.Flush()
-	return string(buffer.Bytes())
+	err = w.Flush()
+	if err != nil {
+		// Should never happen
+		panic(err)
+	}
+	return buffer.String()
 }
 
 // EncodeTLSToObject returns a JSON-marshallable description of a TLS connection
@@ -157,7 +161,7 @@ var qualityColors = map[uint8]*color.Color{
 }
 
 var tlsVersions = map[uint16]description{
-	tls.VersionSSL30: {"SSL 3.0", "ssl_3_0", insecure},
+	tls.VersionSSL30: {"SSL 3.0", "ssl_3_0", insecure}, //nolint:staticcheck // Support for now
 	tls.VersionTLS10: {"TLS 1.0", "tls_1_0", insecure},
 	tls.VersionTLS11: {"TLS 1.1", "tls_1_1", ok},
 	tls.VersionTLS12: {"TLS 1.2", "tls_1_2", good},

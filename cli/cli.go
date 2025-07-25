@@ -8,10 +8,11 @@ import (
 	"os"
 	"strings"
 
+	"gopkg.in/alecthomas/kingpin.v2"
+
 	"github.com/square/certigo/cli/terminal"
 	"github.com/square/certigo/lib"
 	"github.com/square/certigo/starttls"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -89,9 +90,12 @@ func Run(args []string, tty terminal.Terminal) int {
 		}
 
 		files, err := inputFiles(*dumpFiles)
+		if err != nil {
+			return printErr("error: %s\n", strings.TrimSuffix(err.Error(), "\n"))
+		}
 		defer func() {
 			for _, file := range files {
-				file.Close()
+				_ = file.Close()
 			}
 		}()
 
@@ -109,6 +113,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		} else {
 			err = lib.ReadAsX509FromFiles(files, *dumpType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 				if err != nil {
+					//nolint:staticcheck // See errorFromErrors
 					return fmt.Errorf("error parsing block: %s\n", strings.TrimSuffix(err.Error(), "\n"))
 				} else {
 					result.Certificates = append(result.Certificates, cert)
@@ -128,12 +133,12 @@ func Run(args []string, tty terminal.Terminal) int {
 
 			if *dumpJSON {
 				blob, _ := json.Marshal(result)
-				fmt.Println(string(blob))
+				_, _ = fmt.Println(string(blob))
 			} else {
 				for i, cert := range result.Certificates {
-					fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-					fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
-					fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+					_, _ = fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+					_, _ = fmt.Fprintf(stdout, "Input Format: %s\n", result.Formats[i])
+					_, _ = fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 				}
 			}
 		}
@@ -157,7 +162,10 @@ func Run(args []string, tty terminal.Terminal) int {
 		result.CertificateRequestInfo = cri
 		for _, cert := range connState.PeerCertificates {
 			if *connectPem {
-				pem.Encode(stdout, lib.EncodeX509ToPEM(cert, nil))
+				err := pem.Encode(stdout, lib.EncodeX509ToPEM(cert, nil))
+				if err != nil {
+					return printErr("could not encode PEM: %s\n", err)
+				}
 			} else {
 				result.Certificates = append(result.Certificates, cert)
 			}
@@ -187,15 +195,15 @@ func Run(args []string, tty terminal.Terminal) int {
 
 		if *connectJSON {
 			blob, _ := json.Marshal(result)
-			fmt.Println(string(blob))
+			_, _ = fmt.Println(string(blob))
 		} else if !*connectPem {
-			fmt.Fprintf(
+			_, _ = fmt.Fprintf(
 				stdout, "%s\n\n",
 				lib.EncodeTLSInfoToText(result.TLSConnectionState, result.CertificateRequestInfo))
 
 			for i, cert := range result.Certificates {
-				fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
-				fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
+				_, _ = fmt.Fprintf(stdout, "** CERTIFICATE %d **\n", i+1)
+				_, _ = fmt.Fprintf(stdout, "%s\n\n", lib.EncodeX509ToText(cert, terminalWidth, *verbose))
 			}
 			lib.PrintVerifyResult(stdout, *result.VerifyResult)
 		}
@@ -212,9 +220,9 @@ func Run(args []string, tty terminal.Terminal) int {
 		if err != nil {
 			return printErr("%s\n", err.Error())
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
-		chain := []*x509.Certificate{}
+		var chain []*x509.Certificate
 		err = lib.ReadAsX509FromFiles([]*os.File{file}, *verifyType, tty.ReadPassword, func(cert *x509.Certificate, format string, err error) error {
 			if err != nil {
 				return err
@@ -230,7 +238,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		verifyResult := lib.VerifyChain(chain, nil, *verifyName, *verifyCaPath)
 		if *verifyJSON {
 			blob, _ := json.Marshal(verifyResult)
-			fmt.Println(string(blob))
+			_, _ = fmt.Println(string(blob))
 		} else {
 			lib.PrintVerifyResult(stdout, verifyResult)
 		}
@@ -248,7 +256,7 @@ func inputFile(fileName string) (*os.File, error) {
 
 	rawFile, err := os.Open(fileName)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open file: %s\n", err)
+		return nil, fmt.Errorf("unable to open file: %s", err)
 	}
 	return rawFile, nil
 }
@@ -259,7 +267,7 @@ func inputFiles(fileNames []string) ([]*os.File, error) {
 		for _, filename := range fileNames {
 			rawFile, err := os.Open(filename)
 			if err != nil {
-				return nil, fmt.Errorf("unable to open file: %s\n", err)
+				return nil, fmt.Errorf("unable to open file: %s", err)
 			}
 			files = append(files, rawFile)
 		}

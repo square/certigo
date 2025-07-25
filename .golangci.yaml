@@ -1,0 +1,27 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - starttls/ldap/
+      - starttls/mysql/
+      - starttls/psql/
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - starttls/ldap/
+      - starttls/mysql/
+      - starttls/psql/

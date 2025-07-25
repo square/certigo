@@ -52,7 +52,7 @@ func tlsConfigForConnect(connectName, connectTo, clientCert, clientKey string) (
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
 		ServerName:         hostname,
-		MinVersion:         tls.VersionSSL30,
+		MinVersion:         tls.VersionSSL30, //nolint:staticcheck // Support for now
 	}
 
 	var err error
@@ -155,7 +155,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 				res <- connectResult{nil, err}
 				return
 			}
-			defer conn.Close()
+			defer func() { _ = conn.Close() }()
 			state := conn.ConnectionState()
 			res <- connectResult{&state, nil}
 		case "ldap":
@@ -179,7 +179,10 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			}
 			res <- connectResult{state, nil}
 		case "mysql":
-			mysql.RegisterTLSConfig("certigo", tlsConfig)
+			if err := mysql.RegisterTLSConfig("certigo", tlsConfig); err != nil {
+				res <- connectResult{nil, fmt.Errorf("mysql registration error: %w", err)}
+				return
+			}
 			addr := withDefaultPort(connectTo, 3306)
 			state, err = mysql.DumpTLS(fmt.Sprintf("%s@tcp(%s)/?tls=certigo&timeout=%s", identity, addr, timeout.String()))
 			if err != nil {
@@ -190,14 +193,14 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		case "postgres", "psql":
 			// Setting sslmode to "require" skips verification.
 			addr := withDefaultPort(connectTo, 5432)
-			url := fmt.Sprintf("postgres://%s@%s/?sslmode=require&connect_timeout=%d", identity, addr, timeout/time.Second)
+			uri := fmt.Sprintf("postgres://%s@%s/?sslmode=require&connect_timeout=%d", identity, addr, timeout/time.Second)
 			if clientCert != "" {
-				url += fmt.Sprintf("&sslcert=%s", clientCert)
+				uri += fmt.Sprintf("&sslcert=%s", clientCert)
 			}
 			if clientKey != "" {
-				url += fmt.Sprintf("&sslkey=%s", clientCert)
+				uri += fmt.Sprintf("&sslkey=%s", clientCert)
 			}
-			state, err = pq.DumpTLS(url)
+			state, err = pq.DumpTLS(uri)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
