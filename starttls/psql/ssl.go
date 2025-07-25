@@ -11,9 +11,9 @@ import (
 
 // ssl generates a function to upgrade a net.Conn based on the "sslmode" and
 // related settings. The function is nil when no upgrade should take place.
-func ssl(o values) func(net.Conn) net.Conn {
+func ssl(o values, tlsConf *tls.Config) func(net.Conn) net.Conn {
 	verifyCaOnly := false
-	tlsConf := tls.Config{}
+	tlsConf = tlsConf.Clone()
 	switch mode := o.Get("sslmode"); mode {
 	// "require" is the default.
 	case "", "require":
@@ -45,14 +45,14 @@ func ssl(o values) func(net.Conn) net.Conn {
 		errorf(`unsupported sslmode %q; only "require" (default), "verify-full", "verify-ca", and "disable" supported`, mode)
 	}
 
-	sslClientCertificates(&tlsConf, o)
-	sslCertificateAuthority(&tlsConf, o)
-	sslRenegotiation(&tlsConf)
+	sslClientCertificates(tlsConf, o)
+	sslCertificateAuthority(tlsConf, o)
+	sslRenegotiation(tlsConf)
 
 	return func(conn net.Conn) net.Conn {
-		client := tls.Client(conn, &tlsConf)
+		client := tls.Client(conn, tlsConf)
 		if verifyCaOnly {
-			sslVerifyCertificateAuthority(client, &tlsConf)
+			sslVerifyCertificateAuthority(client, tlsConf)
 		}
 		return client
 	}

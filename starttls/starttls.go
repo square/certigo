@@ -131,14 +131,9 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		res <- connectResult{nil, errors.New("timed out")}
 	}()
 
-	switch startTLSType {
-	case "postgres", "psql":
-		// No tlsConfig needed for postgres, but all others do.
-	default:
-		tlsConfig, cri, err = tlsConfigForConnect(connectName, connectTo, clientCert, clientKey)
-		if err != nil {
-			return nil, nil, err
-		}
+	tlsConfig, cri, err = tlsConfigForConnect(connectName, connectTo, clientCert, clientKey)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if connectProxy != nil {
@@ -205,7 +200,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			if clientKey != "" {
 				uri += fmt.Sprintf("&sslkey=%s", clientCert)
 			}
-			state, err = pq.DumpTLS(uri)
+			state, err = pq.DumpTLSWithConfig(uri, tlsConfig)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
