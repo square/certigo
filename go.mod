@@ -11,8 +11,8 @@ require (
 	github.com/mattn/go-colorable v0.1.14
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
 	github.com/stretchr/testify v1.10.0
-	github.com/zmap/zcrypto v0.0.0-20220402174210-599ec18ecbac
-	github.com/zmap/zlint/v3 v3.3.1
+	github.com/zmap/zcrypto v0.0.0-20250710172053-7835e31ca584
+	github.com/zmap/zlint/v3 v3.6.7
 	golang.org/x/crypto v0.40.0
 	software.sslmate.com/src/go-pkcs12 v0.6.0
 )
@@ -30,10 +30,11 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
-	github.com/weppos/publicsuffix-go v0.15.1-0.20220329081811-9a40b608a236 // indirect
+	github.com/weppos/publicsuffix-go v0.40.3-0.20250708083804-25ff8f86d8b3 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
