@@ -38,5 +38,6 @@ Dump an example certificate (example-leaf.crt)
   \tOrganizational Unit: example (esc)
   \tCommonName: example-small-key (esc)
   Lints:
+  \tERROR: [RFC5280] CAs must include keyIdentifer field of AKI in all non-self-issued certificates (esc)
   \tWARN: [RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   

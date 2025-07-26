@@ -391,6 +391,8 @@ func certLints(cert *x509.Certificate) (lints []string) {
 	lintRegistryOnce.Do(func() {
 		registry, err := lint.GlobalRegistry().Filter(lint.FilterOptions{
 			IncludeSources: []lint.LintSource{lint.RFC5280, lint.Community},
+			// TODO: re-enable once linter is fixed: https://github.com/zmap/zlint/issues/593
+			ExcludeNames: []string{"e_key_usage_and_extended_key_usage_inconsistent"},
 		})
 		if err != nil {
 			log.Fatalf("Failed to filter lint registry: %v", err)

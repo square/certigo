@@ -27,7 +27,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/square/certigo/starttls/ldap"
+	"github.com/go-ldap/ldap/v3"
+
 	"github.com/square/certigo/starttls/mysql"
 	pq "github.com/square/certigo/starttls/psql"
 )
@@ -52,7 +53,8 @@ func tlsConfigForConnect(connectName, connectTo, clientCert, clientKey string) (
 		// We verify later manually so we can print results
 		InsecureSkipVerify: true,
 		ServerName:         hostname,
-		MinVersion:         tls.VersionSSL30, //nolint:staticcheck // Support for now
+		MinVersion:         tls.VersionTLS10,
+		CipherSuites:       allSupportedCipherSuiteIDs(),
 	}
 
 	var err error
@@ -129,14 +131,9 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 		res <- connectResult{nil, errors.New("timed out")}
 	}()
 
-	switch startTLSType {
-	case "postgres", "psql":
-		// No tlsConfig needed for postgres, but all others do.
-	default:
-		tlsConfig, cri, err = tlsConfigForConnect(connectName, connectTo, clientCert, clientKey)
-		if err != nil {
-			return nil, nil, err
-		}
+	tlsConfig, cri, err = tlsConfigForConnect(connectName, connectTo, clientCert, clientKey)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if connectProxy != nil {
@@ -160,23 +157,26 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			res <- connectResult{&state, nil}
 		case "ldap":
 			addr := withDefaultPort(connectTo, 389)
-			l, err := ldap.Dial("tcp", addr, timeout)
+			nc, err := net.DialTimeout("tcp", addr, timeout)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
 			}
-			defer l.Close()
+			l := ldap.NewConn(nc, false)
+			l.Start()
+			defer func() { _ = l.Close() }()
 
 			err = l.StartTLS(tlsConfig)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return
 			}
-			state, err = l.TLSConnectionState()
-			if err != nil {
-				res <- connectResult{nil, fmt.Errorf("LDAP connection isn't TLS after StartTLS: %s", err.Error())}
+			s, ok := l.TLSConnectionState()
+			if !ok {
+				res <- connectResult{nil, fmt.Errorf("LDAP connection isn't TLS after StartTLS")}
 				return
 			}
+			state = &s
 			res <- connectResult{state, nil}
 		case "mysql":
 			if err := mysql.RegisterTLSConfig("certigo", tlsConfig); err != nil {
@@ -200,7 +200,7 @@ func GetConnectionState(startTLSType, connectName, connectTo, identity, clientCe
 			if clientKey != "" {
 				uri += fmt.Sprintf("&sslkey=%s", clientCert)
 			}
-			state, err = pq.DumpTLS(uri)
+			state, err = pq.DumpTLSWithConfig(uri, tlsConfig)
 			if err != nil {
 				res <- connectResult{nil, err}
 				return

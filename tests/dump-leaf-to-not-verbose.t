@@ -39,5 +39,6 @@ Dump an example certificate (example-leaf.crt)
   IP Addresses:
   \t127.0.0.1, ::1 (esc)
   Lints:
+  \tERROR: [RFC5280] CAs must include keyIdentifer field of AKI in all non-self-issued certificates (esc)
   \tWARN: [RFC5280] Sub certificates SHOULD include Subject Key Identifier in end entity certs (esc)
   

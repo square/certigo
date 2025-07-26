@@ -372,6 +372,10 @@ func dial(d Dialer, o values) (net.Conn, error) {
 }
 
 func DumpTLS(name string) (_ *tls.ConnectionState, err error) {
+	return DumpTLSWithConfig(name, &tls.Config{})
+}
+
+func DumpTLSWithConfig(name string, tlsConf *tls.Config) (_ *tls.ConnectionState, err error) {
 	// Handle any panics during connection initialization.  Note that we
 	// specifically do *not* want to use errRecover(), as that would turn any
 	// connection errors into ErrBadConns, hiding the real error message from
@@ -460,7 +464,7 @@ func DumpTLS(name string) (_ *tls.ConnectionState, err error) {
 	if err != nil {
 		return nil, err
 	}
-	cn.ssl(o)
+	cn.sslWithConfig(o, tlsConf)
 	defer cn.c.Close()
 
 	if tlsConn, ok := cn.c.(*tls.Conn); ok {
@@ -1136,7 +1140,11 @@ func (cn *conn) recv1() (t byte, r *readBuf) {
 }
 
 func (cn *conn) ssl(o values) {
-	upgrade := ssl(o)
+	cn.sslWithConfig(o, &tls.Config{})
+}
+
+func (cn *conn) sslWithConfig(o values, tlsConf *tls.Config) {
+	upgrade := ssl(o, tlsConf)
 	if upgrade == nil {
 		// Nothing to do
 		return
@@ -1547,9 +1555,9 @@ func (rs *rows) NextResultSet() error {
 // QuoteIdentifier quotes an "identifier" (e.g. a table or a column name) to be
 // used as part of an SQL statement.  For example:
 //
-//    tblname := "my_table"
-//    data := "my_data"
-//    err = db.Exec(fmt.Sprintf("INSERT INTO %s VALUES ($1)", pq.QuoteIdentifier(tblname)), data)
+//	tblname := "my_table"
+//	data := "my_data"
+//	err = db.Exec(fmt.Sprintf("INSERT INTO %s VALUES ($1)", pq.QuoteIdentifier(tblname)), data)
 //
 // Any double quotes in name will be escaped.  The quoted identifier will be
 // case sensitive when used in a query.  If the input string contains a zero

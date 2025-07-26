@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//go:debug x509negativeserial=1
 package main
 
 import (

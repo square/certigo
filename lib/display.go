@@ -20,14 +20,13 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
 	"fmt"
 	"text/template"
 	"time"
 
-	"crypto/x509/pkix"
-
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/fatih/color"
 )
 
