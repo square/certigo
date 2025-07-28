@@ -17,217 +17,101 @@ package jceks
 
 import (
 	"bytes"
-	"crypto/rsa"
+	"crypto/sha1"
 	"errors"
-	"flag"
-	"fmt"
 	"os"
-	"os/exec"
-	"reflect"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-var (
-	generateTestData = flag.Bool("generate", false, "generate test data")
-)
+func TestEncodeIntegrityPassword(t *testing.T) {
+	t.Parallel()
 
-type testData struct {
-	certFilename  string
-	keyFilename   string
-	p12Filename   string
-	jceksFilename string
-	storePassword string
-	keyPassword   string
-	alias         string
-}
+	for _, tc := range []struct {
+		name      string
+		password  string
+		expected  []byte
+		expectErr bool
+	}{
+		{
+			name:     "BasicASCII",
+			password: "Hi!",
+			expected: []byte{0, 'H', 0, 'i', 0, '!'},
+		},
+		{
+			name:     "BasicMultilingual",
+			password: `¯\_(ツ)_/¯`,
+			expected: []byte{0, 0xaf, 0, '\\', 0, '_', 0, '(', 0x30, 0xc4, 0, ')', 0, '_', 0, '/', 0, 0xaf},
+		},
+		{
+			name:      "ErrTooShort",
+			expectErr: true,
+		},
+		{
+			name:      "ErrOutOfRange",
+			password:  "\U00010000",
+			expectErr: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func newTestData(prefix string) *testData {
-	return &testData{
-		certFilename:  "testdata/" + prefix + ".crt",
-		keyFilename:   "testdata/" + prefix + ".key",
-		p12Filename:   "testdata/" + prefix + ".p12",
-		jceksFilename: "testdata/" + prefix + ".jceks",
-		storePassword: prefix + "-store-password",
-		keyPassword:   prefix + "-key-password",
-		alias:         prefix + "-some-alias",
+			actual, err := encodeIntegrityPassword(tc.password)
+			if tc.expectErr {
+				require.Error(t, err)
+				require.ErrorIs(t, err, ErrInvalidPassword)
+
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, actual)
+		})
 	}
 }
 
-func (d *testData) cleanup() {
-	os.Remove(d.certFilename)
-	os.Remove(d.keyFilename)
-	os.Remove(d.p12Filename)
-	os.Remove(d.jceksFilename)
+func TestMakeIntegrityHash(t *testing.T) {
+	t.Parallel()
+
+	h := makeIntegrityHash([]byte("changeit"))
+	actual := h.Sum(nil)
+
+	expected := sha1.Sum([]byte("changeit" + jceksIntegrityMagic))
+
+	require.Equal(t, expected[:], actual)
 }
 
-func runCommand(name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
-	var buf bytes.Buffer
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
-	err := cmd.Run()
-	out := buf.Bytes()
-	if err != nil {
-		return "", errors.New(string(out))
+func FuzzLoadFromReader(f *testing.F) {
+	for filename, password := range map[string]string{
+		"private-key.jceks":                    "store-password",
+		"trusted-cert.jceks":                   "store-password",
+		"encoder-private-store.jceks":          "changeit",
+		"encoder-cert-store.jceks":             "changeit",
+		"encoder-re-encode-private-key.jceks":  "changeit",
+		"encoder-re-encode-trusted-cert.jceks": "changeit",
+	} {
+		data, err := os.ReadFile(filepath.Join("testdata", filename))
+		require.NoError(f, err)
+		f.Add(data, []byte(password))
 	}
-	return string(out), nil
-}
 
-func (d *testData) generatePrivateKeyAndCert(t *testing.T) {
-	_, err := runCommand("openssl", "req", "-x509",
-		"-nodes", "-days", "365", "-newkey", "rsa:2048",
-		"-subj", "/CN=Test User/O=Test Organization/C=US",
-		"-extensions", "v3_req",
-		"-keyout", d.keyFilename,
-		"-out", d.certFilename)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func (d *testData) convertPrivateKeyAndCertToPkcs12(t *testing.T) {
-	_, err := runCommand("openssl", "pkcs12", "-export",
-		"-in", d.certFilename,
-		"-inkey", d.keyFilename,
-		"-name", d.alias,
-		"-out", d.p12Filename,
-		"-passout", fmt.Sprintf("pass:%s", d.storePassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func (d *testData) convertPkcs12ToJceks(t *testing.T) {
-	_, err := runCommand("keytool", "-importkeystore",
-		"-alias", d.alias,
-		"-destkeypass", d.keyPassword,
-		"-destkeystore", d.jceksFilename,
-		"-deststorepass", d.storePassword,
-		"-srckeystore", d.p12Filename,
-		"-srcstoretype", "PKCS12",
-		"-srcstorepass", d.storePassword,
-		"-storetype", "JCEKS")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func (d *testData) importCertToJceks(t *testing.T) {
-	_, err := runCommand("keytool", "-importcert", "-noprompt",
-		"-alias", d.alias,
-		"-file", d.certFilename,
-		"-keystore", d.jceksFilename,
-		"-storepass", d.storePassword,
-		"-storetype", "JCEKS")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func equalRSAPublicKey(a, b *rsa.PublicKey) bool {
-	if a.E != b.E {
-		return false
-	}
-	return a.N.Cmp(b.N) == 0
-}
-
-func equalRSAPrivateKey(a, b *rsa.PrivateKey) bool {
-	if !equalRSAPublicKey(&a.PublicKey, &b.PublicKey) {
-		return false
-	}
-	if a.D.Cmp(b.D) != 0 {
-		return false
-	}
-	if len(a.Primes) != len(b.Primes) {
-		return false
-	}
-	for i := 0; i < len(a.Primes); i++ {
-		if a.Primes[i].Cmp(b.Primes[i]) != 0 {
-			return false
+	f.Fuzz(func(t *testing.T, data []byte, password []byte) {
+		var ks KeyStore
+		err := ks.ParseWithOptions(bytes.NewReader(data), password,
+			WithMaxCertificateBytes(20*1024), WithMaxPrivateKeyBytes(20*1024))
+		if err != nil {
+			for _, mightBe := range []error{
+				ErrInvalidPassword,
+				ErrInvalidJCEKSData,
+				ErrUnsupportedJCEKSData,
+				ErrIntegrityProtectionViolation,
+			} {
+				if errors.Is(err, mightBe) {
+					return
+				}
+			}
+			t.Fatal(err)
 		}
-	}
-	return true
-}
-
-func TestPrivateKey(t *testing.T) {
-	d := newTestData("private-key")
-	if *generateTestData {
-		d.cleanup()
-		d.generatePrivateKeyAndCert(t)
-		d.convertPrivateKeyAndCertToPkcs12(t)
-		d.convertPkcs12ToJceks(t)
-	}
-
-	ks, err := LoadFromFile(d.jceksFilename, []byte(d.storePassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	key, certs, err := ks.GetPrivateKeyAndCerts(d.alias, []byte(d.keyPassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if key == nil {
-		t.Fatal("unable to load key")
-	}
-
-	expected, err := LoadPEMKey(d.keyFilename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !equalRSAPrivateKey(key.(*rsa.PrivateKey), expected) {
-		t.Fatalf("keys are not equal")
-	}
-
-	if len(certs) != 1 {
-		t.Fatalf("unexpected number of certs: %d != 1", len(certs))
-	}
-
-	expectedCert, err := LoadPEMCert(d.certFilename)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !certs[0].Equal(expectedCert) {
-		t.Fatalf("certs are not equal")
-	}
-
-	keyAliases := ks.ListPrivateKeys()
-	if !reflect.DeepEqual(keyAliases, []string{d.alias}) {
-		t.Fatalf("unexpected private key aliases: %s", keyAliases)
-	}
-}
-
-func TestTrustedCert(t *testing.T) {
-	d := newTestData("trusted-cert")
-	if *generateTestData {
-		d.cleanup()
-		d.generatePrivateKeyAndCert(t)
-		d.importCertToJceks(t)
-	}
-
-	ks, err := LoadFromFile(d.jceksFilename, []byte(d.storePassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	cert, err := ks.GetCert(d.alias)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cert == nil {
-		t.Fatal("unable to load cert")
-	}
-
-	expectedCert, err := LoadPEMCert(d.certFilename)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !cert.Equal(expectedCert) {
-		t.Fatalf("certs are not equal")
-	}
-
-	certAliases := ks.ListCerts()
-	if !reflect.DeepEqual(certAliases, []string{d.alias}) {
-		t.Fatalf("unexpected cert aliases: %s", certAliases)
-	}
+	})
 }

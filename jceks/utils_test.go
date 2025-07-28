@@ -28,7 +28,7 @@ import (
 func LoadPEMKey(filename string) (*rsa.PrivateKey, error) {
 	keyPEMBlock, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read private key from %q: %w", filename, err)
 	}
 
 	var keyDERBlock *pem.Block
@@ -43,14 +43,24 @@ func LoadPEMKey(filename string) (*rsa.PrivateKey, error) {
 		}
 	}
 
-	return x509.ParsePKCS1PrivateKey(keyDERBlock.Bytes)
+	key, err := x509.ParsePKCS8PrivateKey(keyDERBlock.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse PKCS8 private key: %s", err)
+	}
+
+	rsaKey, ok := key.(*rsa.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("PKCS8 private key is not RSA")
+	}
+
+	return rsaKey, nil
 }
 
 // LoadPEMCert extracts a certificate from a PEM file.
 func LoadPEMCert(filename string) (*x509.Certificate, error) {
 	certPEMBlock, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read private key from %q: %w", filename, err)
 	}
 
 	var certDERBlock *pem.Block
