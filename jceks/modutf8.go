@@ -86,6 +86,10 @@ func readModifiedUTF8(r io.Reader) (string, error) {
 
 		// Basic Latin
 		if buf[0] < 0x80 {
+			if buf[0] == 0x00 {
+				// NULs require the special 2-byte encoding, so this is not valid
+				return "", fmt.Errorf("%w: 1-byte NUL is not valid in modified UTF-8", errInvalidModifiedUTF8)
+			}
 			sb.WriteByte(buf[0])
 
 			continue
@@ -110,6 +114,9 @@ func readModifiedUTF8(r io.Reader) (string, error) {
 			} else {
 				// Regular UTF-8 up to U+07FF
 				rn, _ := utf8.DecodeRune(buf[:2])
+				if rn == utf8.RuneError {
+					return "", fmt.Errorf("%w: invalid 2-byte UTF-8 codepoint", errInvalidModifiedUTF8)
+				}
 				sb.WriteRune(rn)
 			}
 
@@ -132,6 +139,9 @@ func readModifiedUTF8(r io.Reader) (string, error) {
 		if buf[0] != 0b1110_1101 || (buf[1]&0b111_00000 != 0b101_00000) {
 			// Regular UTF-8 encoding from U+8000 to U+FFFF
 			rn, _ := utf8.DecodeRune(buf[:3])
+			if rn == utf8.RuneError {
+				return "", fmt.Errorf("%w: invalid 3-byte UTF-8 codepoint", errInvalidModifiedUTF8)
+			}
 			sb.WriteRune(rn)
 
 			continue
@@ -163,6 +173,9 @@ func readModifiedUTF8(r io.Reader) (string, error) {
 			)
 		}
 		rn := utf16.DecodeRune(surrogates[0], surrogates[1])
+		if rn == utf8.RuneError {
+			return "", fmt.Errorf("%w: invalid supplementary character", errInvalidModifiedUTF8)
+		}
 		sb.WriteRune(rn)
 	}
 

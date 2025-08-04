@@ -17,6 +17,7 @@ package jceks
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
 
@@ -174,4 +175,26 @@ func TestReadModifiedUTF8(t *testing.T) {
 			require.Equal(t, tc.expected, actual)
 		})
 	}
+}
+
+func FuzzModifiedUTF8(f *testing.F) {
+	f.Fuzz(func(t *testing.T, data []byte) {
+		str, err := readModifiedUTF8(bytes.NewReader(data))
+		if err != nil {
+			if errors.Is(err, errInvalidModifiedUTF8) || errors.Is(err, io.ErrUnexpectedEOF) {
+				return
+			}
+			require.NoError(t, err)
+		}
+
+		var buf bytes.Buffer
+		err = writeModifiedUTF8(&buf, str)
+		require.NoError(t, err)
+
+		expected := data
+		if len(expected) < 1 {
+			expected = nil
+		}
+		require.Equal(t, expected, buf.Bytes())
+	})
 }
