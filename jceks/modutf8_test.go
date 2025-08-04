@@ -20,6 +20,7 @@ import (
 	"errors"
 	"io"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 )
@@ -177,7 +178,7 @@ func TestReadModifiedUTF8(t *testing.T) {
 	}
 }
 
-func FuzzModifiedUTF8(f *testing.F) {
+func FuzzReadModifiedUTF8(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
 		str, err := readModifiedUTF8(bytes.NewReader(data))
 		if err != nil {
@@ -196,5 +197,23 @@ func FuzzModifiedUTF8(f *testing.F) {
 			expected = nil
 		}
 		require.Equal(t, expected, buf.Bytes())
+	})
+}
+
+func FuzzWriteModifiedUTF8(f *testing.F) {
+	f.Fuzz(func(t *testing.T, str string) {
+		if !utf8.ValidString(str) {
+			return
+		}
+
+		var buf bytes.Buffer
+
+		err := writeModifiedUTF8(&buf, str)
+		require.NoError(t, err)
+
+		recovered, err := readModifiedUTF8(&buf)
+		require.NoError(t, err)
+
+		require.Equal(t, str, recovered)
 	})
 }
