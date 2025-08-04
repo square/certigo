@@ -23,8 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate testdata/generate-jceks.sh private-key
-//go:generate testdata/generate-jceks.sh trusted-cert
+//go:generate testdata/generate-jceks.sh
 
 func TestPrivateKey(t *testing.T) {
 	ks, err := LoadFromFile("testdata/private-key.jceks", []byte("store-password"))
