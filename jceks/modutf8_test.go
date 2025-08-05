@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"strings"
 	"testing"
 	"unicode/utf8"
 
@@ -202,7 +203,7 @@ func FuzzReadModifiedUTF8(f *testing.F) {
 
 func FuzzWriteModifiedUTF8(f *testing.F) {
 	f.Fuzz(func(t *testing.T, str string) {
-		if !utf8.ValidString(str) {
+		if strings.ContainsRune(str, utf8.RuneError) {
 			return
 		}
 
