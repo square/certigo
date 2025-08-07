@@ -31,11 +31,6 @@ import (
 
 var writeReencoded = flag.Bool("jceks.write-reencoded", false, "write expected re-encoded JCEKS files")
 
-func TestMain(m *testing.M) {
-	flag.Parse()
-	m.Run()
-}
-
 type discardErrWriter struct {
 	err           error
 	writeAfterErr int

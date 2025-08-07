@@ -11,6 +11,8 @@ jobs:
   build:
     name: Unit tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
@@ -26,6 +28,8 @@ jobs:
   integration:
     name: Integration tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # ratchet:actions/setup-go@v5
@@ -44,3 +48,72 @@ jobs:
         run: go build
       - name: Run tests
         run: PATH=$PWD:$PATH cram -v tests/*.t
+  integration-jceks:
+    name: JCEKS Integration tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          # Oldest version for all tested distributions
+          - distribution: temurin
+            java-version: 8
+            java-package: jre
+          - distribution: zulu
+            java-version: 8
+            java-package: jre
+          - distribution: microsoft
+            java-version: 11
+            java-package: jdk
+          - distribution: corretto
+            java-version: 8
+            java-package: jdk
+          - distribution: oracle
+            java-version: 17
+            java-package: jdk
+
+          # Intermediate LTS versions for Temurin
+          - distribution: temurin
+            java-version: 11
+            java-package: jre
+          - distribution: temurin
+            java-version: 17
+            java-package: jre
+          - distribution: temurin
+            java-version: 21
+            java-package: jre
+
+          # Newest versions for all tested distributions
+          - distribution: temurin
+            java-version: 24
+            java-package: jre
+          - distribution: zulu
+            java-version: 24
+            java-package: jre
+          - distribution: microsoft
+            java-version: 21
+            java-package: jdk
+          - distribution: corretto
+            java-version: 24
+            java-package: jdk
+          - distribution: oracle
+            java-version: 24
+            java-package: jdk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+      - name: Setup Go environment
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # ratchet:actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          check-latest: true
+      - name: Setup java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # ratchet:actions/setup-java@v4
+        with:
+          distribution: ${{ matrix.distribution }}
+          java-version: ${{ matrix.java-version }}
+          java-package: ${{ matrix.java-package }}
+      - name: Run tests
+        run:
+          go test -v github.com/square/certigo/jceks -test.run "TestIntegrationKeytool*" -jceks.keytool-tests=true
