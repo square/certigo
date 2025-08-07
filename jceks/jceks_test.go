@@ -19,12 +19,18 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"errors"
+	"flag"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	m.Run()
+}
 
 func TestEncodeIntegrityPassword(t *testing.T) {
 	t.Parallel()
