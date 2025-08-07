@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
       - name: Build binary
-        run: go build -o certigo .
+        run: CGO_ENABLED=0 go build -o certigo .
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
         with:
