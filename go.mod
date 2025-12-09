@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/zmap/zcrypto v0.0.0-20240803002437-3a861682ac77
 	github.com/zmap/zlint/v3 v3.6.5
-	golang.org/x/crypto v0.40.0
+	golang.org/x/crypto v0.46.0
 	software.sslmate.com/src/go-pkcs12 v0.6.0
 )
 
@@ -36,9 +36,9 @@ require (
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/weppos/publicsuffix-go v0.40.3-0.20250708083804-25ff8f86d8b3 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/term v0.33.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/term v0.38.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
