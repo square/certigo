@@ -14,7 +14,7 @@ require (
 	github.com/zmap/zcrypto v0.0.0-20240803002437-3a861682ac77
 	github.com/zmap/zlint/v3 v3.6.5
 	golang.org/x/crypto v0.40.0
-	software.sslmate.com/src/go-pkcs12 v0.6.0
+	software.sslmate.com/src/go-pkcs12 v0.7.0
 )
 
 require (
