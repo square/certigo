@@ -11,8 +11,8 @@ require (
 	github.com/mattn/go-colorable v0.1.14
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
 	github.com/stretchr/testify v1.11.1
-	github.com/zmap/zcrypto v0.0.0-20260109180747-df961ee46a6c
-	github.com/zmap/zlint/v3 v3.6.8
+	github.com/zmap/zcrypto v0.0.0-20250129210703-03c45d0bae98
+	github.com/zmap/zlint/v3 v3.6.7
 	golang.org/x/crypto v0.47.0
 	software.sslmate.com/src/go-pkcs12 v0.7.0
 )
