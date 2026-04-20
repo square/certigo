@@ -86,6 +86,7 @@ func caBundle(caPath string) (*x509.CertPool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error opening CA bundle %s: %w", caPath, err)
 	}
+	defer caFile.Close()
 
 	bundle := x509.NewCertPool()
 	err = ReadAsX509FromFiles(
