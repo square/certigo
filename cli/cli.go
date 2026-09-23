@@ -21,6 +21,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -67,9 +68,23 @@ var (
 	verifyJSON     = verify.Flag("json", "Write output as machine-readable JSON format.").Short('j').Bool()
 )
 
-const (
-	version = "1.17.1"
-)
+// version overrides what --version prints. Leave it empty to print the
+// module version that Go stamps into the binary at build time. Builds
+// without git metadata, such as from a source tarball, can set it with
+// -ldflags "-X github.com/square/certigo/cli.version=1.2.3".
+var version string
+
+// appVersion returns the version for --version, without the leading "v"
+// of a Go module version.
+func appVersion() string {
+	if version != "" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		return strings.TrimPrefix(info.Main.Version, "v")
+	}
+	return "(devel)"
+}
 
 func Run(args []string, tty terminal.Terminal) int {
 	terminalWidth := tty.DetermineWidth()
@@ -86,7 +101,7 @@ func Run(args []string, tty terminal.Terminal) int {
 		return 2
 	}
 	app.HelpFlag.Short('h')
-	app.Version(version)
+	app.Version(appVersion())
 
 	// Alias starttls to start-tls
 	connect.Flag("starttls", "").Hidden().EnumVar(connectStartTLS, starttls.Protocols...)
