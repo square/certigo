@@ -22,6 +22,6 @@ jobs:
       - name: Golangci-lint
         uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # ratchet:golangci/golangci-lint-action@v8
         with:
-          version: v2.3.0
+          version: v2.13.2
           install-mode: goinstall
           only-new-issues: true
