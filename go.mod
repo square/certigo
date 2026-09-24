@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/google/certificate-transparency-go v1.3.2
-	github.com/mattn/go-colorable v0.1.14
+	github.com/mattn/go-colorable v0.1.15
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
 	github.com/stretchr/testify v1.12.1
 	github.com/zmap/zcrypto v0.0.0-20260906180147-3ed30b1e9340
