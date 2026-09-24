@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/google/certificate-transparency-go v1.3.2
 	github.com/mattn/go-colorable v0.1.15
