@@ -6,8 +6,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/fatih/color v1.19.0
-	github.com/go-ldap/ldap/v3 v3.4.12
-	github.com/google/certificate-transparency-go v1.3.2
+	github.com/go-ldap/ldap/v3 v3.4.14
+	github.com/google/certificate-transparency-go v1.3.3
 	github.com/mattn/go-colorable v0.1.15
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
 	github.com/stretchr/testify v1.12.1
@@ -23,7 +23,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
-	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
