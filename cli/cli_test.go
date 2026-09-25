@@ -234,3 +234,11 @@ func TestConnect(t *testing.T) {
 	out := cipherSuiteRegex.ReplaceAllLiteralString(testTerminal.OutputBuf.String(), cipherSuiteRepl)
 	assert.EqualValues(t, expectedConnect, out)
 }
+
+func TestAppVersion(t *testing.T) {
+	assert.NotEmpty(t, appVersion())
+
+	defer func(v string) { version = v }(version)
+	version = "1.2.3"
+	assert.Equal(t, "1.2.3", appVersion(), "the -X override should win over build info")
+}
