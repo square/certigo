@@ -11,7 +11,9 @@ jobs:
     name: Compile Check
     strategy:
       matrix:
-        version: ['stable']
+        # The Go version release.yaml builds with, so PRs catch problems
+        # before a release is tagged.
+        version: ['1.27.1']
         target:
           - {os: 'darwin', platform: 'macos-latest', arch: 'amd64'}
           - {os: 'linux', platform: 'ubuntu-latest', arch: 'amd64'}
@@ -19,12 +21,13 @@ jobs:
     runs-on: ${{ matrix.target.platform }}
     permissions:
       contents: write
+    env:
+      GOTOOLCHAIN: local
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # ratchet:actions/setup-go@v5
         with:
           go-version: ${{ matrix.version }}
-          check-latest: true
         id: go
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
