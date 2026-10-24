@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/alecthomas/kingpin/v2 v2.4.1-0.20260925234028-f5476eeb56de
 	github.com/fatih/color v1.19.0
-	github.com/go-ldap/ldap/v3 v3.4.14
+	github.com/go-ldap/ldap/v3 v3.4.15
 	github.com/google/certificate-transparency-go v1.3.3
 	github.com/mattn/go-colorable v0.1.15
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
