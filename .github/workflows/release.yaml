@@ -12,7 +12,7 @@ jobs:
       matrix:
         # The exact Go version for release binaries. Bump it on purpose, for
         # example for a Go security release, and keep compilecheck.yaml in sync.
-        version: ['1.27.1']
+        version: ['1.27.3']
         target:
           - {os: 'darwin', platform: 'macos-latest', arch: 'amd64'}
           - {os: 'darwin', platform: 'macos-latest', arch: 'arm64'}
