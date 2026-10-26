@@ -10,9 +10,6 @@ jobs:
     name: Build
     strategy:
       matrix:
-        # The exact Go version for release binaries. Bump it on purpose, for
-        # example for a Go security release, and keep compilecheck.yaml in sync.
-        version: ['1.27.3']
         target:
           - {os: 'darwin', platform: 'macos-latest', arch: 'amd64'}
           - {os: 'darwin', platform: 'macos-latest', arch: 'arm64'}
@@ -27,13 +24,16 @@ jobs:
       # toolchain on its own when go.mod requires one.
       GOTOOLCHAIN: local
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
       - name: Setup Go environment
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # ratchet:actions/setup-go@v5
         with:
-          go-version: ${{ matrix.version }}
+          # .go-version holds the exact Go version for release binaries and
+          # every CI workflow. Bump it on purpose, for example for a Go
+          # security release. go.mod only sets the minimum version.
+          go-version-file: .go-version
         id: go
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
       - name: Build binary
         run: |
           go env -w CGO_ENABLED=0 GOARCH=${{ matrix.target.arch }}
