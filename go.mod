@@ -12,7 +12,7 @@ require (
 	github.com/mwitkow/go-http-dialer v0.0.0-20161116154839-378f744fb2b8
 	github.com/stretchr/testify v1.12.1
 	github.com/zmap/zcrypto v0.0.0-20260906180147-3ed30b1e9340
-	github.com/zmap/zlint/v3 v3.7.2
+	github.com/zmap/zlint/v3 v3.7.3
 	golang.org/x/crypto v0.58.0
 	software.sslmate.com/src/go-pkcs12 v0.7.4
 )
